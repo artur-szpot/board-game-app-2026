@@ -4,7 +4,8 @@ import type React from "react"
 import { Link, useNavigate } from "react-router"
 
 import { type LoginDto } from "../../dto/login.dto"
-import { login, selectAccessToken } from "../../store/features/currentUserSlice"
+import { type UserDataDto } from "../../dto/user-data.dto"
+import { login, selectAccessToken, setUserData } from "../../store/features/currentUserSlice"
 import { useAppDispatch, useAppSelector } from "../../store/hooks"
 
 type SigninForm = {
@@ -61,6 +62,18 @@ export const Signin: React.FC = () => {
             )
             .then(async data => {
               dispatch(login(data.data))
+              
+              // Fetch user data from /users/me
+              const userDataResponse = await axios.get<UserDataDto>(
+                `${import.meta.env.VITE_API_URL as string}/users/me`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${data.data.accessToken}`,
+                  },
+                },
+              )
+              
+              dispatch(setUserData(userDataResponse.data))
               await navigate("/", { replace: true })
             })
             .catch(() => {

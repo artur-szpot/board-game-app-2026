@@ -67,7 +67,7 @@ export class UserController {
 
   @Post()
   @RequirePermissions(
-    [PermissionType.USERS, PermissionLevel.CREATE],
+    [PermissionType.USERS, PermissionLevel.READ],
     [PermissionType.ROLES, PermissionLevel.READ],
     [PermissionType.PERMISSIONS, PermissionLevel.READ],
   )

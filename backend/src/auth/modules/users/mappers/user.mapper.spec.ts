@@ -21,7 +21,7 @@ describe('userMapper', () => {
           {
             permissionType: PermissionType.PERMISSIONS,
             description: 'text',
-            permissionLevel: PermissionLevel.CREATE,
+            permissionLevel: PermissionLevel.READ,
           },
         ],
       },

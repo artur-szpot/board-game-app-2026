@@ -28,7 +28,6 @@ export const PermissionProps = t.intersection([
     {
       permissionLevel: t.union([
         t.literal(PermissionLevel.READ),
-        t.literal(PermissionLevel.CREATE),
         t.literal(PermissionLevel.FULL),
       ]),
     },

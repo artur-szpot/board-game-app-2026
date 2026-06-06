@@ -68,7 +68,7 @@ export class RoleController {
 
   @Post()
   @RequirePermissions(
-    [PermissionType.ROLES, PermissionLevel.CREATE],
+    [PermissionType.ROLES, PermissionLevel.READ],
     [PermissionType.PERMISSIONS, PermissionLevel.READ],
   )
   async createRole(@Body() body: CreateRoleDto): Promise<RoleResponse> {

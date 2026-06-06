@@ -206,11 +206,11 @@ describe('RoleService', () => {
           ...createInput,
           permissions: [
             {
-              permissionLevel: PermissionLevel.CREATE,
+              permissionLevel: PermissionLevel.READ,
               permissionType: PermissionType.PERMISSIONS,
             },
             {
-              permissionLevel: PermissionLevel.CREATE,
+              permissionLevel: PermissionLevel.READ,
               permissionType: PermissionType.USERS,
             },
             {
@@ -430,11 +430,11 @@ describe('RoleService', () => {
           ...updateInputName,
           permissions: [
             {
-              permissionLevel: PermissionLevel.CREATE,
+              permissionLevel: PermissionLevel.READ,
               permissionType: PermissionType.PERMISSIONS,
             },
             {
-              permissionLevel: PermissionLevel.CREATE,
+              permissionLevel: PermissionLevel.READ,
               permissionType: PermissionType.USERS,
             },
             {
