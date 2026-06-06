@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2021",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "paths": {
+      "@auth/*": ["src/auth/*"],
+      "@common/*": ["src/common/*"],
+      "@db/*": ["src/db/*"],
+      "@domain/*": ["src/auth/domain/*"],
+      "@dto/*": ["src/dto/*"],
+      "@todo/*": ["src/todo/*"]
+    },
+    "incremental": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "noFallthroughCasesInSwitch": false,
+    "resolveJsonModule": true
+  }
+}

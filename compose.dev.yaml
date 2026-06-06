@@ -1,0 +1,62 @@
+services:
+  backend:
+    build:
+      context: backend
+    env_file:
+      - ./secrets/backend.env
+    ports:
+      - 3001:3001
+    depends_on:
+      - db
+    develop:
+      watch:
+        - action: sync
+          path: ./backend/src
+          target: /app/src
+        - action: rebuild
+          path: package.json
+
+  frontend:
+    build:
+      context: frontend
+      dockerfile: Dockerfile.dev
+    env_file:
+      - ./secrets/frontend.env
+    ports:
+      - 3002:5173
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: /app
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ./frontend/package.json
+
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password
+      POSTGRES_USER_FILE: /run/secrets/postgres-superuser
+      POSTGRES_DB_FILE: /run/secrets/postgres-db
+    ports:
+      - 5432:5432
+    volumes:
+      - db-volume:/var/lib/postgresql/data:rw
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    secrets:
+      - postgres-password
+      - postgres-superuser
+      - postgres-db
+
+secrets:
+  postgres-password:
+    file: ./secrets/postgres-password.txt
+  postgres-superuser:
+    file: ./secrets/postgres-superuser.txt
+  postgres-db:
+    file: ./secrets/postgres-db.txt
+
+volumes:
+  db-volume:

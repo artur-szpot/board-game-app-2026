@@ -1,0 +1,12 @@
+CREATE TABLE users (
+   id VARCHAR(40) NOT NULL,
+   username TEXT UNIQUE NOT NULL,
+   email TEXT UNIQUE NOT NULL,
+   password TEXT NOT NULL,
+   joined_date TIMESTAMP(6) NOT NULL DEFAULT(CURRENT_TIMESTAMP),
+   last_login TIMESTAMP(6)
+);
+
+ALTER TABLE users 
+   ADD CONSTRAINT users_pk 
+   PRIMARY KEY (id);

@@ -1,0 +1,6 @@
+# Dumb OS things
+.DS_Store
+Thumbs.db
+
+# Secrets
+secrets

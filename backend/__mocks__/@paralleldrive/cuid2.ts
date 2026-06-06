@@ -1,0 +1,1 @@
+export const createId = jest.fn(() => 'mocked-id');

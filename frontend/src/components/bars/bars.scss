@@ -1,0 +1,46 @@
+@use "color-scheme";
+
+div.bar {
+  width: 100%;
+  background-color: color-scheme.$background-bars;
+  display: flex;
+  flex-grow: 0;
+  color: color-scheme.$text-bars;
+
+  a {
+    color: color-scheme.$text-bars;
+    align-self: center;
+    svg:hover {
+      color: color-scheme.$icon-shadow-bars;
+    }
+  }
+}
+
+div.navbar {
+  div.logo {
+    img {
+      height: 50px;
+      width: auto;
+    }
+    flex-grow: 1;
+  }
+
+  a {
+    margin: 0 1em;
+  }
+}
+
+div.footer {
+  box-sizing: border-box;
+  padding: 0 0.8em;
+
+  p {
+    flex-grow: 1;
+  }
+
+  a {
+    &:not(:last-child) {
+      margin: 0 1em;
+    }
+  }
+}

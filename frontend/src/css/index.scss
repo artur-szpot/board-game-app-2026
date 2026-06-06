@@ -1,0 +1,35 @@
+@use "color-scheme";
+
+body {
+  margin: 0;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
+    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  text-decoration: none;
+  color: color-scheme.$text-main;
+
+  &:hover {
+    text-shadow: color-scheme.$link-shadow-main;
+  }
+}
+
+div#root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+}
+
+div.main-container {
+  flex-grow: 1;
+  background-color: #370142;
+  color: white;
+  padding: 0.8em;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}

@@ -1,0 +1,30 @@
+@use "color-scheme";
+
+div.admin-nav {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+
+  a {
+    color: plum;
+    align-self: center;
+    padding: 0.1em 0.5em;
+    border-radius: 5px;
+
+    &.active {
+      background-color: color-scheme.$background-main;
+      color: color-scheme.$text-main;
+
+      &:hover {
+        text-decoration: none;
+        cursor: default;
+        text-shadow: none;
+      }
+    }
+  }
+
+  h3 {
+    margin: 0;
+    align-self: center;
+  }
+}
