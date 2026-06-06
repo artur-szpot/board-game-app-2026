@@ -16,10 +16,10 @@ export const PermissionProps = t.intersection([
     {
       description: NonEmptyString,
       permissionType: t.union([
-        t.literal(PermissionType.TODOS),
+        t.literal(PermissionType.PERMISSIONS),
         t.literal(PermissionType.USERS),
         t.literal(PermissionType.ROLES),
-        t.literal(PermissionType.PERMISSIONS),
+        t.literal(PermissionType.GAME_COLLECTIONS),
       ]),
     },
     'requiredPermissionProps',

@@ -17,6 +17,6 @@ VALUES (
    'FULL'
 ), (
    'user',
-   'TODOS',
+   'GAME_COLLECTIONS',
    'FULL'
 );

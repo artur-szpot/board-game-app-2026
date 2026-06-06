@@ -12,9 +12,9 @@ describe('PermissionService', () => {
   );
   const service = new PermissionService(mockRepository);
 
-  const testPermissionType = PermissionType.TODOS;
+  const testPermissionType = PermissionType.PERMISSIONS;
   const testPermissionDto: PermissionDto = {
-    permissionType: PermissionType.TODOS,
+    permissionType: PermissionType.PERMISSIONS,
     description: 'text',
     permissionLevel: PermissionLevel.READ,
   };

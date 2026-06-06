@@ -3,6 +3,7 @@ import {
   Injectable,
   Logger,
   UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -13,9 +14,14 @@ import {
   USER_REPOSITORY,
   UserRepository,
 } from '@db/repositories/user.repository';
+import {
+  ROLE_REPOSITORY,
+  RoleRepository,
+} from '@db/repositories/role.repository';
 
 import { JwtDto } from '../dto/in/jwt.dto';
 import { LoginDto } from '../dto/in/login.dto';
+import { SignupDto } from '../dto/in/signup.dto';
 import { LoginResponse } from '../dto/out/login.response';
 import { User } from '../modules/users/domain/User';
 import { AuthGateway } from './auth.gateway';
@@ -28,6 +34,8 @@ export class AuthService implements AuthGateway {
     private readonly jwtService: JwtService,
     @Inject(USER_REPOSITORY)
     private readonly userRepository: UserRepository,
+    @Inject(ROLE_REPOSITORY)
+    private readonly roleRepository: RoleRepository,
   ) {}
 
   private async validateUser(email: string, password: string): Promise<User> {
@@ -67,6 +75,67 @@ export class AuthService implements AuthGateway {
       }
       this.logger.error(`Unexpected error while signing in: ${error}`);
       throw new InternalError('signing in');
+    }
+  }
+
+  async signup(dto: SignupDto): Promise<LoginResponse> {
+    try {
+      const { username, email, password } = dto;
+
+      // Check if user already exists
+      const existingUserByEmail =
+        await this.userRepository.getUserByEmail(email);
+      if (existingUserByEmail) {
+        throw new BadRequestException('E-mail address already in use');
+      }
+
+      const existingUserByUsername =
+        await this.userRepository.getUserByUsername(username);
+      if (existingUserByUsername) {
+        throw new BadRequestException('Selected username is already in use');
+      }
+
+      // Get the default 'user' role
+      const userRole = await this.roleRepository.getRoleByName('User');
+      if (!userRole) {
+        throw new InternalError('getting default user role');
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Create new user
+      const newUserDto = await this.userRepository.createUser({
+        username,
+        email,
+        password: hashedPassword,
+        roles: [{ roleId: userRole.id }],
+      });
+
+      // Convert to domain user and get permissions
+      const user = userMapper.fromDto.toDomain(newUserDto);
+      user.sanitize();
+      const { id } = user.getProps();
+      const permissions = user.getPermissions();
+
+      // Generate JWT token
+      const payload: JwtDto = {
+        id,
+        email,
+        permissions,
+      };
+
+      return {
+        accessToken: this.jwtService.sign(payload, {
+          secret: process.env.AUTH_SECRET,
+        }),
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      this.logger.error(`Unexpected error while signing up: ${error}`);
+      throw new InternalError('Unexpected error while signing up');
     }
   }
 }

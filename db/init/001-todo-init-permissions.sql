@@ -2,7 +2,8 @@ CREATE TYPE permission_type
    AS ENUM (
       'USERS',
       'ROLES',
-      'PERMISSIONS'
+      'PERMISSIONS',
+      'GAME_COLLECTIONS'
    );
 
 CREATE TABLE permissions (

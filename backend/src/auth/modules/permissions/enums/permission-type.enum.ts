@@ -1,6 +1,6 @@
 export enum PermissionType {
-  TODOS = 'TODOS',
   USERS = 'USERS',
   PERMISSIONS = 'PERMISSIONS',
   ROLES = 'ROLES',
+  GAME_COLLECTIONS = 'GAME_COLLECTIONS',
 }

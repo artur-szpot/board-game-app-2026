@@ -29,6 +29,10 @@ export const currentUserSlice = createAppSlice({
         localStorage.setItem("accessToken", state.accessToken)
       },
     ),
+    logout: create.reducer((state: CurrentUserSliceState) => {
+      delete state.accessToken
+      localStorage.removeItem("accessToken")
+    }),
   }),
   selectors: {
     selectAccessToken: currentUser => currentUser.accessToken,
@@ -36,7 +40,7 @@ export const currentUserSlice = createAppSlice({
 })
 
 // Action creators are generated for each case reducer function.
-export const { login } = currentUserSlice.actions
+export const { login, logout } = currentUserSlice.actions
 
 // Selectors returned by `slice.selectors` take the root state as their first argument.
 export const { selectAccessToken } = currentUserSlice.selectors

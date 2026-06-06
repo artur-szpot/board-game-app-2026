@@ -6,6 +6,7 @@ import { AdminPanel } from "./routes/admin-panel/AdminPanel"
 import { Dashboard } from "./routes/dashboard/Dashboard"
 import { Signin } from "./routes/auth/Signin"
 import { Signup } from "./routes/auth/Signup"
+import { Signout } from "./routes/auth/Signout"
 
 import "./css/index.scss"
 
@@ -18,6 +19,7 @@ export const App = () => {
           <Route path="/" element={<Dashboard />} />
           <Route path="/signin" element={<Signin />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/signout" element={<Signout />} />
           <Route path="/admin">
             <Route
               path="permissions"

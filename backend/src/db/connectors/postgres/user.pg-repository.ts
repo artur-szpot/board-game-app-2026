@@ -148,7 +148,7 @@ export class PostgresUserRepository implements UserRepository {
   ) {
     return connection.query(this.CREATE_USER_ROLES_SQL(input.roles.length), [
       id,
-      ...input.roles.map((role) => [role.roleId]),
+      ...input.roles.map((role) => role.roleId),
     ]);
   }
 

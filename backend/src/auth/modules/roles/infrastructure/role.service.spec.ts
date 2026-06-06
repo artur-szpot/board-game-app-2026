@@ -24,7 +24,7 @@ describe('RoleService', () => {
     protectedRole: false,
     permissions: [
       {
-        permissionType: PermissionType.TODOS,
+        permissionType: PermissionType.PERMISSIONS,
         description: 'text',
         permissionLevel: PermissionLevel.READ,
       },
@@ -37,7 +37,7 @@ describe('RoleService', () => {
     protectedRole: false,
     permissions: [
       {
-        permissionType: PermissionType.TODOS,
+        permissionType: PermissionType.PERMISSIONS,
         description: 'text',
         permissionLevel: PermissionLevel.READ,
       },
@@ -288,7 +288,7 @@ describe('RoleService', () => {
       protectedRole: false,
       permissions: [
         {
-          permissionType: PermissionType.TODOS,
+          permissionType: PermissionType.PERMISSIONS,
           description: 'text',
           permissionLevel: PermissionLevel.READ,
         },
@@ -515,7 +515,7 @@ describe('RoleService', () => {
       protectedRole: false,
       permissions: [
         {
-          permissionType: PermissionType.TODOS,
+          permissionType: PermissionType.PERMISSIONS,
           description: 'text',
           permissionLevel: PermissionLevel.READ,
         },

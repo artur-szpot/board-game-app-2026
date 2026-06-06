@@ -1,6 +1,7 @@
 import axios from "axios"
 import { Formik } from "formik"
 import type React from "react"
+import { Link, useNavigate } from "react-router"
 
 import { type LoginDto } from "../../dto/login.dto"
 import { login, selectAccessToken } from "../../store/features/currentUserSlice"
@@ -19,10 +20,10 @@ const initialValues: SigninForm = {
 
 export const Signin: React.FC = () => {
   const dispatch = useAppDispatch()
+  const navigate = useNavigate()
   const accessToken = useAppSelector(selectAccessToken)
 
   if (accessToken) {
-    // TODO: make sing out a link, make pretty
     return (
       <div>
         Already signed in. Please sign out if you wish to sign in as another
@@ -58,12 +59,12 @@ export const Signin: React.FC = () => {
                 password: values.password,
               },
             )
-            .then(data => {
-              alert(JSON.stringify(data))
+            .then(async data => {
               dispatch(login(data.data))
+              await navigate("/", { replace: true })
             })
             .catch(() => {
-              alert("oooops")
+              // Nothing for now; just stay on the signin page. TODO: show an error message.
             })
           setTimeout(() => {
             setSubmitting(false)
@@ -79,35 +80,40 @@ export const Signin: React.FC = () => {
           handleSubmit,
           isSubmitting,
         }) => (
-          <form onSubmit={handleSubmit}>
+          <>
+            <form onSubmit={handleSubmit}>
+              <div>
+                <input
+                  type="email"
+                  name="email"
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  value={values.email}
+                  placeholder="e-mail"
+                />
+                {errors.email && touched.email && errors.email}
+              </div>
+              <div>
+                <input
+                  type="password"
+                  name="password"
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  value={values.password}
+                  placeholder="password"
+                />
+                {errors.password && touched.password && errors.password}
+              </div>
+              <div>
+                <button type="submit" disabled={isSubmitting}>
+                  Sign in
+                </button>
+              </div>
+            </form>
             <div>
-              <input
-                type="email"
-                name="email"
-                onChange={handleChange}
-                onBlur={handleBlur}
-                value={values.email}
-                placeholder="e-mail"
-              />
-              {errors.email && touched.email && errors.email}
+              <Link to="/signup">Don’t have an account? Sign up</Link>
             </div>
-            <div>
-              <input
-                type="password"
-                name="password"
-                onChange={handleChange}
-                onBlur={handleBlur}
-                value={values.password}
-                placeholder="password"
-              />
-              {errors.password && touched.password && errors.password}
-            </div>
-            <div>
-              <button type="submit" disabled={isSubmitting}>
-                Sign in
-              </button>
-            </div>
-          </form>
+          </>
         )}
       </Formik>
     </div>
