@@ -11,4 +11,7 @@ VALUES (
 ), (
    'Allows the user to interact with permissions',
    'PERMISSIONS'
+), (
+   'Allows the user to manage their game collection',
+   'GAME_COLLECTIONS'
 );

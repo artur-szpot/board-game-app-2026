@@ -1,6 +1,7 @@
 import { Body, Controller, Post } from '@nestjs/common';
 
 import { LoginDto } from './dto/in/login.dto';
+import { SignupDto } from './dto/in/signup.dto';
 import { LoginResponse } from './dto/out/login.response';
 import { AuthService } from './infrastructure/auth.service';
 
@@ -13,7 +14,10 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
-  // post register
+  @Post('signup')
+  async signup(@Body() signupDto: SignupDto): Promise<LoginResponse> {
+    return this.authService.signup(signupDto);
+  }
 
   // whatever is needed for google or other oauth
 }

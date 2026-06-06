@@ -14,7 +14,7 @@ describe('Permission', () => {
   it('should create a Permission based on correct props without ID', async () => {
     const props = {
       description: 'text',
-      permissionType: PermissionType.TODOS,
+      permissionType: PermissionType.PERMISSIONS,
       permissionLevel: PermissionLevel.FULL,
     };
     const entity = new Permission(logger, props);
@@ -33,7 +33,7 @@ describe('Permission', () => {
     const props = {
       id: '1',
       description: 'text',
-      permissionType: PermissionType.TODOS,
+      permissionType: PermissionType.PERMISSIONS,
       permissionLevel: PermissionLevel.FULL,
     };
     const entity = new Permission(logger, props);
@@ -48,7 +48,7 @@ describe('Permission', () => {
   it('should create a Permission based on correct DTO', async () => {
     const dto: PermissionDto = {
       description: 'text',
-      permissionType: PermissionType.TODOS,
+      permissionType: PermissionType.PERMISSIONS,
       permissionLevel: PermissionLevel.FULL,
     };
     const entity = permissionMapper.fromDto.toDomain(dto);
@@ -63,7 +63,7 @@ describe('Permission', () => {
   it('should create a Permission based on correct DTO without level', async () => {
     const dto: PermissionDto = {
       description: 'text',
-      permissionType: PermissionType.TODOS,
+      permissionType: PermissionType.PERMISSIONS,
     };
     const entity = permissionMapper.fromDto.toDomain(dto);
     expect(entity).toBeDefined();
@@ -80,7 +80,7 @@ describe('Permission', () => {
     const props = {
       id: 1,
       description: 'text',
-      permissionType: PermissionType.TODOS,
+      permissionType: PermissionType.PERMISSIONS,
       permissionLevel: PermissionLevel.FULL,
     };
     try {
@@ -95,7 +95,7 @@ describe('Permission', () => {
 
   it('should fail to create a Permission based on incomplete props', async () => {
     const props = {
-      permissionType: PermissionType.TODOS,
+      permissionType: PermissionType.PERMISSIONS,
       permissionLevel: PermissionLevel.FULL,
     };
     try {

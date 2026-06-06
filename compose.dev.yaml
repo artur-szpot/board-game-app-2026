@@ -20,20 +20,11 @@ services:
     build:
       context: frontend
       dockerfile: Dockerfile.dev
-    env_file:
-      - ./secrets/frontend.env
+      args:
+        VITE_API_URL: http://backend:3001
     ports:
       - 3002:5173
-    develop:
-      watch:
-        - action: sync
-          path: ./frontend
-          target: /app
-          ignore:
-            - node_modules/
-        - action: rebuild
-          path: ./frontend/package.json
-
+    
   db:
     image: postgres:17
     environment:

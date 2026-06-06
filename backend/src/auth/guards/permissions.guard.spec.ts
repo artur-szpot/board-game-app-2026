@@ -21,7 +21,7 @@ describe('PermissionsGuard', () => {
 
   it('should allow access when user has adequate permissions', async () => {
     mockReflector.getAllAndOverride = jest.fn().mockReturnValue([
-      [PermissionType.TODOS, PermissionLevel.READ],
+      [PermissionType.PERMISSIONS, PermissionLevel.READ],
       [PermissionType.USERS, PermissionLevel.READ],
     ]);
     const context: ExecutionContext = jest.requireMock('@nestjs/common');
@@ -31,7 +31,7 @@ describe('PermissionsGuard', () => {
       getRequest: jest.fn().mockReturnValueOnce({
         user: {
           permissions: [
-            [PermissionType.TODOS, PermissionLevel.READ],
+            [PermissionType.PERMISSIONS, PermissionLevel.READ],
             [PermissionType.USERS, PermissionLevel.READ],
           ],
         },
@@ -43,7 +43,7 @@ describe('PermissionsGuard', () => {
 
   it('should allow access when user has exceeding permissions', async () => {
     mockReflector.getAllAndOverride = jest.fn().mockReturnValue([
-      [PermissionType.TODOS, PermissionLevel.READ],
+      [PermissionType.PERMISSIONS, PermissionLevel.READ],
       [PermissionType.USERS, PermissionLevel.READ],
     ]);
     const context: ExecutionContext = jest.requireMock('@nestjs/common');
@@ -53,7 +53,7 @@ describe('PermissionsGuard', () => {
       getRequest: jest.fn().mockReturnValueOnce({
         user: {
           permissions: [
-            [PermissionType.TODOS, PermissionLevel.CREATE],
+            [PermissionType.PERMISSIONS, PermissionLevel.CREATE],
             [PermissionType.USERS, PermissionLevel.FULL],
           ],
         },
@@ -65,7 +65,7 @@ describe('PermissionsGuard', () => {
 
   it('should not allow access when user has only partial permissions', async () => {
     mockReflector.getAllAndOverride = jest.fn().mockReturnValue([
-      [PermissionType.TODOS, PermissionLevel.READ],
+      [PermissionType.PERMISSIONS, PermissionLevel.READ],
       [PermissionType.USERS, PermissionLevel.READ],
     ]);
     const context: ExecutionContext = jest.requireMock('@nestjs/common');
@@ -74,7 +74,7 @@ describe('PermissionsGuard', () => {
     context.switchToHttp = jest.fn().mockReturnValue({
       getRequest: jest.fn().mockReturnValueOnce({
         user: {
-          permissions: [[PermissionType.TODOS, PermissionLevel.CREATE]],
+          permissions: [[PermissionType.PERMISSIONS, PermissionLevel.CREATE]],
         },
       }),
     });
@@ -84,7 +84,7 @@ describe('PermissionsGuard', () => {
 
   it('should not allow access when user has no permissions', async () => {
     mockReflector.getAllAndOverride = jest.fn().mockReturnValue([
-      [PermissionType.TODOS, PermissionLevel.READ],
+      [PermissionType.PERMISSIONS, PermissionLevel.READ],
       [PermissionType.USERS, PermissionLevel.READ],
     ]);
     const context: ExecutionContext = jest.requireMock('@nestjs/common');

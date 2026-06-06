@@ -27,7 +27,7 @@ describe('User', () => {
             {
               description: 'text',
               permissionLevel: PermissionLevel.CREATE,
-              permissionType: PermissionType.TODOS,
+              permissionType: PermissionType.PERMISSIONS,
             },
           ],
         },
@@ -62,7 +62,7 @@ describe('User', () => {
             {
               description: 'text',
               permissionLevel: PermissionLevel.CREATE,
-              permissionType: PermissionType.TODOS,
+              permissionType: PermissionType.PERMISSIONS,
             },
           ],
         },
@@ -96,7 +96,7 @@ describe('User', () => {
             {
               description: 'text',
               permissionLevel: PermissionLevel.CREATE,
-              permissionType: PermissionType.TODOS,
+              permissionType: PermissionType.PERMISSIONS,
             },
           ],
         },
@@ -131,7 +131,7 @@ describe('User', () => {
               id: '1',
               description: 'text',
               permissionLevel: PermissionLevel.CREATE,
-              permissionType: PermissionType.TODOS,
+              permissionType: PermissionType.PERMISSIONS,
             },
           ],
         },
@@ -162,7 +162,7 @@ describe('User', () => {
             {
               description: 'text',
               permissionLevel: PermissionLevel.CREATE,
-              permissionType: PermissionType.TODOS,
+              permissionType: PermissionType.PERMISSIONS,
             },
           ],
         },
