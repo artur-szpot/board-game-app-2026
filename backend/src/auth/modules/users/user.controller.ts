@@ -19,13 +19,14 @@ import { paginationMapper } from '@common/pagination/mapper/pagination.mapper';
 import { Paginated } from '@common/pagination/Paginated';
 
 import { RequirePermissions } from '@auth/decorators/permissions.decorator';
+import { UserId } from '@common/decorators/user-id.decorator';
 import { PermissionLevel } from '../permissions/enums/permission-level.enum';
 import { PermissionType } from '../permissions/enums/permission-type.enum';
 import { CreateUserDto } from './dto/in/create-user.dto';
 import { UpdateUserDto } from './dto/in/update-user.dto';
+import { MeResponse } from './dto/out/me.response';
 import { UserResponse } from './dto/out/user.response';
 import { USER_GATEWAY, UserGateway } from './infrastructure/user.gateway';
-import { UserId } from '@common/decorators/user-id.decorator';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, PermisionsGuard)
@@ -36,10 +37,8 @@ export class UserController {
   ) {}
 
   @Get('/me')
-  public async getLoggedInUser(
-    @UserId() userId: string,
-  ): Promise<UserResponse> {
-    return this.gateway.getById(userId);
+  public async getLoggedInUser(@UserId() userId: string): Promise<MeResponse> {
+    return this.gateway.getMe(userId);
   }
 
   @Get('/:id')

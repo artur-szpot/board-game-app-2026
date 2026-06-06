@@ -4,22 +4,13 @@ import {
   IsBoolean,
   IsNotEmpty,
   IsString,
-  MaxLength,
   ValidateNested,
 } from 'class-validator';
 
 import { PermissionResponse } from '@auth/modules/permissions/dto/out/permission.response';
+import { RoleShortResponse } from './role-short.response';
 
-export class RoleResponse {
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(40)
-  id: string;
-
-  @IsString()
-  @IsNotEmpty()
-  name: string;
-
+export class RoleResponse extends RoleShortResponse {
   @IsString()
   @IsNotEmpty()
   description: string;

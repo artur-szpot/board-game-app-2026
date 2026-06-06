@@ -1,25 +1,9 @@
-import {
-  IsEnum,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  MaxLength,
-} from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
-import { PermissionLevel } from '../../enums/permission-level.enum';
-import { PermissionType } from '../../enums/permission-type.enum';
+import { PermissionShortResponse } from './permission-short.response';
 
-export class PermissionResponse {
+export class PermissionResponse extends PermissionShortResponse {
   @IsString()
   @IsNotEmpty()
   description: string;
-
-  @IsEnum(PermissionType)
-  @IsNotEmpty()
-  permissionType: PermissionType;
-
-  @IsEnum(PermissionLevel)
-  @IsNotEmpty()
-  @IsOptional()
-  permissionLevel?: PermissionLevel;
 }

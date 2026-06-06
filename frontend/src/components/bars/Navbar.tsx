@@ -16,9 +16,11 @@ export const Navbar: React.FC = () => {
           <img src="/logo.png" alt={"Logo placeholder"} />
         </Link>
       </div>
-      <Link to={"/admin/users"}>Admin panel</Link>
       {accessToken ? (
-        <Link to={"/signout"}>Sign out</Link>
+        <>
+          <Link to={"/admin/users"}>Admin panel</Link>
+          <Link to={"/signout"}>Sign out</Link>
+        </>
       ) : (
         <Link to={"/signin"}>Sign in</Link>
       )}
