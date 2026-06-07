@@ -16,6 +16,10 @@ VALUES (
    'PERMISSIONS',
    'FULL'
 ), (
+   'admin',
+   'ADMIN_PANEL',
+   'READ'
+), (
    'user',
    'GAME_COLLECTIONS',
    'FULL'

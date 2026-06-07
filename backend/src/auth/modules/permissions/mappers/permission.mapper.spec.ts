@@ -7,7 +7,7 @@ describe('permissionMapper', () => {
   const permissionDto = {
     permissionType: PermissionType.PERMISSIONS,
     description: 'text',
-    permissionLevel: PermissionLevel.CREATE,
+    permissionLevel: PermissionLevel.READ,
   };
 
   describe('from DTO to Entity', () => {

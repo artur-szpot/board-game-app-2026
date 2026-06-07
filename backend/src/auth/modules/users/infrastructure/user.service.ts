@@ -19,6 +19,10 @@ import { UpdateUserDto } from '../dto/in/update-user.dto';
 import { UserResponse } from '../dto/out/user.response';
 import { userMapper } from '../mappers/user.mapper';
 import { UserGateway } from './user.gateway';
+import { MeResponse } from '../dto/out/me.response';
+import { UserDto } from '../dto/in/user.dto';
+import { User } from '../domain/User';
+import { permissionMapper } from '@auth/modules/permissions/mappers/permission.mapper';
 
 @Injectable()
 export class UserService implements UserGateway {
@@ -29,14 +33,19 @@ export class UserService implements UserGateway {
     private readonly userRepository: UserRepository,
   ) {}
 
+  private async getUser(userId: string): Promise<User> {
+    const userDto = await this.userRepository.getUserById(userId);
+    if (!userDto) {
+      this.logger.error(`Could not find user with ID "${userId}"`);
+      throw new NotFoundError(`user with ID "${userId}"`);
+    }
+    const user = userMapper.fromDto.toDomain(userDto);
+    return user;
+  }
+
   public async getById(userId: string): Promise<UserResponse> {
     try {
-      const userDto = await this.userRepository.getUserById(userId);
-      if (!userDto) {
-        this.logger.error(`Could not find user with ID "${userId}"`);
-        throw new NotFoundError(`user with ID "${userId}"`);
-      }
-      const user = userMapper.fromDto.toDomain(userDto);
+      const user = await this.getUser(userId);
       return userMapper.fromDomain.toResponse(user);
     } catch (error) {
       if (error instanceof NotFoundError) {
@@ -47,6 +56,21 @@ export class UserService implements UserGateway {
       );
       throw new InternalError('retrieving the user');
     }
+  }
+
+  public async getMe(userId: string): Promise<MeResponse> {
+    const user = await this.getUser(userId);
+    user.sanitize();
+    const { username } = user.getProps();
+    const permissions = user
+      .getPermissions()
+      .map((permission) =>
+        permissionMapper.fromDefinition.toResponse(permission),
+      );
+    return {
+      username,
+      permissions,
+    };
   }
 
   public async getMany(

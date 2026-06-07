@@ -10,7 +10,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-import { RoleResponse } from '@auth/modules/roles/dto/out/role.response';
+import { RoleShortResponse } from '@auth/modules/roles/dto/out/role-short.response';
 
 export class UserResponse {
   @IsString()
@@ -30,7 +30,7 @@ export class UserResponse {
   @IsArray()
   @ArrayMinSize(1)
   @ValidateNested({ each: true })
-  roles: RoleResponse[];
+  roles: RoleShortResponse[];
 
   @IsDateString()
   @IsNotEmpty()

@@ -3,7 +3,8 @@ CREATE TYPE permission_type
       'USERS',
       'ROLES',
       'PERMISSIONS',
-      'GAME_COLLECTIONS'
+      'GAME_COLLECTIONS',
+      'ADMIN_PANEL'
    );
 
 CREATE TABLE permissions (

@@ -74,7 +74,7 @@ export class AuthService implements AuthGateway {
         throw error;
       }
       this.logger.error(`Unexpected error while signing in: ${error}`);
-      throw new InternalError('signing in');
+      throw new InternalError('Unexpected error while signing in');
     }
   }
 

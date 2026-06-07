@@ -21,7 +21,7 @@ describe('Role', () => {
         {
           id: '1',
           description: 'text',
-          permissionLevel: PermissionLevel.CREATE,
+          permissionLevel: PermissionLevel.READ,
           permissionType: PermissionType.PERMISSIONS,
         },
       ],
@@ -49,7 +49,7 @@ describe('Role', () => {
         {
           id: '2',
           description: 'text',
-          permissionLevel: PermissionLevel.CREATE,
+          permissionLevel: PermissionLevel.READ,
           permissionType: PermissionType.PERMISSIONS,
         },
       ],
@@ -75,7 +75,7 @@ describe('Role', () => {
       permissions: [
         {
           description: 'text',
-          permissionLevel: PermissionLevel.CREATE,
+          permissionLevel: PermissionLevel.READ,
           permissionType: PermissionType.PERMISSIONS,
         },
       ],
@@ -102,7 +102,7 @@ describe('Role', () => {
         {
           id: '2',
           description: 'text',
-          permissionLevel: PermissionLevel.CREATE,
+          permissionLevel: PermissionLevel.READ,
           permissionType: PermissionType.PERMISSIONS,
         },
       ],
@@ -125,7 +125,7 @@ describe('Role', () => {
         {
           id: '2',
           description: 'text',
-          permissionLevel: PermissionLevel.CREATE,
+          permissionLevel: PermissionLevel.READ,
           permissionType: PermissionType.PERMISSIONS,
         },
       ],

@@ -53,7 +53,7 @@ describe('PermissionsGuard', () => {
       getRequest: jest.fn().mockReturnValueOnce({
         user: {
           permissions: [
-            [PermissionType.PERMISSIONS, PermissionLevel.CREATE],
+            [PermissionType.PERMISSIONS, PermissionLevel.READ],
             [PermissionType.USERS, PermissionLevel.FULL],
           ],
         },
@@ -74,7 +74,7 @@ describe('PermissionsGuard', () => {
     context.switchToHttp = jest.fn().mockReturnValue({
       getRequest: jest.fn().mockReturnValueOnce({
         user: {
-          permissions: [[PermissionType.PERMISSIONS, PermissionLevel.CREATE]],
+          permissions: [[PermissionType.PERMISSIONS, PermissionLevel.READ]],
         },
       }),
     });
