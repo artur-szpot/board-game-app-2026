@@ -37,6 +37,7 @@ game_scores
     game_id VARCHAR NOT NULL FK(games, id)
     played_on TIMESTAMP
     schema VARCHAR NOT NULL FK(scoring_schemas, id)
+    scores JSON -- per-players list of values as per the linked schema
 
 scoring_schemas
     id VARCHAR NOT NULL PK
@@ -54,5 +55,5 @@ helpers
 
 game_helpers (composite PK)
     game_id VARCHAR NOT NULL FK(games, id)
-    helper_id VARCHAR NOT NULL
+    helper_id VARCHAR NOT NULL FK(helpers, id)
     helper_args JSON -- can configure a generic helper, e.g. min and max total players
