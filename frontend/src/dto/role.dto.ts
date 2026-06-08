@@ -1,4 +1,5 @@
-import type { PermissionResponseDto, PermissionShortDto } from "./permission.dto"
+import type { PermissionResponseDto } from "./permission.dto"
+import type { PermissionShortDto } from "./user-data.dto"
 
 export type RoleShortDto = {
   id: string
