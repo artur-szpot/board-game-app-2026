@@ -5,63 +5,16 @@ import { Link } from "react-router"
 
 import { selectAccessToken } from "../../store/features/currentUserSlice"
 import { useAppSelector } from "../../store/hooks"
-import type { PermissionResponseDto } from "../../dto/permission.dto"
-import type { RoleResponseDto } from "../../dto/role.dto"
-import type { UserResponseDto } from "../../dto/user.dto"
 
 import "./admin-panel.scss"
-
-export type AdminPanelCategory = "permissions" | "roles" | "users"
-
-export type AdminPanelProps = {
-  content?: AdminPanelCategory
-}
-
-const PAGE_SIZE = 10
-
-type AdminPanelItem =
-  | PermissionResponseDto
-  | RoleResponseDto
-  | UserResponseDto
-
-type PaginatedResponse<T> = {
-  page: T[]
-  total: number
-}
-
-const renderValue = (value: unknown) => {
-  if (value === null || value === undefined) {
-    return ""
-  }
-
-  if (
-    typeof value === "string" ||
-    typeof value === "number" ||
-    typeof value === "boolean"
-  ) {
-    return String(value)
-  }
-
-  return JSON.stringify(value)
-}
-
-const renderItem = (item: AdminPanelItem) => {
-  const itemRecord = item as Record<string, unknown>
-  const keys = Object.keys(itemRecord)
-  if (keys.length === 0) {
-    return <span>{JSON.stringify(item)}</span>
-  }
-
-  return (
-    <div className="admin-item">
-      {keys.map(key => (
-        <div key={key}>
-          <strong>{key}</strong>: {renderValue(itemRecord[key])}
-        </div>
-      ))}
-    </div>
-  )
-}
+import type {
+  AdminPanelCategory,
+  AdminPanelItem,
+  AdminPanelProps,
+  PaginatedResponse,
+} from "./admin-types"
+import { PAGE_SIZE } from "./admin-types"
+import { AdminPanelContent } from "./AdminPanelContent"
 
 export const AdminPanel: React.FC<AdminPanelProps> = (
   props: AdminPanelProps,
@@ -125,34 +78,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = (
     )
   }
 
-  const contentElement = ((_content?: AdminPanelCategory) => {
-    if (!_content) {
-      return <div>404</div>
-    }
-
-    if (loading) {
-      return <div>Loading {_content}…</div>
-    }
-
-    if (error) {
-      return <div>{error}</div>
-    }
-
-    if (items.length === 0) {
-      return <div>No {_content} found.</div>
-    }
-
-    return (
-      <div>
-        <h4>{`${_content.charAt(0).toUpperCase()}${_content.slice(1)}`}</h4>
-        <ul>
-          {items.map((item, index) => (
-            <li key={index}>{renderItem(item)}</li>
-          ))}
-        </ul>
-      </div>
-    )
-  })(content)
+  const contentElement = (
+    <AdminPanelContent
+      content={content}
+      items={items}
+      loading={loading}
+      error={error}
+    />
+  )
 
   return (
     <>
