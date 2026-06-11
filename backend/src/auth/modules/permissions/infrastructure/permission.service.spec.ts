@@ -1,4 +1,4 @@
-import { InternalError, NotFoundError } from '@common/errors/service-errors';
+import { CustomInternalError, CustomNotFoundError } from '@common/errors/service-errors';
 import { PermissionRepository } from '@db/repositories/permission.repository';
 
 import { PermissionDto } from '../dto/in/permission.dto';
@@ -54,7 +54,7 @@ describe('PermissionService', () => {
           testPermissionType,
         );
         expect(mockRepository.getPermissionByType).toHaveBeenCalledTimes(1);
-        expect(error).toBeInstanceOf(NotFoundError);
+        expect(error).toBeInstanceOf(CustomNotFoundError);
       }
     });
 
@@ -72,7 +72,7 @@ describe('PermissionService', () => {
           testPermissionType,
         );
         expect(mockRepository.getPermissionByType).toHaveBeenCalledTimes(1);
-        expect(error).toBeInstanceOf(InternalError);
+        expect(error).toBeInstanceOf(CustomInternalError);
       }
     });
   });
@@ -151,7 +151,7 @@ describe('PermissionService', () => {
         );
         expect(mockRepository.getManyPermissions).toHaveBeenCalledTimes(1);
         expect(mockRepository.getAllPermissionsCount).toHaveBeenCalledTimes(1);
-        expect(error).toBeInstanceOf(InternalError);
+        expect(error).toBeInstanceOf(CustomInternalError);
       }
     });
   });

@@ -9,7 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
 import { userMapper } from '@auth/modules/users/mappers/user.mapper';
-import { InternalError } from '@common/errors/service-errors';
+import { CustomInternalError } from '@common/errors/service-errors';
 import {
   USER_REPOSITORY,
   UserRepository,
@@ -74,8 +74,8 @@ export class AuthService implements AuthGateway {
         throw error;
       }
       this.logger.error(`Unexpected error while signing in: ${error}`);
-      throw new InternalError('Unexpected error while signing in');
     }
+    throw new CustomInternalError('signing in');
   }
 
   async signup(dto: SignupDto): Promise<LoginResponse> {
@@ -98,7 +98,7 @@ export class AuthService implements AuthGateway {
       // Get the default 'user' role
       const userRole = await this.roleRepository.getRoleByName('User');
       if (!userRole) {
-        throw new InternalError('getting default user role');
+        throw new CustomInternalError('getting default user role');
       }
 
       // Hash password
@@ -135,7 +135,7 @@ export class AuthService implements AuthGateway {
         throw error;
       }
       this.logger.error(`Unexpected error while signing up: ${error}`);
-      throw new InternalError('Unexpected error while signing up');
+      throw new CustomInternalError('signing up');
     }
   }
 }

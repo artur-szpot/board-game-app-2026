@@ -5,7 +5,7 @@ import {
   Logger,
 } from '@nestjs/common';
 
-import { InternalError, NotFoundError } from '@common/errors/service-errors';
+import { CustomInternalError, CustomNotFoundError } from '@common/errors/service-errors';
 import { validateUpdateDtoNotEmpty } from '@common/helpers/validate-update-dto-not-empty';
 import { Paginated } from '@common/pagination/Paginated';
 import { Pagination } from '@common/pagination/pagination';
@@ -37,7 +37,7 @@ export class UserService implements UserGateway {
     const userDto = await this.userRepository.getUserById(userId);
     if (!userDto) {
       this.logger.error(`Could not find user with ID "${userId}"`);
-      throw new NotFoundError(`user with ID "${userId}"`);
+      throw new CustomNotFoundError(`user with ID "${userId}"`);
     }
     const user = userMapper.fromDto.toDomain(userDto);
     return user;
@@ -48,13 +48,13 @@ export class UserService implements UserGateway {
       const user = await this.getUser(userId);
       return userMapper.fromDomain.toResponse(user);
     } catch (error) {
-      if (error instanceof NotFoundError) {
+      if (error instanceof CustomNotFoundError) {
         throw error;
       }
       this.logger.error(
         `Unexpected error while retrieving user with ID "${userId}": ${error}`,
       );
-      throw new InternalError('retrieving the user');
+      throw new CustomInternalError('retrieving the user');
     }
   }
 
@@ -88,7 +88,7 @@ export class UserService implements UserGateway {
       };
     } catch (error) {
       this.logger.error(`Unexpected error while retrieving users: ${error}`);
-      throw new InternalError('retrieving users');
+      throw new CustomInternalError('retrieving users');
     }
   }
 
@@ -158,7 +158,7 @@ export class UserService implements UserGateway {
         throw error;
       }
       this.logger.error(`Unexpected error while creating user: ${error}`);
-      throw new InternalError('creating the user');
+      throw new CustomInternalError('creating the user');
     }
   }
 
@@ -183,7 +183,7 @@ export class UserService implements UserGateway {
         throw error;
       }
       this.logger.error(`Unexpected error while updating user: ${error}`);
-      throw new InternalError('updating the user');
+      throw new CustomInternalError('updating the user');
     }
   }
 
@@ -199,7 +199,7 @@ export class UserService implements UserGateway {
         throw error;
       }
       this.logger.error(`Unexpected error while deleting user: ${error}`);
-      throw new InternalError('deleting the user');
+      throw new CustomInternalError('deleting the user');
     }
   }
 }

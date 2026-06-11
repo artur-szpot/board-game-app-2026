@@ -2,7 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 
 import { PermissionLevel } from '@auth/modules/permissions/enums/permission-level.enum';
 import { PermissionType } from '@auth/modules/permissions/enums/permission-type.enum';
-import { InternalError, NotFoundError } from '@common/errors/service-errors';
+import { CustomInternalError, CustomNotFoundError } from '@common/errors/service-errors';
 import { RoleRepository } from '@db/repositories/role.repository';
 
 import { CreateRoleDto } from '../dto/in/create-role.dto';
@@ -66,7 +66,7 @@ describe('RoleService', () => {
       } catch (error) {
         expect(mockRepository.getRoleById).toHaveBeenCalledWith(testRoleId);
         expect(mockRepository.getRoleById).toHaveBeenCalledTimes(1);
-        expect(error).toBeInstanceOf(NotFoundError);
+        expect(error).toBeInstanceOf(CustomNotFoundError);
       }
     });
 
@@ -80,7 +80,7 @@ describe('RoleService', () => {
       } catch (error) {
         expect(mockRepository.getRoleById).toHaveBeenCalledWith(testRoleId);
         expect(mockRepository.getRoleById).toHaveBeenCalledTimes(1);
-        expect(error).toBeInstanceOf(InternalError);
+        expect(error).toBeInstanceOf(CustomInternalError);
       }
     });
   });
@@ -147,7 +147,7 @@ describe('RoleService', () => {
         expect(mockRepository.getManyRoles).toHaveBeenCalledWith(undefined);
         expect(mockRepository.getManyRoles).toHaveBeenCalledTimes(1);
         expect(mockRepository.getAllRolesCount).toHaveBeenCalledTimes(1);
-        expect(error).toBeInstanceOf(InternalError);
+        expect(error).toBeInstanceOf(CustomInternalError);
       }
     });
   });
@@ -268,7 +268,7 @@ describe('RoleService', () => {
         );
         expect(mockRepository.getRoleByName).toHaveBeenCalledTimes(1);
         expect(mockRepository.createRole).toHaveBeenCalledTimes(0);
-        expect(error).toBeInstanceOf(InternalError);
+        expect(error).toBeInstanceOf(CustomInternalError);
       }
     });
   });
@@ -501,7 +501,7 @@ describe('RoleService', () => {
         );
         expect(mockRepository.getRoleByName).toHaveBeenCalledTimes(1);
         expect(mockRepository.updateRole).toHaveBeenCalledTimes(0);
-        expect(error).toBeInstanceOf(InternalError);
+        expect(error).toBeInstanceOf(CustomInternalError);
       }
     });
   });
@@ -592,7 +592,7 @@ describe('RoleService', () => {
         expect(mockRepository.getRoleById).toHaveBeenCalledWith(toDeleteRoleId);
         expect(mockRepository.getRoleById).toHaveBeenCalledTimes(1);
         expect(mockRepository.deleteRole).toHaveBeenCalledTimes(0);
-        expect(error).toBeInstanceOf(InternalError);
+        expect(error).toBeInstanceOf(CustomInternalError);
       }
     });
   });

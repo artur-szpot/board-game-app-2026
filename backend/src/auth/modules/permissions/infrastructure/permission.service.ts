@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 
-import { InternalError, NotFoundError } from '@common/errors/service-errors';
+import { CustomInternalError, CustomNotFoundError } from '@common/errors/service-errors';
 import { Paginated } from '@common/pagination/Paginated';
 import { Pagination } from '@common/pagination/pagination';
 import {
@@ -29,18 +29,18 @@ export class PermissionService implements PermissionGateway {
       const permissionDto =
         await this.permissionRepository.getPermissionByType(permissionType);
       if (!permissionDto) {
-        throw new NotFoundError(`permission of type ${permissionType}`);
+        throw new CustomNotFoundError(`permission of type ${permissionType}`);
       }
       const permission = permissionMapper.fromDto.toDomain(permissionDto);
       return permissionMapper.fromDomain.toResponse(permission);
     } catch (error) {
-      if (error instanceof NotFoundError) {
+      if (error instanceof CustomNotFoundError) {
         throw error;
       }
       this.logger.error(
         `Unexpected error while retrieving permission with type "${permissionType}": ${error}`,
       );
-      throw new InternalError('retrieving the permission');
+      throw new CustomInternalError('retrieving the permission');
     }
   }
 
@@ -61,7 +61,7 @@ export class PermissionService implements PermissionGateway {
       this.logger.error(
         `Unexpected error while retrieving permissions: ${error}`,
       );
-      throw new InternalError('retrieving permissions');
+      throw new CustomInternalError('retrieving permissions');
     }
   }
 }
