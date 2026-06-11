@@ -5,9 +5,11 @@ import { PostgresLocationRepository } from './connectors/postgres/location.pg-re
 import { PostgresPermissionRepository } from './connectors/postgres/permission.pg-repository';
 import { PostgresRoleRepository } from './connectors/postgres/role.pg-repository';
 import { PostgresUserRepository } from './connectors/postgres/user.pg-repository';
+import { PostgresTagRepository } from './connectors/postgres/tag.pg-repository';
 import { LOCATION_REPOSITORY } from './repositories/location.repository';
 import { PERMISSION_REPOSITORY } from './repositories/permission.repository';
 import { ROLE_REPOSITORY } from './repositories/role.repository';
+import { TAG_REPOSITORY } from './repositories/tag.repository';
 import { USER_REPOSITORY } from './repositories/user.repository';
 
 const userProvider = {
@@ -26,6 +28,10 @@ const locationProvider = {
   provide: LOCATION_REPOSITORY,
   useClass: PostgresLocationRepository,
 };
+const tagProvider = {
+  provide: TAG_REPOSITORY,
+  useClass: PostgresTagRepository,
+};
 
 @Module({
   providers: [
@@ -34,12 +40,14 @@ const locationProvider = {
     roleProvider,
     permissionProvider,
     locationProvider,
+    tagProvider,
   ],
   exports: [
     userProvider,
     roleProvider,
     permissionProvider,
     locationProvider,
+    tagProvider,
   ],
 })
 export class DbModule {}
