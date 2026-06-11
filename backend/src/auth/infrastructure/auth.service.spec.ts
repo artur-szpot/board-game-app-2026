@@ -6,6 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
 import { UserDto } from '@auth/modules/users/dto/in/user.dto';
+import { RoleRepository } from '@db/repositories/role.repository';
 import { UserRepository } from '@db/repositories/user.repository';
 
 import { PermissionLevel } from '@auth/modules/permissions/enums/permission-level.enum';
@@ -14,11 +15,20 @@ import { LoginDto } from '../dto/in/login.dto';
 import { AuthService } from './auth.service';
 
 describe('AuthService', () => {
-  const mockJwtService: JwtService = jest.requireMock('@nestjs/jwt');
-  const mockUsersRepository: UserRepository = jest.requireMock(
+  const mockJwtService = jest.requireMock(
+    '@nestjs/jwt',
+  ) as jest.Mocked<JwtService>;
+  const mockUsersRepository = jest.requireMock(
     '@db/repositories/user.repository',
+  ) as jest.Mocked<UserRepository>;
+  const mockRolesRepository = jest.requireMock(
+    '@db/repositories/role.repository',
+  ) as jest.Mocked<RoleRepository>;
+  const service = new AuthService(
+    mockJwtService,
+    mockUsersRepository,
+    mockRolesRepository,
   );
-  const service = new AuthService(mockJwtService, mockUsersRepository);
 
   const loginDto: LoginDto = {
     email: 'test',
@@ -84,7 +94,9 @@ describe('AuthService', () => {
       );
       expect(mockJwtService.sign).toHaveBeenCalledTimes(0);
       expect(error).toBeInstanceOf(UnauthorizedException);
-      expect(error.message).toEqual('Invalid login credentials.');
+      expect((error as UnauthorizedException).message).toEqual(
+        'Invalid login credentials.',
+      );
     }
   });
 
@@ -101,7 +113,9 @@ describe('AuthService', () => {
       );
       expect(mockJwtService.sign).toHaveBeenCalledTimes(0);
       expect(error).toBeInstanceOf(UnauthorizedException);
-      expect(error.message).toEqual('Invalid login credentials.');
+      expect((error as UnauthorizedException).message).toEqual(
+        'Invalid login credentials.',
+      );
     }
   });
 
@@ -120,7 +134,7 @@ describe('AuthService', () => {
       );
       expect(mockJwtService.sign).toHaveBeenCalledTimes(0);
       expect(error).toBeInstanceOf(InternalServerErrorException);
-      expect(error.message).toEqual(
+      expect((error as InternalServerErrorException).message).toEqual(
         'Unexpected error occurred while signing in',
       );
     }

@@ -3,13 +3,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-export class InternalError extends InternalServerErrorException {
+export class CustomInternalError extends InternalServerErrorException {
   constructor(failedOperation: string) {
     super(`Unexpected error occurred while ${failedOperation}`);
   }
 }
 
-export class NotFoundError extends NotFoundException {
+export class CustomNotFoundError extends NotFoundException {
   constructor(missingAsset: string) {
     super(`Could not find ${missingAsset}`);
   }

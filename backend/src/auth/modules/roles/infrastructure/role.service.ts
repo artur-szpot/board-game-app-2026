@@ -5,7 +5,7 @@ import {
   Logger,
 } from '@nestjs/common';
 
-import { InternalError, NotFoundError } from '@common/errors/service-errors';
+import { CustomInternalError, CustomNotFoundError } from '@common/errors/service-errors';
 import { validateUpdateDtoNotEmpty } from '@common/helpers/validate-update-dto-not-empty';
 import { Paginated } from '@common/pagination/Paginated';
 import { Pagination } from '@common/pagination/pagination';
@@ -34,18 +34,18 @@ export class RoleService implements RoleGateway {
       const roleDto = await this.roleRepository.getRoleById(roleId);
       if (!roleDto) {
         this.logger.error(`Could not find role with ID "${roleId}"`);
-        throw new NotFoundError(`role with ID "${roleId}"`);
+        throw new CustomNotFoundError(`role with ID "${roleId}"`);
       }
       const role = roleMapper.fromDto.toDomain(roleDto);
       return roleMapper.fromDomain.toResponse(role);
     } catch (error) {
-      if (error instanceof NotFoundError) {
+      if (error instanceof CustomNotFoundError) {
         throw error;
       }
       this.logger.error(
         `Unexpected error while retrieving role with ID "${roleId}": ${error}`,
       );
-      throw new InternalError('retrieving the role');
+      throw new CustomInternalError('retrieving the role');
     }
   }
 
@@ -54,18 +54,18 @@ export class RoleService implements RoleGateway {
       const roleDto = await this.roleRepository.getRoleByName(roleName);
       if (!roleDto) {
         this.logger.error(`Could not find role with name "${roleName}"`);
-        throw new NotFoundError(`role with name "${roleName}"`);
+        throw new CustomNotFoundError(`role with name "${roleName}"`);
       }
       const role = roleMapper.fromDto.toDomain(roleDto);
       return roleMapper.fromDomain.toResponse(role);
     } catch (error) {
-      if (error instanceof NotFoundError) {
+      if (error instanceof CustomNotFoundError) {
         throw error;
       }
       this.logger.error(
         `Unexpected error while retrieving role with name "${roleName}": ${error}`,
       );
-      throw new InternalError('retrieving the role');
+      throw new CustomInternalError('retrieving the role');
     }
   }
 
@@ -84,7 +84,7 @@ export class RoleService implements RoleGateway {
       };
     } catch (error) {
       this.logger.error(`Unexpected error while retrieving roles: ${error}`);
-      throw new InternalError('retrieving roles');
+      throw new CustomInternalError('retrieving roles');
     }
   }
 
@@ -145,7 +145,7 @@ export class RoleService implements RoleGateway {
         throw error;
       }
       this.logger.error(`Unexpected error while creating role: ${error}`);
-      throw new InternalError('creating the role');
+      throw new CustomInternalError('creating the role');
     }
   }
 
@@ -170,7 +170,7 @@ export class RoleService implements RoleGateway {
         throw error;
       }
       this.logger.error(`Unexpected error while updating role: ${error}`);
-      throw new InternalError('updating the role');
+      throw new CustomInternalError('updating the role');
     }
   }
 
@@ -186,7 +186,7 @@ export class RoleService implements RoleGateway {
         throw error;
       }
       this.logger.error(`Unexpected error while deleting role: ${error}`);
-      throw new InternalError('deleting the role');
+      throw new CustomInternalError('deleting the role');
     }
   }
 }

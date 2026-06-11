@@ -2,7 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 
 import { PermissionLevel } from '@auth/modules/permissions/enums/permission-level.enum';
 import { PermissionType } from '@auth/modules/permissions/enums/permission-type.enum';
-import { InternalError, NotFoundError } from '@common/errors/service-errors';
+import { CustomInternalError, CustomNotFoundError } from '@common/errors/service-errors';
 import { UserRepository } from '@db/repositories/user.repository';
 
 import { CreateUserDto } from '../dto/in/create-user.dto';
@@ -85,7 +85,7 @@ describe('UserService', () => {
       } catch (error) {
         expect(mockRepository.getUserById).toHaveBeenCalledWith(testUserId);
         expect(mockRepository.getUserById).toHaveBeenCalledTimes(1);
-        expect(error).toBeInstanceOf(NotFoundError);
+        expect(error).toBeInstanceOf(CustomNotFoundError);
       }
     });
 
@@ -99,7 +99,7 @@ describe('UserService', () => {
       } catch (error) {
         expect(mockRepository.getUserById).toHaveBeenCalledWith(testUserId);
         expect(mockRepository.getUserById).toHaveBeenCalledTimes(1);
-        expect(error).toBeInstanceOf(InternalError);
+        expect(error).toBeInstanceOf(CustomInternalError);
       }
     });
   });
@@ -166,7 +166,7 @@ describe('UserService', () => {
         expect(mockRepository.getManyUsers).toHaveBeenCalledWith(undefined);
         expect(mockRepository.getManyUsers).toHaveBeenCalledTimes(1);
         expect(mockRepository.getAllUsersCount).toHaveBeenCalledTimes(1);
-        expect(error).toBeInstanceOf(InternalError);
+        expect(error).toBeInstanceOf(CustomInternalError);
       }
     });
   });
@@ -324,7 +324,7 @@ describe('UserService', () => {
         );
         expect(mockRepository.getUserByUsername).toHaveBeenCalledTimes(1);
         expect(mockRepository.createUser).toHaveBeenCalledTimes(0);
-        expect(error).toBeInstanceOf(InternalError);
+        expect(error).toBeInstanceOf(CustomInternalError);
       }
     });
   });
@@ -527,7 +527,7 @@ describe('UserService', () => {
         );
         expect(mockRepository.getUserByUsername).toHaveBeenCalledTimes(1);
         expect(mockRepository.updateUser).toHaveBeenCalledTimes(0);
-        expect(error).toBeInstanceOf(InternalError);
+        expect(error).toBeInstanceOf(CustomInternalError);
       }
     });
   });
@@ -608,7 +608,7 @@ describe('UserService', () => {
         expect(mockRepository.getUserById).toHaveBeenCalledWith(toDeleteUserId);
         expect(mockRepository.getUserById).toHaveBeenCalledTimes(1);
         expect(mockRepository.deleteUser).toHaveBeenCalledTimes(0);
-        expect(error).toBeInstanceOf(InternalError);
+        expect(error).toBeInstanceOf(CustomInternalError);
       }
     });
   });
