@@ -5,6 +5,7 @@ import { AuthModule } from '@auth/auth.module';
 import { DbModule } from '@db/db.module';
 import { LocationModule } from './games/locations/location.module';
 import { TagModule } from './games/tags/tag.module';
+import { ScoringSchemaModule } from './games/scoring-schemas/scoring-schema.module';
 
 import config from './config/config';
 
@@ -15,6 +16,7 @@ import config from './config/config';
     DbModule,
     LocationModule,
     TagModule,
+    ScoringSchemaModule,
   ],
 })
 export class AppModule {}
