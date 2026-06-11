@@ -1,0 +1,111 @@
+import { Injectable } from '@nestjs/common';
+import { createId } from '@paralleldrive/cuid2';
+
+import { Pagination } from '@common/pagination/pagination';
+
+import { CreateTagDto } from '../../../modules/tags/dto/in/create-tag.dto';
+import { UpdateTagDto } from '../../../modules/tags/dto/in/update-tag.dto';
+import { TagDto } from '../../../modules/tags/dto/in/tag.dto';
+import { TagRepository } from '../../repositories/tag.repository';
+import { PostgresConnection } from './PostgresConnection';
+import { PostgresConnector } from './PostgresConnector';
+
+@Injectable()
+export class PostgresTagRepository implements TagRepository {
+  private readonly SELECT_TAGS_SQL = `
+   SELECT
+      id,
+      name,
+      parent_id AS "parentId",
+      created_on AS "createdOn",
+      updated_on AS "updatedOn"
+   FROM tags
+  `;
+
+  private readonly SELECT_TAGS_COUNT_SQL = 'SELECT COUNT(*) AS total FROM tags;';
+
+  private readonly CREATE_TAG_SQL = `
+     INSERT INTO tags (id, name, parent_id)
+     VALUES ($1, $2, $3)
+     RETURNING id, name, parent_id AS "parentId", created_on AS "createdOn", updated_on AS "updatedOn";
+  `;
+
+  private readonly UPDATE_TAG_SQL = (input: UpdateTagDto): string => {
+    const valuesToSet: string[] = [];
+    if (input.name !== undefined) {
+      valuesToSet.push('name = $2');
+    }
+    if (input.parentId !== undefined) {
+      valuesToSet.push('parent_id = $' + (valuesToSet.length + 2));
+    }
+    return `
+      UPDATE tags
+      SET
+         ${valuesToSet.join(', ')},
+         updated_on = CURRENT_TIMESTAMP
+      WHERE id = $1
+      RETURNING id, name, parent_id AS "parentId", created_on AS "createdOn", updated_on AS "updatedOn";
+    `;
+  };
+
+  private readonly DELETE_TAG_SQL = `
+   DELETE FROM tags
+   WHERE id = $1
+   RETURNING id, name, parent_id AS "parentId", created_on AS "createdOn", updated_on AS "updatedOn";
+  `;
+
+  constructor(private readonly connector: PostgresConnector) {}
+
+  public async getTagById(tagId: string): Promise<TagDto | null> {
+    return this.connector.getOne<TagDto>(
+      `${this.SELECT_TAGS_SQL} WHERE id = $1`,
+      [tagId],
+    );
+  }
+
+  public async getTagByName(name: string): Promise<TagDto | null> {
+    return this.connector.getOne<TagDto>(
+      `${this.SELECT_TAGS_SQL} WHERE name = $1`,
+      [name],
+    );
+  }
+
+  public async getManyTags(pagination?: Pagination): Promise<TagDto[]> {
+    return this.connector.getMany<TagDto>(
+      `${this.SELECT_TAGS_SQL} ${this.connector.searchSQL({
+        orderBy: 'name ASC',
+        pagination,
+      })}`,
+    );
+  }
+
+  public async getAllTagsCount(): Promise<number> {
+    return this.connector.getCount(this.SELECT_TAGS_COUNT_SQL);
+  }
+
+  public async createTag(input: CreateTagDto): Promise<TagDto> {
+    const id = createId();
+    const result = await this.connector.getOne<TagDto>(this.CREATE_TAG_SQL, [
+      id,
+      input.name,
+      input.parentId ?? null,
+    ]);
+    return result;
+  }
+
+  public async updateTag(tagId: string, input: UpdateTagDto): Promise<TagDto> {
+    const parameters: any[] = [tagId];
+    if (input.name !== undefined) {
+      parameters.push(input.name);
+    }
+    if (input.parentId !== undefined) {
+      parameters.push(input.parentId);
+    }
+
+    return this.connector.getOne<TagDto>(this.UPDATE_TAG_SQL(input), parameters);
+  }
+
+  public async deleteTag(tagId: string): Promise<TagDto> {
+    return this.connector.getOne<TagDto>(this.DELETE_TAG_SQL, [tagId]);
+  }
+}
