@@ -1,0 +1,13 @@
+CREATE TABLE helpers (
+   id VARCHAR(40) NOT NULL,
+   name TEXT NOT NULL,
+   logic JSON NOT NULL,
+   created_on TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   updated_on TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE helpers
+   ADD CONSTRAINT helpers_pk
+   PRIMARY KEY (id);
+
+CREATE UNIQUE INDEX helpers_name_idx ON helpers (name);

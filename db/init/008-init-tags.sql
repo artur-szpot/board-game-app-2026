@@ -1,0 +1,19 @@
+CREATE TABLE tags (
+   id VARCHAR(40) NOT NULL,
+   name TEXT NOT NULL,
+   parent_id VARCHAR(40),
+   created_on TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   updated_on TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE tags
+   ADD CONSTRAINT tags_pk
+   PRIMARY KEY (id);
+
+CREATE UNIQUE INDEX tags_name_idx ON tags (name);
+
+ALTER TABLE tags
+   ADD CONSTRAINT tags_parent_fk
+   FOREIGN KEY (parent_id)
+   REFERENCES tags(id)
+   ON DELETE SET NULL;

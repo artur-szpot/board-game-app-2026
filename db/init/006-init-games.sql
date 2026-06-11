@@ -1,0 +1,14 @@
+CREATE TABLE games (
+   id VARCHAR(40) NOT NULL,
+   name TEXT NOT NULL,
+   description TEXT,
+   length GAME_LENGTH,
+   created_on TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   updated_on TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE games
+   ADD CONSTRAINT games_pk
+   PRIMARY KEY (id);
+
+CREATE UNIQUE INDEX games_name_idx ON games (name);
