@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 
 import { AuthModule } from '@auth/auth.module';
 import { DbModule } from '@db/db.module';
+import { LocationModule } from './modules/locations/location.module';
 
 import config from './config/config';
 
@@ -11,6 +12,7 @@ import config from './config/config';
     ConfigModule.forRoot({ isGlobal: true, load: [config] }),
     AuthModule,
     DbModule,
+    LocationModule,
   ],
 })
 export class AppModule {}
