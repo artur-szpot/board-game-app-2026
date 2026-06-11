@@ -3,9 +3,9 @@ import { createId } from '@paralleldrive/cuid2';
 
 import { Pagination } from '@common/pagination/pagination';
 
-import { CreateTagDto } from '../../../modules/tags/dto/in/create-tag.dto';
-import { UpdateTagDto } from '../../../modules/tags/dto/in/update-tag.dto';
-import { TagDto } from '../../../modules/tags/dto/in/tag.dto';
+import { CreateTagDto } from '../../../games/tags/dto/in/create-tag.dto';
+import { UpdateTagDto } from '../../../games/tags/dto/in/update-tag.dto';
+import { TagDto } from '../../../games/tags/dto/in/tag.dto';
 import { TagRepository } from '../../repositories/tag.repository';
 import { PostgresConnection } from './PostgresConnection';
 import { PostgresConnector } from './PostgresConnector';

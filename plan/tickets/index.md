@@ -6,7 +6,7 @@ This index tracks the priority and completion status of discrete implementation 
 |---|---|---|---|---|
 | 1 | Create DB migration and schema | Backend | DONE | Required before any data modules are built |
 | 2 | Add location data module | Backend | DONE | Needed before game module because games reference locations |
-| 3 | Add tag data module | Backend | IN_REVIEW | Needed before game module because games reference tags |
+| 3 | Add tag data module | Backend | DONE | Needed before game module because games reference tags |
 | 4 | Add scoring schema module | Backend | TODO | Needed before game module and game score module |
 | 5 | Add helper data module | Backend | TODO | Needed before game module because games reference helpers |
 | 6 | Add game data module | Backend | TODO | Depends on tags, locations, scoring schemas, helpers |
