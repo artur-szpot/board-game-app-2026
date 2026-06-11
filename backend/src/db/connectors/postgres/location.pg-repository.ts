@@ -3,9 +3,9 @@ import { createId } from '@paralleldrive/cuid2';
 
 import { Pagination } from '@common/pagination/pagination';
 
-import { CreateLocationDto } from '../../../modules/locations/dto/in/create-location.dto';
-import { UpdateLocationDto } from '../../../modules/locations/dto/in/update-location.dto';
-import { LocationDto } from '../../../modules/locations/dto/in/location.dto';
+import { CreateLocationDto } from '../../../games/locations/dto/in/create-location.dto';
+import { UpdateLocationDto } from '../../../games/locations/dto/in/update-location.dto';
+import { LocationDto } from '../../../games/locations/dto/in/location.dto';
 import { LocationRepository } from '../../repositories/location.repository';
 import { PostgresConnection } from './PostgresConnection';
 import { PostgresConnector } from './PostgresConnector';

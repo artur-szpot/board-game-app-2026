@@ -5,6 +5,9 @@ const jest = {
   moduleFileExtensions: ['js', 'json', 'ts'],
   rootDir: '.',
   testRegex: '.*\\.spec\\.ts$',
+  testPathIgnorePatterns: ['/dist/'],
+  modulePathIgnorePatterns: ['/dist/'],
+  watchPathIgnorePatterns: ['/dist/'],
   transform: {
     '^.+\\.ts$': 'ts-jest',
   },
