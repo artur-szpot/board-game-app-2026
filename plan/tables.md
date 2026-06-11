@@ -34,6 +34,7 @@ game_tags (composite PK)
     tag_id VARCHAR NOT NULL FK(tags, id)
 
 game_scores
+    id VARCHAR NOT NULL PK
     game_id VARCHAR NOT NULL FK(games, id)
     played_on TIMESTAMP
     schema VARCHAR NOT NULL FK(scoring_schemas, id)
