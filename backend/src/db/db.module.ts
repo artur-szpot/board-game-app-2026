@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
 
 import { PostgresConnector } from './connectors/postgres/PostgresConnector';
+import { PostgresHelperRepository } from './connectors/postgres/helper.pg-repository';
 import { PostgresLocationRepository } from './connectors/postgres/location.pg-repository';
 import { PostgresPermissionRepository } from './connectors/postgres/permission.pg-repository';
 import { PostgresRoleRepository } from './connectors/postgres/role.pg-repository';
 import { PostgresUserRepository } from './connectors/postgres/user.pg-repository';
 import { PostgresTagRepository } from './connectors/postgres/tag.pg-repository';
+import { HELPER_REPOSITORY } from './repositories/helper.repository';
 import { LOCATION_REPOSITORY } from './repositories/location.repository';
 import { PERMISSION_REPOSITORY } from './repositories/permission.repository';
 import { ROLE_REPOSITORY } from './repositories/role.repository';
@@ -24,6 +26,10 @@ const permissionProvider = {
   provide: PERMISSION_REPOSITORY,
   useClass: PostgresPermissionRepository,
 };
+const helperProvider = {
+  provide: HELPER_REPOSITORY,
+  useClass: PostgresHelperRepository,
+};
 const locationProvider = {
   provide: LOCATION_REPOSITORY,
   useClass: PostgresLocationRepository,
@@ -39,6 +45,7 @@ const tagProvider = {
     userProvider,
     roleProvider,
     permissionProvider,
+    helperProvider,
     locationProvider,
     tagProvider,
   ],
@@ -46,6 +53,7 @@ const tagProvider = {
     userProvider,
     roleProvider,
     permissionProvider,
+    helperProvider,
     locationProvider,
     tagProvider,
   ],

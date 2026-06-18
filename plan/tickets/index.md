@@ -8,7 +8,7 @@ This index tracks the priority and completion status of discrete implementation 
 | 2 | Add location data module | Backend | DONE | Needed before game module because games reference locations |
 | 3 | Add tag data module | Backend | DONE | Needed before game module because games reference tags |
 | 4 | Add scoring schema module | Backend | DONE | Needed before game module and game score module |
-| 5 | Add helper data module | Backend | TODO | Needed before game module because games reference helpers |
+| 5 | Add helper data module | Backend | DONE | Needed before game module because games reference helpers |
 | 6 | Add game data module | Backend | TODO | Depends on tags, locations, scoring schemas, helpers |
 | 7 | Add game score module | Backend | TODO | Depends on scoring schemas and games |
 | 8 | Add search endpoint | Backend | TODO | Depends on searchable backend entities |
