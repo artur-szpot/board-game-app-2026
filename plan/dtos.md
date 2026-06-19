@@ -33,7 +33,7 @@ Request: UpdateGameRequest
 - id: string (required)
 - any of the CreateGameRequest fields optional to patch
 
-Response: GameResponse
+Response: GameDto
 - id: string
 - name: string
 - description?: string
@@ -153,9 +153,9 @@ Response: SearchResponse
 
 8) Example endpoint mapping (HTTP)
 - GET /game-api/games?q=term —> SearchResponse with type=GAME results
-- GET /game-api/games/:id —> GameResponse
-- POST /game-api/games —> CreateGameRequest -> GameResponse
-- PUT /game-api/games/:id —> UpdateGameRequest -> GameResponse
+- GET /game-api/games/:id —> GameDto
+- POST /game-api/games —> CreateGameRequest -> GameDto
+- PUT /game-api/games/:id —> UpdateGameRequest -> GameDto
 - DELETE /game-api/games/:id —> 204 No Content
 
 Same pattern applies for `/game-api/locations`, `/game-api/tags`, `/game-api/helpers`, `/game-api/scoring-schemas`, `/game-api/game-scores`.

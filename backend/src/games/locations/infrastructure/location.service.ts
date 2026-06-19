@@ -45,6 +45,11 @@ export class LocationService implements LocationGateway {
     return location;
   }
 
+  public async getByIds(ids: string[]): Promise<LocationResponse[]> {
+    const locations = await Promise.all(ids.map((id) => this.getById(id)));
+    return locations;
+  }
+
   private async ensureUniqueName(name: string, existingLocationId?: string) {
     const existingLocation = await this.locationRepository.getLocationByName(name);
     if (existingLocation && existingLocation.id !== existingLocationId) {

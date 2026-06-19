@@ -6,6 +6,7 @@ import { ScoringSchemaDto } from '../../games/scoring-schemas/dto/in/scoring-sch
 
 export interface ScoringSchemaRepository {
   getScoringSchemaById(id: string): Promise<ScoringSchemaDto | null>;
+  getScoringSchemaByIds(ids: string[]): Promise<ScoringSchemaDto[]>;
   getScoringSchemaByName(name: string): Promise<ScoringSchemaDto | null>;
   getManyScoringSchemas(pagination?: Pagination): Promise<ScoringSchemaDto[]>;
   getAllScoringSchemasCount(): Promise<number>;

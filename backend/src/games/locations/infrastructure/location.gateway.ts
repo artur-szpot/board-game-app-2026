@@ -7,6 +7,7 @@ import { LocationResponse } from '../dto/out/location.response';
 
 export interface LocationGateway {
   getById(id: string): Promise<LocationResponse>;
+  getByIds(ids: string[]): Promise<LocationResponse[]>;
   getMany(pagination?: Pagination): Promise<Paginated<LocationResponse>>;
   create(input: CreateLocationDto): Promise<LocationResponse>;
   update(id: string, input: UpdateLocationDto): Promise<LocationResponse>;

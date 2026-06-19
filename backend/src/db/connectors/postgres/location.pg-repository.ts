@@ -72,6 +72,17 @@ export class PostgresLocationRepository implements LocationRepository {
     );
   }
 
+  public async getLocationsByIds(locationIds: string[]): Promise<LocationDto[]> {
+    if (locationIds.length === 0) {
+      return [];
+    }
+
+    return this.connector.getMany<LocationDto>(
+      `${this.SELECT_LOCATIONS_SQL} WHERE id IN $1`,
+      [locationIds],
+    );
+  }
+
   public async getLocationByName(name: string): Promise<LocationDto | null> {
     return this.connector.getOne<LocationDto>(
       `${this.SELECT_LOCATIONS_SQL} WHERE name = $1`,

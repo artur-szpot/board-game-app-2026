@@ -6,6 +6,7 @@ import { HelperDto } from '../../games/helpers/dto/in/helper.dto';
 
 export interface HelperRepository {
   getHelperById(helperId: string): Promise<HelperDto | null>;
+  getHelpersByIds(helperIds: string[]): Promise<HelperDto[]>;
   getHelperByName(name: string): Promise<HelperDto | null>;
   getManyHelpers(pagination?: Pagination): Promise<HelperDto[]>;
   getAllHelpersCount(): Promise<number>;

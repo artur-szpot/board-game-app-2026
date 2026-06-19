@@ -59,6 +59,17 @@ export class PostgresHelperRepository implements HelperRepository {
     return this.connector.getOne<HelperDto>(`${this.SELECT_HELPERS_SQL} WHERE id = $1`, [helperId]);
   }
 
+  public async getHelpersByIds(helperIds: string[]): Promise<HelperDto[]> {
+    if (helperIds.length === 0) {
+      return [];
+    }
+
+    return this.connector.getMany<HelperDto>(
+      `${this.SELECT_HELPERS_SQL} WHERE id IN $1`,
+      [helperIds],
+    );
+  }
+
   public async getHelperByName(name: string): Promise<HelperDto | null> {
     return this.connector.getOne<HelperDto>(`${this.SELECT_HELPERS_SQL} WHERE name = $1`, [name]);
   }

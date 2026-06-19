@@ -7,7 +7,6 @@ import { CreateTagDto } from '../../../games/tags/dto/in/create-tag.dto';
 import { UpdateTagDto } from '../../../games/tags/dto/in/update-tag.dto';
 import { TagDto } from '../../../games/tags/dto/in/tag.dto';
 import { TagRepository } from '../../repositories/tag.repository';
-import { PostgresConnection } from './PostgresConnection';
 import { PostgresConnector } from './PostgresConnector';
 
 @Injectable()
@@ -60,6 +59,17 @@ export class PostgresTagRepository implements TagRepository {
     return this.connector.getOne<TagDto>(
       `${this.SELECT_TAGS_SQL} WHERE id = $1`,
       [tagId],
+    );
+  }
+
+  public async getTagsByIds(tagIds: string[]): Promise<TagDto[]> {
+    if (tagIds.length === 0) {
+      return [];
+    }
+
+    return this.connector.getMany<TagDto>(
+      `${this.SELECT_TAGS_SQL} WHERE id IN $1`,
+      [tagIds],
     );
   }
 

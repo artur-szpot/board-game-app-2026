@@ -7,6 +7,7 @@ import { HelperResponse } from '../dto/out/helper.response';
 
 export interface HelperGateway {
   getById(id: string): Promise<HelperResponse>;
+  getByIds(ids: string[]): Promise<HelperResponse[]>;
   getMany(pagination?: Pagination): Promise<Paginated<HelperResponse>>;
   create(input: CreateHelperDto): Promise<HelperResponse>;
   update(id: string, input: UpdateHelperDto): Promise<HelperResponse>;

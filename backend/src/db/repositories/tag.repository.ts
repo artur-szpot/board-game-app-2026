@@ -6,6 +6,7 @@ import { TagDto } from '../../games/tags/dto/in/tag.dto';
 
 export interface TagRepository {
   getTagById(tagId: string): Promise<TagDto | null>;
+  getTagsByIds(tagIds: string[]): Promise<TagDto[]>;
   getTagByName(name: string): Promise<TagDto | null>;
   getManyTags(pagination?: Pagination): Promise<TagDto[]>;
   getAllTagsCount(): Promise<number>;
