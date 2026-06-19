@@ -40,6 +40,11 @@ export class HelperService implements HelperGateway {
     return helper;
   }
 
+  public async getByIds(ids: string[]): Promise<HelperResponse[]> {
+    const helpers = await Promise.all(ids.map((id) => this.getById(id)));
+    return helpers;
+  }
+
   private async ensureUniqueName(name: string, existingId?: string) {
     const existing = await this.repository.getHelperByName(name);
     if (existing && existing.id !== existingId) {

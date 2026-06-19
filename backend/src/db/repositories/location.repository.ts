@@ -6,6 +6,7 @@ import { LocationDto } from '../../games/locations/dto/in/location.dto';
 
 export interface LocationRepository {
   getLocationById(locationId: string): Promise<LocationDto | null>;
+  getLocationsByIds(locationIds: string[]): Promise<LocationDto[]>;
   getLocationByName(name: string): Promise<LocationDto | null>;
   getManyLocations(pagination?: Pagination): Promise<LocationDto[]>;
   getAllLocationsCount(): Promise<number>;

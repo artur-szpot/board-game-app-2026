@@ -1,19 +1,24 @@
-import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
 
-import { CustomInternalError, CustomNotFoundError } from '@common/errors/service-errors';
+import {
+  CustomInternalError,
+  CustomNotFoundError,
+} from '@common/errors/service-errors';
 import { validateUpdateDtoNotEmpty } from '@common/helpers/validate-update-dto-not-empty';
 import { Paginated } from '@common/pagination/Paginated';
 import { Pagination } from '@common/pagination/pagination';
+import { TAG_REPOSITORY, TagRepository } from '@db/repositories/tag.repository';
 
 import { CreateTagDto } from '../dto/in/create-tag.dto';
+import { TagDto } from '../dto/in/tag.dto';
+import { UpdateTagDto } from '../dto/in/update-tag.dto';
 import { TagResponse } from '../dto/out/tag.response';
 import { TagGateway } from './tag.gateway';
-import { UpdateTagDto } from '../dto/in/update-tag.dto';
-import {
-  TAG_REPOSITORY,
-  TagRepository,
-} from '@db/repositories/tag.repository';
-import { TagDto } from '../dto/in/tag.dto';
 
 @Injectable()
 export class TagService implements TagGateway {
@@ -53,7 +58,9 @@ export class TagService implements TagGateway {
   private async ensureParentTagExists(parentId: string): Promise<void> {
     const parentTag = await this.tagRepository.getTagById(parentId);
     if (!parentTag) {
-      throw new BadRequestException(`Parent tag with ID "${parentId}" not found`);
+      throw new BadRequestException(
+        `Parent tag with ID "${parentId}" not found`,
+      );
     }
   }
 
@@ -67,7 +74,9 @@ export class TagService implements TagGateway {
 
     const parentTag = await this.tagRepository.getTagById(parentId);
     if (!parentTag) {
-      throw new BadRequestException(`Parent tag with ID "${parentId}" not found`);
+      throw new BadRequestException(
+        `Parent tag with ID "${parentId}" not found`,
+      );
     }
 
     const visited = new Set<string>([tagId, parentId]);
@@ -75,10 +84,13 @@ export class TagService implements TagGateway {
 
     while (currentParentId) {
       if (visited.has(currentParentId)) {
-        throw new BadRequestException('Tag parent relationship would create a cycle');
+        throw new BadRequestException(
+          'Tag parent relationship would create a cycle',
+        );
       }
       visited.add(currentParentId);
-      const currentParent = await this.tagRepository.getTagById(currentParentId);
+      const currentParent =
+        await this.tagRepository.getTagById(currentParentId);
       if (!currentParent) {
         break;
       }
@@ -93,10 +105,7 @@ export class TagService implements TagGateway {
     }
   }
 
-  private async validateUpdateInput(
-    tagId: string,
-    input: UpdateTagDto,
-  ) {
+  private async validateUpdateInput(tagId: string, input: UpdateTagDto) {
     if (input.name) {
       await this.ensureUniqueName(input.name, tagId);
     }
@@ -113,9 +122,16 @@ export class TagService implements TagGateway {
       if (error instanceof CustomNotFoundError) {
         throw error;
       }
-      this.logger.error(`Unexpected error while retrieving tag with ID "${id}": ${error}`);
+      this.logger.error(
+        `Unexpected error while retrieving tag with ID "${id}": ${error}`,
+      );
       throw new CustomInternalError('retrieving the tag');
     }
+  }
+
+  public async getByIds(ids: string[]): Promise<TagResponse[]> {
+    const tags = await Promise.all(ids.map((id) => this.getById(id)));
+    return tags;
   }
 
   public async getMany(
@@ -136,9 +152,7 @@ export class TagService implements TagGateway {
     }
   }
 
-  public async create(
-    input: CreateTagDto,
-  ): Promise<TagResponse> {
+  public async create(input: CreateTagDto): Promise<TagResponse> {
     try {
       await this.validateCreateInput(input);
       const createdTag = await this.tagRepository.createTag(input);
@@ -152,10 +166,7 @@ export class TagService implements TagGateway {
     }
   }
 
-  public async update(
-    id: string,
-    input: UpdateTagDto,
-  ): Promise<TagResponse> {
+  public async update(id: string, input: UpdateTagDto): Promise<TagResponse> {
     validateUpdateDtoNotEmpty(input);
     try {
       await this.getTag(id);
@@ -163,7 +174,10 @@ export class TagService implements TagGateway {
       const updatedTag = await this.tagRepository.updateTag(id, input);
       return this.mapToResponse(updatedTag);
     } catch (error) {
-      if (error instanceof BadRequestException || error instanceof CustomNotFoundError) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof CustomNotFoundError
+      ) {
         throw error;
       }
       this.logger.error(`Unexpected error while updating tag: ${error}`);

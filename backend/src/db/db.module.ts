@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { PostgresConnector } from './connectors/postgres/PostgresConnector';
 import { PostgresHelperRepository } from './connectors/postgres/helper.pg-repository';
 import { PostgresLocationRepository } from './connectors/postgres/location.pg-repository';
+import { PostgresScoringSchemaRepository } from './connectors/postgres/scoring-schema.pg-repository';
 import { PostgresPermissionRepository } from './connectors/postgres/permission.pg-repository';
 import { PostgresRoleRepository } from './connectors/postgres/role.pg-repository';
 import { PostgresUserRepository } from './connectors/postgres/user.pg-repository';
@@ -11,6 +12,7 @@ import { HELPER_REPOSITORY } from './repositories/helper.repository';
 import { LOCATION_REPOSITORY } from './repositories/location.repository';
 import { PERMISSION_REPOSITORY } from './repositories/permission.repository';
 import { ROLE_REPOSITORY } from './repositories/role.repository';
+import { SCORING_SCHEMA_REPOSITORY } from './repositories/scoring-schema.repository';
 import { TAG_REPOSITORY } from './repositories/tag.repository';
 import { USER_REPOSITORY } from './repositories/user.repository';
 
@@ -38,6 +40,10 @@ const tagProvider = {
   provide: TAG_REPOSITORY,
   useClass: PostgresTagRepository,
 };
+const scoringSchemaProvider = {
+  provide: SCORING_SCHEMA_REPOSITORY,
+  useClass: PostgresScoringSchemaRepository,
+};
 
 @Module({
   providers: [
@@ -48,6 +54,7 @@ const tagProvider = {
     helperProvider,
     locationProvider,
     tagProvider,
+    scoringSchemaProvider,
   ],
   exports: [
     userProvider,
@@ -56,6 +63,7 @@ const tagProvider = {
     helperProvider,
     locationProvider,
     tagProvider,
+    scoringSchemaProvider,
   ],
 })
 export class DbModule {}

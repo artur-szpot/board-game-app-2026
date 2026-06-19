@@ -1,18 +1,26 @@
-import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
 
-import { CustomInternalError, CustomNotFoundError } from '@common/errors/service-errors';
+import {
+  CustomInternalError,
+  CustomNotFoundError,
+} from '@common/errors/service-errors';
 import { Paginated } from '@common/pagination/Paginated';
 import { Pagination } from '@common/pagination/pagination';
-
-import { CreateScoringSchemaDto } from '../dto/in/create-scoring-schema.dto';
-import { ScoringSchemaResponse } from '../dto/out/scoring-schema.response';
-import { ScoringSchemaGateway } from './scoring-schema.gateway';
-import { UpdateScoringSchemaDto } from '../dto/in/update-scoring-schema.dto';
 import {
   SCORING_SCHEMA_REPOSITORY,
   ScoringSchemaRepository,
 } from '@db/repositories/scoring-schema.repository';
+
+import { CreateScoringSchemaDto } from '../dto/in/create-scoring-schema.dto';
 import { ScoringSchemaDto } from '../dto/in/scoring-schema.dto';
+import { UpdateScoringSchemaDto } from '../dto/in/update-scoring-schema.dto';
+import { ScoringSchemaResponse } from '../dto/out/scoring-schema.response';
+import { ScoringSchemaGateway } from './scoring-schema.gateway';
 
 @Injectable()
 export class ScoringSchemaService implements ScoringSchemaGateway {
@@ -46,8 +54,15 @@ export class ScoringSchemaService implements ScoringSchemaGateway {
   private async ensureUniqueName(name: string, existingId?: string) {
     const existing = await this.repository.getScoringSchemaByName(name);
     if (existing && existing.id !== existingId) {
-      throw new BadRequestException(`Scoring schema name "${name}" is already in use`);
+      throw new BadRequestException(
+        `Scoring schema name "${name}" is already in use`,
+      );
     }
+  }
+
+  public async getByIds(ids: string[]): Promise<ScoringSchemaResponse[]> {
+    const schemas = await Promise.all(ids.map((id) => this.getById(id)));
+    return schemas;
   }
 
   public async getById(id: string): Promise<ScoringSchemaResponse> {
@@ -58,12 +73,16 @@ export class ScoringSchemaService implements ScoringSchemaGateway {
       if (error instanceof CustomNotFoundError) {
         throw error;
       }
-      this.logger.error(`Unexpected error while retrieving scoring schema with ID "${id}": ${error}`);
+      this.logger.error(
+        `Unexpected error while retrieving scoring schema with ID "${id}": ${error}`,
+      );
       throw new CustomInternalError('retrieving the scoring schema');
     }
   }
 
-  public async getMany(pagination?: Pagination): Promise<Paginated<ScoringSchemaResponse>> {
+  public async getMany(
+    pagination?: Pagination,
+  ): Promise<Paginated<ScoringSchemaResponse>> {
     try {
       const [items, total] = await Promise.all([
         this.repository.getManyScoringSchemas(pagination),
@@ -74,12 +93,16 @@ export class ScoringSchemaService implements ScoringSchemaGateway {
         total,
       };
     } catch (error) {
-      this.logger.error(`Unexpected error while retrieving scoring schemas: ${error}`);
+      this.logger.error(
+        `Unexpected error while retrieving scoring schemas: ${error}`,
+      );
       throw new CustomInternalError('retrieving scoring schemas');
     }
   }
 
-  public async create(input: CreateScoringSchemaDto): Promise<ScoringSchemaResponse> {
+  public async create(
+    input: CreateScoringSchemaDto,
+  ): Promise<ScoringSchemaResponse> {
     try {
       await this.ensureUniqueName(input.name);
       const created = await this.repository.createScoringSchema(input);
@@ -88,12 +111,17 @@ export class ScoringSchemaService implements ScoringSchemaGateway {
       if (error instanceof BadRequestException) {
         throw error;
       }
-      this.logger.error(`Unexpected error while creating scoring schema: ${error}`);
+      this.logger.error(
+        `Unexpected error while creating scoring schema: ${error}`,
+      );
       throw new CustomInternalError('creating the scoring schema');
     }
   }
 
-  public async update(id: string, input: UpdateScoringSchemaDto): Promise<ScoringSchemaResponse> {
+  public async update(
+    id: string,
+    input: UpdateScoringSchemaDto,
+  ): Promise<ScoringSchemaResponse> {
     try {
       await this.getSchema(id);
       if (input.name) {
@@ -102,10 +130,15 @@ export class ScoringSchemaService implements ScoringSchemaGateway {
       const updated = await this.repository.updateScoringSchema(id, input);
       return this.mapToResponse(updated);
     } catch (error) {
-      if (error instanceof BadRequestException || error instanceof CustomNotFoundError) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof CustomNotFoundError
+      ) {
         throw error;
       }
-      this.logger.error(`Unexpected error while updating scoring schema: ${error}`);
+      this.logger.error(
+        `Unexpected error while updating scoring schema: ${error}`,
+      );
       throw new CustomInternalError('updating the scoring schema');
     }
   }
@@ -119,7 +152,9 @@ export class ScoringSchemaService implements ScoringSchemaGateway {
       if (error instanceof CustomNotFoundError) {
         throw error;
       }
-      this.logger.error(`Unexpected error while deleting scoring schema: ${error}`);
+      this.logger.error(
+        `Unexpected error while deleting scoring schema: ${error}`,
+      );
       throw new CustomInternalError('deleting the scoring schema');
     }
   }
