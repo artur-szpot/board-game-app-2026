@@ -3,11 +3,14 @@ import { ConfigModule } from '@nestjs/config';
 
 import { AuthModule } from '@auth/auth.module';
 import { DbModule } from '@db/db.module';
-import { LocationModule } from './games/locations/location.module';
-import { TagModule } from './games/tags/tag.module';
-import { ScoringSchemaModule } from './games/scoring-schemas/scoring-schema.module';
 
 import config from './config/config';
+import { GameScoreModule } from './games/game-scores/game-score.module';
+import { GameModule } from './games/games/game.module';
+import { HelperModule } from './games/helpers/helper.module';
+import { LocationModule } from './games/locations/location.module';
+import { ScoringSchemaModule } from './games/scoring-schemas/scoring-schema.module';
+import { TagModule } from './games/tags/tag.module';
 
 @Module({
   imports: [
@@ -17,6 +20,9 @@ import config from './config/config';
     LocationModule,
     TagModule,
     ScoringSchemaModule,
+    GameScoreModule,
+    HelperModule,
+    GameModule,
   ],
 })
 export class AppModule {}

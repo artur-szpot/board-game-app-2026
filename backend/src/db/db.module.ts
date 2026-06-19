@@ -4,6 +4,7 @@ import { PostgresConnector } from './connectors/postgres/PostgresConnector';
 import { PostgresHelperRepository } from './connectors/postgres/helper.pg-repository';
 import { PostgresLocationRepository } from './connectors/postgres/location.pg-repository';
 import { PostgresScoringSchemaRepository } from './connectors/postgres/scoring-schema.pg-repository';
+import { PostgresGameScoreRepository } from './connectors/postgres/game-score.pg-repository';
 import { PostgresPermissionRepository } from './connectors/postgres/permission.pg-repository';
 import { PostgresRoleRepository } from './connectors/postgres/role.pg-repository';
 import { PostgresUserRepository } from './connectors/postgres/user.pg-repository';
@@ -13,6 +14,7 @@ import { LOCATION_REPOSITORY } from './repositories/location.repository';
 import { PERMISSION_REPOSITORY } from './repositories/permission.repository';
 import { ROLE_REPOSITORY } from './repositories/role.repository';
 import { SCORING_SCHEMA_REPOSITORY } from './repositories/scoring-schema.repository';
+import { GAME_SCORE_REPOSITORY } from './repositories/game-score.repository';
 import { TAG_REPOSITORY } from './repositories/tag.repository';
 import { USER_REPOSITORY } from './repositories/user.repository';
 
@@ -44,6 +46,7 @@ const scoringSchemaProvider = {
   provide: SCORING_SCHEMA_REPOSITORY,
   useClass: PostgresScoringSchemaRepository,
 };
+const gameScoreProvider = { provide: GAME_SCORE_REPOSITORY, useClass: PostgresGameScoreRepository };
 
 @Module({
   providers: [
@@ -55,6 +58,7 @@ const scoringSchemaProvider = {
     locationProvider,
     tagProvider,
     scoringSchemaProvider,
+    gameScoreProvider,
   ],
   exports: [
     userProvider,
@@ -64,6 +68,7 @@ const scoringSchemaProvider = {
     locationProvider,
     tagProvider,
     scoringSchemaProvider,
+    gameScoreProvider,
   ],
 })
 export class DbModule {}
