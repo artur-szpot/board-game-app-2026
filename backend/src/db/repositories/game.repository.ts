@@ -1,13 +1,13 @@
-import { Pagination } from '@common/pagination/pagination';
+import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 
 import { CreateGameDto } from '../../games/games/dto/in/create-game.dto';
-import { UpdateGameDto } from '../../games/games/dto/in/update-game.dto';
 import { GameDto } from '../../games/games/dto/in/game.dto';
+import { UpdateGameDto } from '../../games/games/dto/in/update-game.dto';
 
 export interface GameRepository {
   getGameById(gameId: string): Promise<GameDto | null>;
   getGameByName(name: string): Promise<GameDto | null>;
-  getManyGames(pagination?: Pagination): Promise<GameDto[]>;
+  getManyGames(dto: GetManyItemsDto): Promise<GameDto[]>;
   getAllGamesCount(): Promise<number>;
   createGame(input: CreateGameDto): Promise<GameDto>;
   updateGame(gameId: string, input: UpdateGameDto): Promise<GameDto>;

@@ -1,13 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { createId } from '@paralleldrive/cuid2';
 
-import { Pagination } from '@common/pagination/pagination';
+import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 
 import { CreateLocationDto } from '../../../games/locations/dto/in/create-location.dto';
-import { UpdateLocationDto } from '../../../games/locations/dto/in/update-location.dto';
 import { LocationDto } from '../../../games/locations/dto/in/location.dto';
+import { UpdateLocationDto } from '../../../games/locations/dto/in/update-location.dto';
 import { LocationRepository } from '../../repositories/location.repository';
-import { PostgresConnection } from './PostgresConnection';
 import { PostgresConnector } from './PostgresConnector';
 
 @Injectable()
@@ -65,14 +64,18 @@ export class PostgresLocationRepository implements LocationRepository {
 
   constructor(private readonly connector: PostgresConnector) {}
 
-  public async getLocationById(locationId: string): Promise<LocationDto | null> {
+  public async getLocationById(
+    locationId: string,
+  ): Promise<LocationDto | null> {
     return this.connector.getOne<LocationDto>(
       `${this.SELECT_LOCATIONS_SQL} WHERE id = $1`,
       [locationId],
     );
   }
 
-  public async getLocationsByIds(locationIds: string[]): Promise<LocationDto[]> {
+  public async getLocationsByIds(
+    locationIds: string[],
+  ): Promise<LocationDto[]> {
     if (locationIds.length === 0) {
       return [];
     }
@@ -90,9 +93,8 @@ export class PostgresLocationRepository implements LocationRepository {
     );
   }
 
-  public async getManyLocations(
-    pagination?: Pagination,
-  ): Promise<LocationDto[]> {
+  public async getManyLocations(dto: GetManyItemsDto): Promise<LocationDto[]> {
+    const { pagination } = dto;
     return this.connector.getMany<LocationDto>(
       `${this.SELECT_LOCATIONS_SQL} ${this.connector.searchSQL({
         orderBy: 'name ASC',
@@ -145,9 +147,8 @@ export class PostgresLocationRepository implements LocationRepository {
   }
 
   public async deleteLocation(locationId: string): Promise<LocationDto> {
-    return this.connector.getOne<LocationDto>(
-      this.DELETE_LOCATION_SQL,
-      [locationId],
-    );
+    return this.connector.getOne<LocationDto>(this.DELETE_LOCATION_SQL, [
+      locationId,
+    ]);
   }
 }

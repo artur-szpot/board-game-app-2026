@@ -1,14 +1,14 @@
-import { Pagination } from '@common/pagination/pagination';
+import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 
 import { CreateTagDto } from '../../games/tags/dto/in/create-tag.dto';
-import { UpdateTagDto } from '../../games/tags/dto/in/update-tag.dto';
 import { TagDto } from '../../games/tags/dto/in/tag.dto';
+import { UpdateTagDto } from '../../games/tags/dto/in/update-tag.dto';
 
 export interface TagRepository {
   getTagById(tagId: string): Promise<TagDto | null>;
   getTagsByIds(tagIds: string[]): Promise<TagDto[]>;
   getTagByName(name: string): Promise<TagDto | null>;
-  getManyTags(pagination?: Pagination): Promise<TagDto[]>;
+  getManyTags(dto: GetManyItemsDto): Promise<TagDto[]>;
   getAllTagsCount(): Promise<number>;
   createTag(input: CreateTagDto): Promise<TagDto>;
   updateTag(tagId: string, input: UpdateTagDto): Promise<TagDto>;
