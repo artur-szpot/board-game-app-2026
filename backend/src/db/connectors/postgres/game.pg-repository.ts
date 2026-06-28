@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { createId } from '@paralleldrive/cuid2';
 
-import { Pagination } from '@common/pagination/pagination';
+import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 import { CustomNotFoundError } from '@common/errors/service-errors';
 
 import { CreateGameDto } from '../../../games/games/dto/in/create-game.dto';
-import { UpdateGameDto } from '../../../games/games/dto/in/update-game.dto';
 import { GameDto } from '../../../games/games/dto/in/game.dto';
+import { UpdateGameDto } from '../../../games/games/dto/in/update-game.dto';
 import { GameRepository } from '../../repositories/game.repository';
 import { PostgresConnector } from './PostgresConnector';
 
@@ -54,7 +54,8 @@ export class PostgresGameRepository implements GameRepository {
     );
   }
 
-  public async getManyGames(pagination?: Pagination): Promise<GameDto[]> {
+  public async getManyGames(dto: GetManyItemsDto): Promise<GameDto[]> {
+    const { pagination } = dto;
     return this.connector.getMany<GameDto>(
       `${this.SELECT_GAMES_SQL} ${this.connector.searchSQL({ orderBy: 'name ASC', pagination })}`,
     );

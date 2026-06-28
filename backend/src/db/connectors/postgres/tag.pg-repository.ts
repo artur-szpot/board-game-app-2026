@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { createId } from '@paralleldrive/cuid2';
 
-import { Pagination } from '@common/pagination/pagination';
+import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 
 import { CreateTagDto } from '../../../games/tags/dto/in/create-tag.dto';
-import { UpdateTagDto } from '../../../games/tags/dto/in/update-tag.dto';
 import { TagDto } from '../../../games/tags/dto/in/tag.dto';
+import { UpdateTagDto } from '../../../games/tags/dto/in/update-tag.dto';
 import { TagRepository } from '../../repositories/tag.repository';
 import { PostgresConnector } from './PostgresConnector';
 
@@ -21,7 +21,8 @@ export class PostgresTagRepository implements TagRepository {
    FROM tags
   `;
 
-  private readonly SELECT_TAGS_COUNT_SQL = 'SELECT COUNT(*) AS total FROM tags;';
+  private readonly SELECT_TAGS_COUNT_SQL =
+    'SELECT COUNT(*) AS total FROM tags;';
 
   private readonly CREATE_TAG_SQL = `
      INSERT INTO tags (id, name, parent_id)
@@ -80,7 +81,8 @@ export class PostgresTagRepository implements TagRepository {
     );
   }
 
-  public async getManyTags(pagination?: Pagination): Promise<TagDto[]> {
+  public async getManyTags(dto: GetManyItemsDto): Promise<TagDto[]> {
+    const { pagination } = dto;
     return this.connector.getMany<TagDto>(
       `${this.SELECT_TAGS_SQL} ${this.connector.searchSQL({
         orderBy: 'name ASC',
@@ -112,7 +114,10 @@ export class PostgresTagRepository implements TagRepository {
       parameters.push(input.parentId);
     }
 
-    return this.connector.getOne<TagDto>(this.UPDATE_TAG_SQL(input), parameters);
+    return this.connector.getOne<TagDto>(
+      this.UPDATE_TAG_SQL(input),
+      parameters,
+    );
   }
 
   public async deleteTag(tagId: string): Promise<TagDto> {
