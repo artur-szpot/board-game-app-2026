@@ -1,5 +1,3 @@
-import { Pagination } from '@common/pagination/pagination';
-
 import { SearchQueryDto } from '../dto/in/search-query.dto';
 import { SearchResponse } from '../dto/out/search.response';
 

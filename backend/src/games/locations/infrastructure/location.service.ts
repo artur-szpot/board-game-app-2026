@@ -141,7 +141,7 @@ export class LocationService implements LocationGateway {
     try {
       const [items, total] = await Promise.all([
         this.locationRepository.getManyLocations(pagination),
-        this.locationRepository.getAllLocationsCount(),
+        this.locationRepository.getLocationsCount(),
       ]);
       return {
         page: items.map((location) => this.mapToResponse(location)),

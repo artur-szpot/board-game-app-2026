@@ -54,14 +54,14 @@ export class PostgresGameRepository implements GameRepository {
     );
   }
 
-  public async getManyGames(dto: GetManyItemsDto): Promise<GameDto[]> {
-    const { pagination } = dto;
+  public async getManyGames(dto?: GetManyItemsDto): Promise<GameDto[]> {
+    const { pagination } = dto ?? {};
     return this.connector.getMany<GameDto>(
       `${this.SELECT_GAMES_SQL} ${this.connector.searchSQL({ orderBy: 'name ASC', pagination })}`,
     );
   }
 
-  public async getAllGamesCount(): Promise<number> {
+  public async getGamesCount(): Promise<number> {
     return this.connector.getCount(this.SELECT_GAMES_COUNT_SQL);
   }
 

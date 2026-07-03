@@ -1,4 +1,14 @@
-import { Body, Controller, Delete, Get, Inject, Param, Patch, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Inject,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 
 import { GetEntityByIdDto } from '@common/dto/in/get-entity-by-id.dto';
 import { PaginationDto } from '@common/pagination/dto/in/pagination.dto';
@@ -28,13 +38,13 @@ export class TagController {
   public async getTags(
     @Query() pagination: PaginationDto,
   ): Promise<Paginated<TagResponse>> {
-    return this.gateway.getMany(paginationMapper.fromDto(pagination));
+    return this.gateway.getMany({
+      pagination: paginationMapper.fromDto(pagination),
+    });
   }
 
   @Post()
-  public async createTag(
-    @Body() body: CreateTagDto,
-  ): Promise<TagResponse> {
+  public async createTag(@Body() body: CreateTagDto): Promise<TagResponse> {
     return this.gateway.create(body);
   }
 

@@ -1,6 +1,14 @@
-import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
 
-import { CustomInternalError, CustomNotFoundError } from '@common/errors/service-errors';
+import {
+  CustomInternalError,
+  CustomNotFoundError,
+} from '@common/errors/service-errors';
 import { validateUpdateDtoNotEmpty } from '@common/helpers/validate-update-dto-not-empty';
 import { Paginated } from '@common/pagination/Paginated';
 import { Pagination } from '@common/pagination/pagination';
@@ -9,8 +17,12 @@ import { CreateHelperDto } from '../dto/in/create-helper.dto';
 import { HelperDto } from '../dto/in/helper.dto';
 import { HelperResponse } from '../dto/out/helper.response';
 import { UpdateHelperDto } from '../dto/in/update-helper.dto';
-import { HELPER_REPOSITORY, HelperRepository } from '@db/repositories/helper.repository';
+import {
+  HELPER_REPOSITORY,
+  HelperRepository,
+} from '@db/repositories/helper.repository';
 import { HelperGateway } from './helper.gateway';
+import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 
 @Injectable()
 export class HelperService implements HelperGateway {
@@ -60,16 +72,21 @@ export class HelperService implements HelperGateway {
       if (error instanceof CustomNotFoundError) {
         throw error;
       }
-      this.logger.error(`Unexpected error while retrieving helper with ID "${id}": ${error}`);
+      this.logger.error(
+        `Unexpected error while retrieving helper with ID "${id}": ${error}`,
+      );
       throw new CustomInternalError('retrieving the helper');
     }
   }
 
-  public async getMany(pagination?: Pagination): Promise<Paginated<HelperResponse>> {
+  public async getMany(
+    dto?: GetManyItemsDto,
+  ): Promise<Paginated<HelperResponse>> {
+    const { pagination } = dto;
     try {
       const [items, total] = await Promise.all([
-        this.repository.getManyHelpers(pagination),
-        this.repository.getAllHelpersCount(),
+        this.repository.getManyHelpers({ pagination }),
+        this.repository.getHelpersCount(),
       ]);
       return {
         page: items.map((item) => this.mapToResponse(item)),
@@ -95,7 +112,10 @@ export class HelperService implements HelperGateway {
     }
   }
 
-  public async update(id: string, input: UpdateHelperDto): Promise<HelperResponse> {
+  public async update(
+    id: string,
+    input: UpdateHelperDto,
+  ): Promise<HelperResponse> {
     validateUpdateDtoNotEmpty(input);
     try {
       await this.getHelper(id);
@@ -105,7 +125,10 @@ export class HelperService implements HelperGateway {
       const updated = await this.repository.updateHelper(id, input);
       return this.mapToResponse(updated);
     } catch (error) {
-      if (error instanceof BadRequestException || error instanceof CustomNotFoundError) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof CustomNotFoundError
+      ) {
         throw error;
       }
       this.logger.error(`Unexpected error while updating helper: ${error}`);

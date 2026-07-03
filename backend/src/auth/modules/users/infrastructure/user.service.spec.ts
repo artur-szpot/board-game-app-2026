@@ -2,7 +2,10 @@ import { BadRequestException } from '@nestjs/common';
 
 import { PermissionLevel } from '@auth/modules/permissions/enums/permission-level.enum';
 import { PermissionType } from '@auth/modules/permissions/enums/permission-type.enum';
-import { CustomInternalError, CustomNotFoundError } from '@common/errors/service-errors';
+import {
+  CustomInternalError,
+  CustomNotFoundError,
+} from '@common/errors/service-errors';
 import { UserRepository } from '@db/repositories/user.repository';
 
 import { CreateUserDto } from '../dto/in/create-user.dto';
@@ -109,13 +112,13 @@ describe('UserService', () => {
       mockRepository.getManyUsers = jest
         .fn()
         .mockResolvedValueOnce([testUserDto, testUserDto2]);
-      mockRepository.getAllUsersCount = jest.fn().mockResolvedValueOnce(2);
+      mockRepository.getUsersCount = jest.fn().mockResolvedValueOnce(2);
 
       const result = await service.getMany();
 
       expect(mockRepository.getManyUsers).toHaveBeenCalledWith(undefined);
       expect(mockRepository.getManyUsers).toHaveBeenCalledTimes(1);
-      expect(mockRepository.getAllUsersCount).toHaveBeenCalledTimes(1);
+      expect(mockRepository.getUsersCount).toHaveBeenCalledTimes(1);
 
       const { password, ...other } = testUserDto;
       const { password: password2, ...other2 } = testUserDto2;
@@ -126,14 +129,14 @@ describe('UserService', () => {
       mockRepository.getManyUsers = jest
         .fn()
         .mockResolvedValueOnce([testUserDto]);
-      mockRepository.getAllUsersCount = jest.fn().mockResolvedValueOnce(2);
+      mockRepository.getUsersCount = jest.fn().mockResolvedValueOnce(2);
       const pagination = { pageSize: 1, pageNumber: 0 };
 
-      const result = await service.getMany(pagination);
+      const result = await service.getMany({ pagination });
 
       expect(mockRepository.getManyUsers).toHaveBeenCalledWith(pagination);
       expect(mockRepository.getManyUsers).toHaveBeenCalledTimes(1);
-      expect(mockRepository.getAllUsersCount).toHaveBeenCalledTimes(1);
+      expect(mockRepository.getUsersCount).toHaveBeenCalledTimes(1);
 
       const { password, ...other } = testUserDto;
       expect(result).toStrictEqual({ page: [other], total: 2 });
@@ -141,13 +144,13 @@ describe('UserService', () => {
 
     it('should return empty response if no users found', async () => {
       mockRepository.getManyUsers = jest.fn().mockResolvedValueOnce([]);
-      mockRepository.getAllUsersCount = jest.fn().mockResolvedValueOnce(0);
+      mockRepository.getUsersCount = jest.fn().mockResolvedValueOnce(0);
 
       const result = await service.getMany();
 
       expect(mockRepository.getManyUsers).toHaveBeenCalledWith(undefined);
       expect(mockRepository.getManyUsers).toHaveBeenCalledTimes(1);
-      expect(mockRepository.getAllUsersCount).toHaveBeenCalledTimes(1);
+      expect(mockRepository.getUsersCount).toHaveBeenCalledTimes(1);
 
       expect(result).toStrictEqual({ page: [], total: 0 });
     });
@@ -156,7 +159,7 @@ describe('UserService', () => {
       mockRepository.getManyUsers = jest
         .fn()
         .mockRejectedValueOnce(new Error());
-      mockRepository.getAllUsersCount = jest.fn().mockResolvedValueOnce(2);
+      mockRepository.getUsersCount = jest.fn().mockResolvedValueOnce(2);
 
       try {
         await service.getMany();
@@ -165,7 +168,7 @@ describe('UserService', () => {
       } catch (error) {
         expect(mockRepository.getManyUsers).toHaveBeenCalledWith(undefined);
         expect(mockRepository.getManyUsers).toHaveBeenCalledTimes(1);
-        expect(mockRepository.getAllUsersCount).toHaveBeenCalledTimes(1);
+        expect(mockRepository.getUsersCount).toHaveBeenCalledTimes(1);
         expect(error).toBeInstanceOf(CustomInternalError);
       }
     });

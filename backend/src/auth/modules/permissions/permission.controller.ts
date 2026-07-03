@@ -45,6 +45,8 @@ export class PermissionController {
   async getPermissions(
     @Query() pagination: PaginationDto,
   ): Promise<Paginated<PermissionResponse>> {
-    return this.gateway.getMany(paginationMapper.fromDto(pagination));
+    return this.gateway.getMany({
+      pagination: paginationMapper.fromDto(pagination),
+    });
   }
 }

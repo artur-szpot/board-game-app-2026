@@ -39,7 +39,7 @@ export class PostgresGameScoreRepository implements GameScoreRepository {
     );
   }
 
-  public async getAllGameScoresCount(): Promise<number> {
+  public async getGameScoresCount(): Promise<number> {
     return this.connector.getCount(
       'SELECT COUNT(*) AS total FROM game_scores;',
     );

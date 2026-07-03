@@ -137,7 +137,7 @@ export class PostgresUserRepository implements UserRepository {
     );
   }
 
-  public async getAllUsersCount(): Promise<number> {
+  public async getUsersCount(): Promise<number> {
     return this.connector.getCount(this.SELECT_USERS_COUNT_SQL);
   }
 

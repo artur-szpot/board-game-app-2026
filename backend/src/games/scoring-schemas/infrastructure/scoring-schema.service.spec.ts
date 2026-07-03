@@ -37,7 +37,7 @@ describe('ScoringSchemaService', () => {
       getScoringSchemaById: jest.fn(),
       getScoringSchemaByName: jest.fn(),
       getManyScoringSchemas: jest.fn(),
-      getAllScoringSchemasCount: jest.fn(),
+      getScoringSchemasCount: jest.fn(),
       createScoringSchema: jest.fn(),
       updateScoringSchema: jest.fn(),
       deleteScoringSchema: jest.fn(),
@@ -93,14 +93,14 @@ describe('ScoringSchemaService', () => {
   describe('getMany', () => {
     it('returns paginated results', async () => {
       mockRepository.getManyScoringSchemas.mockResolvedValueOnce([testDto]);
-      mockRepository.getAllScoringSchemasCount.mockResolvedValueOnce(1);
+      mockRepository.getScoringSchemasCount.mockResolvedValueOnce(1);
 
       const result = await service.getMany();
 
       expect(mockRepository.getManyScoringSchemas).toHaveBeenCalledWith(
         undefined,
       );
-      expect(mockRepository.getAllScoringSchemasCount).toHaveBeenCalledTimes(1);
+      expect(mockRepository.getScoringSchemasCount).toHaveBeenCalledTimes(1);
       expect(result).toStrictEqual({
         page: [
           {
@@ -120,7 +120,7 @@ describe('ScoringSchemaService', () => {
       mockRepository.getManyScoringSchemas.mockRejectedValueOnce(
         new Error('fail'),
       );
-      mockRepository.getAllScoringSchemasCount.mockResolvedValueOnce(0);
+      mockRepository.getScoringSchemasCount.mockResolvedValueOnce(0);
 
       await expect(service.getMany()).rejects.toBeInstanceOf(
         CustomInternalError,

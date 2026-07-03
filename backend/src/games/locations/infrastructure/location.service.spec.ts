@@ -24,7 +24,7 @@ describe('LocationService', () => {
       getLocationById: jest.fn(),
       getLocationByName: jest.fn(),
       getManyLocations: jest.fn(),
-      getAllLocationsCount: jest.fn(),
+      getLocationsCount: jest.fn(),
       createLocation: jest.fn(),
       updateLocation: jest.fn(),
       deleteLocation: jest.fn(),
@@ -73,12 +73,12 @@ describe('LocationService', () => {
   describe('getMany', () => {
     it('should return a paginated list of locations', async () => {
       mockRepository.getManyLocations.mockResolvedValueOnce([testLocationDto]);
-      mockRepository.getAllLocationsCount.mockResolvedValueOnce(1);
+      mockRepository.getLocationsCount.mockResolvedValueOnce(1);
 
       const result = await service.getMany();
 
       expect(mockRepository.getManyLocations).toHaveBeenCalledWith(undefined);
-      expect(mockRepository.getAllLocationsCount).toHaveBeenCalledTimes(1);
+      expect(mockRepository.getLocationsCount).toHaveBeenCalledTimes(1);
       expect(result).toStrictEqual({
         page: [
           {
@@ -97,11 +97,11 @@ describe('LocationService', () => {
 
     it('should throw CustomInternalError for repository failures', async () => {
       mockRepository.getManyLocations.mockRejectedValueOnce(new Error('failure'));
-      mockRepository.getAllLocationsCount.mockResolvedValueOnce(0);
+      mockRepository.getLocationsCount.mockResolvedValueOnce(0);
 
       await expect(service.getMany()).rejects.toBeInstanceOf(CustomInternalError);
       expect(mockRepository.getManyLocations).toHaveBeenCalledWith(undefined);
-      expect(mockRepository.getAllLocationsCount).toHaveBeenCalledTimes(1);
+      expect(mockRepository.getLocationsCount).toHaveBeenCalledTimes(1);
     });
   });
 

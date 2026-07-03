@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Inject,
   Param,
   Patch,
   Post,
@@ -14,11 +15,14 @@ import { paginationMapper } from '@common/pagination/mapper/pagination.mapper';
 
 import { CreateGameDto } from './dto/in/create-game.dto';
 import { UpdateGameDto } from './dto/in/update-game.dto';
-import { GameGateway } from './infrastructure/game.gateway';
+import { GameGateway, GAME_GATEWAY } from './infrastructure/game.gateway';
 
 @Controller('games')
 export class GameController {
-  constructor(private readonly gameGateway: GameGateway) {}
+  constructor(
+    @Inject(GAME_GATEWAY)
+    private readonly gameGateway: GameGateway,
+  ) {}
 
   @Get(':id')
   public getById(@Param('id') id: string) {
@@ -27,7 +31,9 @@ export class GameController {
 
   @Get()
   public getMany(@Query() pagination: PaginationDto) {
-    return this.gameGateway.getMany(paginationMapper.fromDto(pagination));
+    return this.gameGateway.getMany({
+      pagination: paginationMapper.fromDto(pagination),
+    });
   }
 
   @Post()

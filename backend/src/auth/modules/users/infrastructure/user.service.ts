@@ -5,7 +5,10 @@ import {
   Logger,
 } from '@nestjs/common';
 
-import { CustomInternalError, CustomNotFoundError } from '@common/errors/service-errors';
+import {
+  CustomInternalError,
+  CustomNotFoundError,
+} from '@common/errors/service-errors';
 import { validateUpdateDtoNotEmpty } from '@common/helpers/validate-update-dto-not-empty';
 import { Paginated } from '@common/pagination/Paginated';
 import { Pagination } from '@common/pagination/pagination';
@@ -23,6 +26,7 @@ import { MeResponse } from '../dto/out/me.response';
 import { UserDto } from '../dto/in/user.dto';
 import { User } from '../domain/User';
 import { permissionMapper } from '@auth/modules/permissions/mappers/permission.mapper';
+import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 
 @Injectable()
 export class UserService implements UserGateway {
@@ -73,13 +77,11 @@ export class UserService implements UserGateway {
     };
   }
 
-  public async getMany(
-    pagination?: Pagination,
-  ): Promise<Paginated<UserResponse>> {
+  public async getMany(dto?: GetManyItemsDto): Promise<Paginated<UserResponse>> {
     try {
       const [items, total] = await Promise.all([
-        this.userRepository.getManyUsers(pagination),
-        this.userRepository.getAllUsersCount(),
+        this.userRepository.getManyUsers(dto),
+        this.userRepository.getUsersCount(dto),
       ]);
       const users = items.map(userMapper.fromDto.toDomain);
       return {

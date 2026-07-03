@@ -8,6 +8,7 @@ import { UpdateHelperDto } from '../../../games/helpers/dto/in/update-helper.dto
 import { HelperDto } from '../../../games/helpers/dto/in/helper.dto';
 import { HelperRepository } from '../../repositories/helper.repository';
 import { PostgresConnector } from './PostgresConnector';
+import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 
 @Injectable()
 export class PostgresHelperRepository implements HelperRepository {
@@ -21,7 +22,8 @@ export class PostgresHelperRepository implements HelperRepository {
     FROM helpers
   `;
 
-  private readonly SELECT_HELPERS_COUNT_SQL = 'SELECT COUNT(*) AS total FROM helpers;';
+  private readonly SELECT_HELPERS_COUNT_SQL =
+    'SELECT COUNT(*) AS total FROM helpers;';
 
   private readonly CREATE_HELPER_SQL = `
     INSERT INTO helpers (id, name, logic)
@@ -56,7 +58,10 @@ export class PostgresHelperRepository implements HelperRepository {
   constructor(private readonly connector: PostgresConnector) {}
 
   public async getHelperById(helperId: string): Promise<HelperDto | null> {
-    return this.connector.getOne<HelperDto>(`${this.SELECT_HELPERS_SQL} WHERE id = $1`, [helperId]);
+    return this.connector.getOne<HelperDto>(
+      `${this.SELECT_HELPERS_SQL} WHERE id = $1`,
+      [helperId],
+    );
   }
 
   public async getHelpersByIds(helperIds: string[]): Promise<HelperDto[]> {
@@ -71,24 +76,36 @@ export class PostgresHelperRepository implements HelperRepository {
   }
 
   public async getHelperByName(name: string): Promise<HelperDto | null> {
-    return this.connector.getOne<HelperDto>(`${this.SELECT_HELPERS_SQL} WHERE name = $1`, [name]);
+    return this.connector.getOne<HelperDto>(
+      `${this.SELECT_HELPERS_SQL} WHERE name = $1`,
+      [name],
+    );
   }
 
-  public async getManyHelpers(pagination?: Pagination): Promise<HelperDto[]> {
-    return this.connector.getMany<HelperDto>(`${this.SELECT_HELPERS_SQL} ${this.connector.searchSQL({ orderBy: 'name ASC', pagination })}`);
+  public async getManyHelpers(dto?: GetManyItemsDto): Promise<HelperDto[]> {
+    const { pagination } = dto ?? {};
+    return this.connector.getMany<HelperDto>(
+      `${this.SELECT_HELPERS_SQL} ${this.connector.searchSQL({ orderBy: 'name ASC', pagination })}`,
+    );
   }
 
-  public async getAllHelpersCount(): Promise<number> {
+  public async getHelpersCount(): Promise<number> {
     return this.connector.getCount(this.SELECT_HELPERS_COUNT_SQL);
   }
 
   public async createHelper(input: CreateHelperDto): Promise<HelperDto> {
     const id = createId();
-    const result = await this.connector.getOne<HelperDto>(this.CREATE_HELPER_SQL, [id, input.name, input.logic]);
+    const result = await this.connector.getOne<HelperDto>(
+      this.CREATE_HELPER_SQL,
+      [id, input.name, input.logic],
+    );
     return result;
   }
 
-  public async updateHelper(helperId: string, input: UpdateHelperDto): Promise<HelperDto> {
+  public async updateHelper(
+    helperId: string,
+    input: UpdateHelperDto,
+  ): Promise<HelperDto> {
     const parameters: any[] = [helperId];
     if (input.name !== undefined) {
       parameters.push(input.name);
@@ -96,7 +113,10 @@ export class PostgresHelperRepository implements HelperRepository {
     if (input.logic !== undefined) {
       parameters.push(input.logic);
     }
-    return this.connector.getOne<HelperDto>(this.UPDATE_HELPER_SQL(input), parameters);
+    return this.connector.getOne<HelperDto>(
+      this.UPDATE_HELPER_SQL(input),
+      parameters,
+    );
   }
 
   public async deleteHelper(helperId: string): Promise<HelperDto> {

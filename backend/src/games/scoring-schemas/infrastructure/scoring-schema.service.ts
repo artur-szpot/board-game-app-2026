@@ -86,7 +86,7 @@ export class ScoringSchemaService implements ScoringSchemaGateway {
     try {
       const [items, total] = await Promise.all([
         this.repository.getManyScoringSchemas(pagination),
-        this.repository.getAllScoringSchemasCount(),
+        this.repository.getScoringSchemasCount(),
       ]);
       return {
         page: items.map((i) => this.mapToResponse(i)),

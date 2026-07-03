@@ -1,6 +1,9 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 
-import { CustomInternalError, CustomNotFoundError } from '@common/errors/service-errors';
+import {
+  CustomInternalError,
+  CustomNotFoundError,
+} from '@common/errors/service-errors';
 import { Paginated } from '@common/pagination/Paginated';
 import { Pagination } from '@common/pagination/pagination';
 import {
@@ -12,6 +15,7 @@ import { PermissionResponse } from '../dto/out/permission.response';
 import { PermissionType } from '../enums/permission-type.enum';
 import { permissionMapper } from '../mappers/permission.mapper';
 import { PermissionGateway } from './permission.gateway';
+import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 
 @Injectable()
 export class PermissionService implements PermissionGateway {
@@ -45,12 +49,12 @@ export class PermissionService implements PermissionGateway {
   }
 
   public async getMany(
-    pagination?: Pagination,
+    dto?: GetManyItemsDto,
   ): Promise<Paginated<PermissionResponse>> {
     try {
       const [items, total] = await Promise.all([
-        this.permissionRepository.getManyPermissions(pagination),
-        this.permissionRepository.getAllPermissionsCount(),
+        this.permissionRepository.getManyPermissions(dto),
+        this.permissionRepository.getPermissionsCount(dto),
       ]);
       const permissions = items.map(permissionMapper.fromDto.toDomain);
       return {
