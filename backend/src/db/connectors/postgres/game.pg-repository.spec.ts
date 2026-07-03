@@ -60,7 +60,7 @@ describe('PostgresGameRepository', () => {
 
     expect(connector.searchSQL).toHaveBeenCalledWith({
       orderBy: 'name ASC',
-      pagination: { take: 10, skip: 0 },
+      pagination: { pageSize: 10, pageNumber: 0 },
     });
   });
 

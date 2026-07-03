@@ -134,7 +134,7 @@ describe('UserService', () => {
 
       const result = await service.getMany({ pagination });
 
-      expect(mockRepository.getManyUsers).toHaveBeenCalledWith(pagination);
+      expect(mockRepository.getManyUsers).toHaveBeenCalledWith({ pagination });
       expect(mockRepository.getManyUsers).toHaveBeenCalledTimes(1);
       expect(mockRepository.getUsersCount).toHaveBeenCalledTimes(1);
 

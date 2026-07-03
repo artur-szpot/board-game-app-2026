@@ -1,15 +1,18 @@
-import { Pagination } from '@common/pagination/pagination';
+import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 
 import { CreateGameScoreDto } from '../../games/game-scores/dto/in/create-game-score.dto';
-import { UpdateGameScoreDto } from '../../games/game-scores/dto/in/update-game-score.dto';
 import { GameScoreDto } from '../../games/game-scores/dto/in/game-score.dto';
+import { UpdateGameScoreDto } from '../../games/game-scores/dto/in/update-game-score.dto';
 
 export interface GameScoreRepository {
   getGameScoreById(gameScoreId: string): Promise<GameScoreDto | null>;
-  getManyGameScores(pagination?: Pagination): Promise<GameScoreDto[]>;
-  getGameScoresCount(): Promise<number>;
+  getManyGameScores(dto?: GetManyItemsDto): Promise<GameScoreDto[]>;
+  getGameScoresCount(dto?: GetManyItemsDto): Promise<number>;
   createGameScore(input: CreateGameScoreDto): Promise<GameScoreDto>;
-  updateGameScore(gameScoreId: string, input: UpdateGameScoreDto): Promise<GameScoreDto>;
+  updateGameScore(
+    gameScoreId: string,
+    input: UpdateGameScoreDto,
+  ): Promise<GameScoreDto>;
   deleteGameScore(gameScoreId: string): Promise<GameScoreDto>;
 }
 

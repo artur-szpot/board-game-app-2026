@@ -17,7 +17,9 @@ describe('PostgresScoringSchemaRepository', () => {
   it('returns null when a scoring schema is missing', async () => {
     connector.getOne.mockResolvedValue(null);
 
-    await expect(repository.getScoringSchemaById('missing')).resolves.toBeNull();
+    await expect(
+      repository.getScoringSchemaById('missing'),
+    ).resolves.toBeNull();
     expect(connector.getOne).toHaveBeenCalledWith(
       expect.stringContaining('FROM scoring_schemas'),
       ['missing'],
@@ -53,12 +55,14 @@ describe('PostgresScoringSchemaRepository', () => {
     connector.getMany.mockResolvedValue([{ id: 'schema-1' }]);
 
     await expect(
-      repository.getManyScoringSchemas({ take: 10, skip: 0 }),
+      repository.getManyScoringSchemas({
+        pagination: { pageSize: 10, pageNumber: 0 },
+      }),
     ).resolves.toEqual([{ id: 'schema-1' }]);
 
     expect(connector.searchSQL).toHaveBeenCalledWith({
       orderBy: 'name ASC',
-      pagination: { take: 10, skip: 0 },
+      pagination: { pageSize: 10, pageNumber: 0 },
     });
   });
 });

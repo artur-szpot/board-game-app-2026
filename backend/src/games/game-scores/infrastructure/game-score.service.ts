@@ -21,6 +21,7 @@ import { CreateGameScoreDto } from '../dto/in/create-game-score.dto';
 import { UpdateGameScoreDto } from '../dto/in/update-game-score.dto';
 import { GameScoreResponse } from '../dto/out/game-score.response';
 import { GameScoreGateway } from '../game-score.gateway';
+import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 
 @Injectable()
 export class GameScoreService implements GameScoreGateway {
@@ -61,12 +62,12 @@ export class GameScoreService implements GameScoreGateway {
   }
 
   public async getMany(
-    pagination?: Pagination,
+    dto?: GetManyItemsDto
   ): Promise<Paginated<GameScoreResponse>> {
     try {
       const [items, total] = await Promise.all([
-        this.gameScoreRepository.getManyGameScores(pagination),
-        this.gameScoreRepository.getGameScoresCount(),
+        this.gameScoreRepository.getManyGameScores(dto),
+        this.gameScoreRepository.getGameScoresCount(dto),
       ]);
       return { page: items.map((item) => this.mapToResponse(item)), total };
     } catch (error) {

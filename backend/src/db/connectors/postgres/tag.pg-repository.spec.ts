@@ -48,12 +48,12 @@ describe('PostgresTagRepository', () => {
     connector.getMany.mockResolvedValue([{ id: 'tag-1' }]);
 
     await expect(
-      repository.getManyTags({ pagination: { take: 20, skip: 0 } }),
+      repository.getManyTags({ pagination: { pageSize: 20, pageNumber: 0 } }),
     ).resolves.toEqual([{ id: 'tag-1' }]);
 
     expect(connector.searchSQL).toHaveBeenCalledWith({
       orderBy: 'name ASC',
-      pagination: { take: 20, skip: 0 },
+      pagination: { pageSize: 20, pageNumber: 0 },
     });
   });
 });

@@ -48,12 +48,12 @@ describe('PostgresHelperRepository', () => {
     connector.getMany.mockResolvedValue([{ id: 'helper-1' }]);
 
     await expect(
-      repository.getManyHelpers({ take: 5, skip: 0 }),
+      repository.getManyHelpers({ pagination: { pageSize: 5, pageNumber: 0 } }),
     ).resolves.toEqual([{ id: 'helper-1' }]);
 
     expect(connector.searchSQL).toHaveBeenCalledWith({
       orderBy: 'name ASC',
-      pagination: { take: 5, skip: 0 },
+      pagination: { pageSize: 5, pageNumber: 0 },
     });
   });
 });
