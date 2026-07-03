@@ -5,8 +5,8 @@ import {
   CustomInternalError,
   CustomNotFoundError,
 } from '@common/errors/service-errors';
-import { Pagination } from '@common/pagination/pagination';
 
+import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 import { CreateGameScoreDto } from '../../../games/game-scores/dto/in/create-game-score.dto';
 import { GameScoreDto } from '../../../games/game-scores/dto/in/game-score.dto';
 import { UpdateGameScoreDto } from '../../../games/game-scores/dto/in/update-game-score.dto';
@@ -32,8 +32,9 @@ export class PostgresGameScoreRepository implements GameScoreRepository {
   }
 
   public async getManyGameScores(
-    pagination?: Pagination,
+    dto?: GetManyItemsDto,
   ): Promise<GameScoreDto[]> {
+    const { pagination } = dto;
     return this.connector.getMany<GameScoreDto>(
       `${this.SELECT_SQL} ${this.connector.searchSQL({ orderBy: 'played_on DESC', pagination })}`,
     );

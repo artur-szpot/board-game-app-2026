@@ -4,7 +4,7 @@ import { createId } from '@paralleldrive/cuid2';
 import { CreateUserDto } from '@auth/modules/users/dto/in/create-user.dto';
 import { UpdateUserDto } from '@auth/modules/users/dto/in/update-user.dto';
 import { UserDto } from '@auth/modules/users/dto/in/user.dto';
-import { Pagination } from '@common/pagination/pagination';
+import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 
 import { DbSearchDto } from '../../dto/search.dto';
 import { UserRepository } from '../../repositories/user.repository';
@@ -128,7 +128,8 @@ export class PostgresUserRepository implements UserRepository {
     );
   }
 
-  public async getManyUsers(pagination?: Pagination): Promise<UserDto[]> {
+  public async getManyUsers(dto?: GetManyItemsDto): Promise<UserDto[]> {
+    const { pagination } = dto;
     return this.connector.getMany<UserDto>(
       this.SELECT_USERS_SQL({
         orderBy: 'username ASC',
