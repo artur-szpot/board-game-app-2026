@@ -81,8 +81,8 @@ export class PostgresTagRepository implements TagRepository {
     );
   }
 
-  public async getManyTags(dto: GetManyItemsDto): Promise<TagDto[]> {
-    const { pagination } = dto;
+  public async getManyTags(dto?: GetManyItemsDto): Promise<TagDto[]> {
+    const { pagination } = dto ?? {};
     return this.connector.getMany<TagDto>(
       `${this.SELECT_TAGS_SQL} ${this.connector.searchSQL({
         orderBy: 'name ASC',
@@ -91,7 +91,7 @@ export class PostgresTagRepository implements TagRepository {
     );
   }
 
-  public async getAllTagsCount(): Promise<number> {
+  public async getTagsCount(): Promise<number> {
     return this.connector.getCount(this.SELECT_TAGS_COUNT_SQL);
   }
 

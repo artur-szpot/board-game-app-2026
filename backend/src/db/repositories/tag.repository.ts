@@ -8,8 +8,8 @@ export interface TagRepository {
   getTagById(tagId: string): Promise<TagDto | null>;
   getTagsByIds(tagIds: string[]): Promise<TagDto[]>;
   getTagByName(name: string): Promise<TagDto | null>;
-  getManyTags(dto: GetManyItemsDto): Promise<TagDto[]>;
-  getAllTagsCount(): Promise<number>;
+  getManyTags(dto?: GetManyItemsDto): Promise<TagDto[]>;
+  getTagsCount(dto?: GetManyItemsDto): Promise<number>;
   createTag(input: CreateTagDto): Promise<TagDto>;
   updateTag(tagId: string, input: UpdateTagDto): Promise<TagDto>;
   deleteTag(tagId: string): Promise<TagDto>;

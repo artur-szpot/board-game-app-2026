@@ -2,7 +2,10 @@ import { BadRequestException } from '@nestjs/common';
 
 import { PermissionLevel } from '@auth/modules/permissions/enums/permission-level.enum';
 import { PermissionType } from '@auth/modules/permissions/enums/permission-type.enum';
-import { CustomInternalError, CustomNotFoundError } from '@common/errors/service-errors';
+import {
+  CustomInternalError,
+  CustomNotFoundError,
+} from '@common/errors/service-errors';
 import { RoleRepository } from '@db/repositories/role.repository';
 
 import { CreateRoleDto } from '../dto/in/create-role.dto';
@@ -90,13 +93,13 @@ describe('RoleService', () => {
       mockRepository.getManyRoles = jest
         .fn()
         .mockResolvedValueOnce([testRoleDto, testRoleDto2]);
-      mockRepository.getAllRolesCount = jest.fn().mockResolvedValueOnce(2);
+      mockRepository.getRolesCount = jest.fn().mockResolvedValueOnce(2);
 
       const result = await service.getMany();
 
       expect(mockRepository.getManyRoles).toHaveBeenCalledWith(undefined);
       expect(mockRepository.getManyRoles).toHaveBeenCalledTimes(1);
-      expect(mockRepository.getAllRolesCount).toHaveBeenCalledTimes(1);
+      expect(mockRepository.getRolesCount).toHaveBeenCalledTimes(1);
 
       expect(result).toStrictEqual({
         page: [testRoleDto, testRoleDto2],
@@ -108,27 +111,27 @@ describe('RoleService', () => {
       mockRepository.getManyRoles = jest
         .fn()
         .mockResolvedValueOnce([testRoleDto]);
-      mockRepository.getAllRolesCount = jest.fn().mockResolvedValueOnce(2);
+      mockRepository.getRolesCount = jest.fn().mockResolvedValueOnce(2);
       const pagination = { pageSize: 1, pageNumber: 0 };
 
-      const result = await service.getMany(pagination);
+      const result = await service.getMany({ pagination });
 
       expect(mockRepository.getManyRoles).toHaveBeenCalledWith(pagination);
       expect(mockRepository.getManyRoles).toHaveBeenCalledTimes(1);
-      expect(mockRepository.getAllRolesCount).toHaveBeenCalledTimes(1);
+      expect(mockRepository.getRolesCount).toHaveBeenCalledTimes(1);
 
       expect(result).toStrictEqual({ page: [testRoleDto], total: 2 });
     });
 
     it('should return empty response if no roles found', async () => {
       mockRepository.getManyRoles = jest.fn().mockResolvedValueOnce([]);
-      mockRepository.getAllRolesCount = jest.fn().mockResolvedValueOnce(0);
+      mockRepository.getRolesCount = jest.fn().mockResolvedValueOnce(0);
 
       const result = await service.getMany();
 
       expect(mockRepository.getManyRoles).toHaveBeenCalledWith(undefined);
       expect(mockRepository.getManyRoles).toHaveBeenCalledTimes(1);
-      expect(mockRepository.getAllRolesCount).toHaveBeenCalledTimes(1);
+      expect(mockRepository.getRolesCount).toHaveBeenCalledTimes(1);
 
       expect(result).toStrictEqual({ page: [], total: 0 });
     });
@@ -137,7 +140,7 @@ describe('RoleService', () => {
       mockRepository.getManyRoles = jest
         .fn()
         .mockRejectedValueOnce(new Error());
-      mockRepository.getAllRolesCount = jest.fn().mockResolvedValueOnce(2);
+      mockRepository.getRolesCount = jest.fn().mockResolvedValueOnce(2);
 
       try {
         await service.getMany();
@@ -146,7 +149,7 @@ describe('RoleService', () => {
       } catch (error) {
         expect(mockRepository.getManyRoles).toHaveBeenCalledWith(undefined);
         expect(mockRepository.getManyRoles).toHaveBeenCalledTimes(1);
-        expect(mockRepository.getAllRolesCount).toHaveBeenCalledTimes(1);
+        expect(mockRepository.getRolesCount).toHaveBeenCalledTimes(1);
         expect(error).toBeInstanceOf(CustomInternalError);
       }
     });

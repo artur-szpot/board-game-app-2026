@@ -80,7 +80,7 @@ export class PostgresScoringSchemaRepository implements ScoringSchemaRepository 
     return this.connector.getMany<ScoringSchemaDto>(`${this.SELECT_SCORING_SCHEMA_SQL} ${this.connector.searchSQL({ orderBy: 'name ASC', pagination })}`);
   }
 
-  public async getAllScoringSchemasCount(): Promise<number> {
+  public async getScoringSchemasCount(): Promise<number> {
     return this.connector.getCount(this.SELECT_SCORING_SCHEMAS_COUNT_SQL);
   }
 

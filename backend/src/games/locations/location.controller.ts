@@ -1,11 +1,24 @@
-import { Body, Controller, Delete, Get, Inject, Param, Patch, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Inject,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 
 import { GetEntityByIdDto } from '@common/dto/in/get-entity-by-id.dto';
 import { PaginationDto } from '@common/pagination/dto/in/pagination.dto';
 import { paginationMapper } from '@common/pagination/mapper/pagination.mapper';
 import { Paginated } from '@common/pagination/Paginated';
 
-import { LOCATION_GATEWAY, LocationGateway } from './infrastructure/location.gateway';
+import {
+  LOCATION_GATEWAY,
+  LocationGateway,
+} from './infrastructure/location.gateway';
 import { CreateLocationDto } from './dto/in/create-location.dto';
 import { UpdateLocationDto } from './dto/in/update-location.dto';
 import { LocationResponse } from './dto/out/location.response';
@@ -28,7 +41,9 @@ export class LocationController {
   public async getLocations(
     @Query() pagination: PaginationDto,
   ): Promise<Paginated<LocationResponse>> {
-    return this.gateway.getMany(paginationMapper.fromDto(pagination));
+    return this.gateway.getMany({
+      pagination: paginationMapper.fromDto(pagination),
+    });
   }
 
   @Post()

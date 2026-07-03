@@ -118,7 +118,7 @@ export class PostgresRoleRepository implements RoleRepository {
     );
   }
 
-  public async getAllRolesCount(): Promise<number> {
+  public async getRolesCount(): Promise<number> {
     return this.connector.getCount(this.SELECT_ROLES_COUNT_SQL);
   }
 

@@ -5,13 +5,13 @@ import {
   Logger,
 } from '@nestjs/common';
 
+import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 import {
   CustomInternalError,
   CustomNotFoundError,
 } from '@common/errors/service-errors';
 import { validateUpdateDtoNotEmpty } from '@common/helpers/validate-update-dto-not-empty';
 import { Paginated } from '@common/pagination/Paginated';
-import { Pagination } from '@common/pagination/pagination';
 import {
   GAME_REPOSITORY,
   GameRepository,
@@ -30,7 +30,6 @@ import {
   ScoringSchemaGateway,
 } from '../../scoring-schemas/infrastructure/scoring-schema.gateway';
 import { TAG_GATEWAY, TagGateway } from '../../tags/infrastructure/tag.gateway';
-
 import { CreateGameDto } from '../dto/in/create-game.dto';
 import { GameDto } from '../dto/in/game.dto';
 import { UpdateGameDto } from '../dto/in/update-game.dto';
@@ -64,14 +63,20 @@ export class GameService implements GameGateway {
 
     const entities = await getter(ids);
     if (entities.length !== ids.length) {
-      const missingId = ids.find((id) => !entities.some((entity) => (entity as { id?: string }).id === id));
+      const missingId = ids.find(
+        (id) =>
+          !entities.some((entity) => (entity as { id?: string }).id === id),
+      );
       throw new BadRequestException(
         `${entityName} with ID "${missingId ?? 'unknown'}" not found`,
       );
     }
   }
 
-  private async validateInput(input: CreateGameDto | UpdateGameDto, id?: string) {
+  private async validateInput(
+    input: CreateGameDto | UpdateGameDto,
+    id?: string,
+  ) {
     const existingGame = await this.gameRepository.getGameByName(input.name);
     if (existingGame && existingGame.id !== id) {
       throw new BadRequestException(
@@ -80,7 +85,11 @@ export class GameService implements GameGateway {
     }
 
     await Promise.all([
-      this.ensureIdsExist(input.tagIds, (ids) => this.tagGateway.getByIds(ids), 'Tag'),
+      this.ensureIdsExist(
+        input.tagIds,
+        (ids) => this.tagGateway.getByIds(ids),
+        'Tag',
+      ),
       this.ensureIdsExist(
         input.locationIds,
         (ids) => this.locationGateway.getByIds(ids),
@@ -91,7 +100,11 @@ export class GameService implements GameGateway {
         (ids) => this.scoringSchemaGateway.getByIds(ids),
         'Scoring schema',
       ),
-      this.ensureIdsExist(input.helperIds, (ids) => this.helperGateway.getByIds(ids), 'Helper'),
+      this.ensureIdsExist(
+        input.helperIds,
+        (ids) => this.helperGateway.getByIds(ids),
+        'Helper',
+      ),
     ]);
   }
 
@@ -114,11 +127,11 @@ export class GameService implements GameGateway {
     }
   }
 
-  public async getMany(pagination?: Pagination): Promise<Paginated<GameDto>> {
+  public async getMany(dto?: GetManyItemsDto): Promise<Paginated<GameDto>> {
     try {
       const [items, total] = await Promise.all([
-        this.gameRepository.getManyGames(pagination),
-        this.gameRepository.getAllGamesCount(),
+        this.gameRepository.getManyGames(dto),
+        this.gameRepository.getGamesCount(dto),
       ]);
       return { page: items, total };
     } catch (error) {

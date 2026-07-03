@@ -82,7 +82,7 @@ describe('PermissionService', () => {
       mockRepository.getManyPermissions = jest
         .fn()
         .mockResolvedValueOnce([testPermissionDto, testPermissionDto2]);
-      mockRepository.getAllPermissionsCount = jest
+      mockRepository.getPermissionsCount = jest
         .fn()
         .mockResolvedValueOnce(2);
 
@@ -90,7 +90,7 @@ describe('PermissionService', () => {
 
       expect(mockRepository.getManyPermissions).toHaveBeenCalledWith(undefined);
       expect(mockRepository.getManyPermissions).toHaveBeenCalledTimes(1);
-      expect(mockRepository.getAllPermissionsCount).toHaveBeenCalledTimes(1);
+      expect(mockRepository.getPermissionsCount).toHaveBeenCalledTimes(1);
 
       expect(result).toStrictEqual({
         page: [testPermissionDto, testPermissionDto2],
@@ -102,25 +102,25 @@ describe('PermissionService', () => {
       mockRepository.getManyPermissions = jest
         .fn()
         .mockResolvedValueOnce([testPermissionDto]);
-      mockRepository.getAllPermissionsCount = jest
+      mockRepository.getPermissionsCount = jest
         .fn()
         .mockResolvedValueOnce(2);
       const pagination = { pageSize: 1, pageNumber: 0 };
 
-      const result = await service.getMany(pagination);
+      const result = await service.getMany({ pagination });
 
       expect(mockRepository.getManyPermissions).toHaveBeenCalledWith(
         pagination,
       );
       expect(mockRepository.getManyPermissions).toHaveBeenCalledTimes(1);
-      expect(mockRepository.getAllPermissionsCount).toHaveBeenCalledTimes(1);
+      expect(mockRepository.getPermissionsCount).toHaveBeenCalledTimes(1);
 
       expect(result).toStrictEqual({ page: [testPermissionDto], total: 2 });
     });
 
     it('should return empty response if no permissions found', async () => {
       mockRepository.getManyPermissions = jest.fn().mockResolvedValueOnce([]);
-      mockRepository.getAllPermissionsCount = jest
+      mockRepository.getPermissionsCount = jest
         .fn()
         .mockResolvedValueOnce(0);
 
@@ -128,7 +128,7 @@ describe('PermissionService', () => {
 
       expect(mockRepository.getManyPermissions).toHaveBeenCalledWith(undefined);
       expect(mockRepository.getManyPermissions).toHaveBeenCalledTimes(1);
-      expect(mockRepository.getAllPermissionsCount).toHaveBeenCalledTimes(1);
+      expect(mockRepository.getPermissionsCount).toHaveBeenCalledTimes(1);
 
       expect(result).toStrictEqual({ page: [], total: 0 });
     });
@@ -137,7 +137,7 @@ describe('PermissionService', () => {
       mockRepository.getManyPermissions = jest
         .fn()
         .mockRejectedValueOnce(new Error());
-      mockRepository.getAllPermissionsCount = jest
+      mockRepository.getPermissionsCount = jest
         .fn()
         .mockResolvedValueOnce(2);
 
@@ -150,7 +150,7 @@ describe('PermissionService', () => {
           undefined,
         );
         expect(mockRepository.getManyPermissions).toHaveBeenCalledTimes(1);
-        expect(mockRepository.getAllPermissionsCount).toHaveBeenCalledTimes(1);
+        expect(mockRepository.getPermissionsCount).toHaveBeenCalledTimes(1);
         expect(error).toBeInstanceOf(CustomInternalError);
       }
     });

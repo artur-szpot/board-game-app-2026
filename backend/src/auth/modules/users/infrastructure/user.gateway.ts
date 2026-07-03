@@ -1,5 +1,5 @@
+import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 import { Paginated } from '@common/pagination/Paginated';
-import { Pagination } from '@common/pagination/pagination';
 
 import { CreateUserDto } from '../dto/in/create-user.dto';
 import { UpdateUserDto } from '../dto/in/update-user.dto';
@@ -9,7 +9,7 @@ import { UserResponse } from '../dto/out/user.response';
 export interface UserGateway {
   getById(userId: string): Promise<UserResponse>;
   getMe(userId: string): Promise<MeResponse>;
-  getMany(pagination?: Pagination): Promise<Paginated<UserResponse>>;
+  getMany(dto?: GetManyItemsDto): Promise<Paginated<UserResponse>>;
   create(input: CreateUserDto): Promise<UserResponse>;
   update(userId: string, input: UpdateUserDto): Promise<UserResponse>;
   delete(userId: string): Promise<UserResponse>;

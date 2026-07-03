@@ -8,8 +8,8 @@ export interface LocationRepository {
   getLocationById(locationId: string): Promise<LocationDto | null>;
   getLocationsByIds(locationIds: string[]): Promise<LocationDto[]>;
   getLocationByName(name: string): Promise<LocationDto | null>;
-  getManyLocations(dto: GetManyItemsDto): Promise<LocationDto[]>;
-  getAllLocationsCount(): Promise<number>;
+  getManyLocations(dto?: GetManyItemsDto): Promise<LocationDto[]>;
+  getLocationsCount(dto?: GetManyItemsDto): Promise<number>;
   createLocation(input: CreateLocationDto): Promise<LocationDto>;
   updateLocation(
     locationId: string,

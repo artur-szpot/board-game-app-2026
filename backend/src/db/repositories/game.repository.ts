@@ -7,8 +7,8 @@ import { UpdateGameDto } from '../../games/games/dto/in/update-game.dto';
 export interface GameRepository {
   getGameById(gameId: string): Promise<GameDto | null>;
   getGameByName(name: string): Promise<GameDto | null>;
-  getManyGames(dto: GetManyItemsDto): Promise<GameDto[]>;
-  getAllGamesCount(): Promise<number>;
+  getManyGames(dto?: GetManyItemsDto): Promise<GameDto[]>;
+  getGamesCount(dto?: GetManyItemsDto): Promise<number>;
   createGame(input: CreateGameDto): Promise<GameDto>;
   updateGame(gameId: string, input: UpdateGameDto): Promise<GameDto>;
   deleteGame(gameId: string): Promise<GameDto>;

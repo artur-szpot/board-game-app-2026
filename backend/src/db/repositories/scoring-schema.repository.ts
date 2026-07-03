@@ -9,7 +9,7 @@ export interface ScoringSchemaRepository {
   getScoringSchemaByIds(ids: string[]): Promise<ScoringSchemaDto[]>;
   getScoringSchemaByName(name: string): Promise<ScoringSchemaDto | null>;
   getManyScoringSchemas(pagination?: Pagination): Promise<ScoringSchemaDto[]>;
-  getAllScoringSchemasCount(): Promise<number>;
+  getScoringSchemasCount(): Promise<number>;
   createScoringSchema(input: CreateScoringSchemaDto): Promise<ScoringSchemaDto>;
   updateScoringSchema(id: string, input: UpdateScoringSchemaDto): Promise<ScoringSchemaDto>;
   deleteScoringSchema(id: string): Promise<ScoringSchemaDto>;

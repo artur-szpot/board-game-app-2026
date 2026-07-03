@@ -14,11 +14,10 @@ describe('SearchController', () => {
 
     const controller = moduleRef.get(SearchController);
     await expect(
-      controller.search({ type: ['game'], pagination: undefined } as any),
+      controller.search({ types: ['game'] }),
     ).resolves.toEqual({ results: [] });
     expect(search).toHaveBeenCalledWith(
-      { type: ['game'], pagination: undefined } as any,
-      undefined,
+      { types: ['game'] },
     );
   });
 });

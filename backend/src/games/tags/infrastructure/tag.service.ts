@@ -140,7 +140,7 @@ export class TagService implements TagGateway {
     try {
       const [items, total] = await Promise.all([
         this.tagRepository.getManyTags(pagination),
-        this.tagRepository.getAllTagsCount(),
+        this.tagRepository.getTagsCount(),
       ]);
       return {
         page: items.map((tag) => this.mapToResponse(tag)),

@@ -23,7 +23,7 @@ describe('TagService', () => {
       getTagById: jest.fn(),
       getTagByName: jest.fn(),
       getManyTags: jest.fn(),
-      getAllTagsCount: jest.fn(),
+      getTagsCount: jest.fn(),
       createTag: jest.fn(),
       updateTag: jest.fn(),
       deleteTag: jest.fn(),
@@ -70,12 +70,12 @@ describe('TagService', () => {
   describe('getMany', () => {
     it('should return a paginated list of tags', async () => {
       mockRepository.getManyTags.mockResolvedValueOnce([testTagDto]);
-      mockRepository.getAllTagsCount.mockResolvedValueOnce(1);
+      mockRepository.getTagsCount.mockResolvedValueOnce(1);
 
       const result = await service.getMany();
 
       expect(mockRepository.getManyTags).toHaveBeenCalledWith(undefined);
-      expect(mockRepository.getAllTagsCount).toHaveBeenCalledTimes(1);
+      expect(mockRepository.getTagsCount).toHaveBeenCalledTimes(1);
       expect(result).toStrictEqual({
         page: [
           {
@@ -92,11 +92,11 @@ describe('TagService', () => {
 
     it('should throw CustomInternalError for repository failures', async () => {
       mockRepository.getManyTags.mockRejectedValueOnce(new Error('failure'));
-      mockRepository.getAllTagsCount.mockResolvedValueOnce(0);
+      mockRepository.getTagsCount.mockResolvedValueOnce(0);
 
       await expect(service.getMany()).rejects.toBeInstanceOf(CustomInternalError);
       expect(mockRepository.getManyTags).toHaveBeenCalledWith(undefined);
-      expect(mockRepository.getAllTagsCount).toHaveBeenCalledTimes(1);
+      expect(mockRepository.getTagsCount).toHaveBeenCalledTimes(1);
     });
   });
 

@@ -63,7 +63,9 @@ export class RoleController {
   async getRoles(
     @Query() pagination: PaginationDto,
   ): Promise<Paginated<RoleResponse>> {
-    return this.gateway.getMany(paginationMapper.fromDto(pagination));
+    return this.gateway.getMany({
+      pagination: paginationMapper.fromDto(pagination),
+    });
   }
 
   @Post()

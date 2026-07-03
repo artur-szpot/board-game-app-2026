@@ -66,7 +66,7 @@ export class GameScoreService implements GameScoreGateway {
     try {
       const [items, total] = await Promise.all([
         this.gameScoreRepository.getManyGameScores(pagination),
-        this.gameScoreRepository.getAllGameScoresCount(),
+        this.gameScoreRepository.getGameScoresCount(),
       ]);
       return { page: items.map((item) => this.mapToResponse(item)), total };
     } catch (error) {

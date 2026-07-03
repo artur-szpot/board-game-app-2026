@@ -1,11 +1,24 @@
-import { Body, Controller, Delete, Get, Inject, Param, Patch, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Inject,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 
 import { GetEntityByIdDto } from '@common/dto/in/get-entity-by-id.dto';
 import { PaginationDto } from '@common/pagination/dto/in/pagination.dto';
 import { paginationMapper } from '@common/pagination/mapper/pagination.mapper';
 import { Paginated } from '@common/pagination/Paginated';
 
-import { SCORING_SCHEMA_GATEWAY, ScoringSchemaGateway } from './infrastructure/scoring-schema.gateway';
+import {
+  SCORING_SCHEMA_GATEWAY,
+  ScoringSchemaGateway,
+} from './infrastructure/scoring-schema.gateway';
 import { CreateScoringSchemaDto } from './dto/in/create-scoring-schema.dto';
 import { UpdateScoringSchemaDto } from './dto/in/update-scoring-schema.dto';
 import { ScoringSchemaResponse } from './dto/out/scoring-schema.response';
@@ -28,7 +41,9 @@ export class ScoringSchemaController {
   public async getMany(
     @Query() pagination: PaginationDto,
   ): Promise<Paginated<ScoringSchemaResponse>> {
-    return this.gateway.getMany(paginationMapper.fromDto(pagination));
+    return this.gateway.getMany({
+      pagination: paginationMapper.fromDto(pagination),
+    });
   }
 
   @Post()

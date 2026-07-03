@@ -9,13 +9,13 @@ describe('HelperService', () => {
     getHelperById: jest.fn(),
     getHelperByName: jest.fn(),
     getManyHelpers: jest.fn(),
-    getAllHelpersCount: jest.fn(),
+    getHelpersCount: jest.fn(),
     createHelper: jest.fn(),
     updateHelper: jest.fn(),
     deleteHelper: jest.fn(),
   };
 
-  const service = new HelperService(repository as any);
+  const service = new HelperService(repository);
 
   beforeEach(() => {
     jest.clearAllMocks();

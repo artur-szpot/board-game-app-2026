@@ -93,8 +93,8 @@ export class PostgresLocationRepository implements LocationRepository {
     );
   }
 
-  public async getManyLocations(dto: GetManyItemsDto): Promise<LocationDto[]> {
-    const { pagination } = dto;
+  public async getManyLocations(dto?: GetManyItemsDto): Promise<LocationDto[]> {
+    const { pagination } = dto ?? {};
     return this.connector.getMany<LocationDto>(
       `${this.SELECT_LOCATIONS_SQL} ${this.connector.searchSQL({
         orderBy: 'name ASC',
@@ -103,7 +103,7 @@ export class PostgresLocationRepository implements LocationRepository {
     );
   }
 
-  public async getAllLocationsCount(): Promise<number> {
+  public async getLocationsCount(): Promise<number> {
     return this.connector.getCount(this.SELECT_LOCATIONS_COUNT_SQL);
   }
 

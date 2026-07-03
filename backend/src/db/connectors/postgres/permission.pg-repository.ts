@@ -43,7 +43,7 @@ export class PostgresPermissionRepository implements PermissionRepository {
     );
   }
 
-  public async getAllPermissionsCount(): Promise<number> {
+  public async getPermissionsCount(): Promise<number> {
     return this.connector.getCount(this.SELECT_PERMISSIONS_COUNT_SQL);
   }
 }

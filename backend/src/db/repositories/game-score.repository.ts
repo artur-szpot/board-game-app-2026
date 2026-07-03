@@ -7,7 +7,7 @@ import { GameScoreDto } from '../../games/game-scores/dto/in/game-score.dto';
 export interface GameScoreRepository {
   getGameScoreById(gameScoreId: string): Promise<GameScoreDto | null>;
   getManyGameScores(pagination?: Pagination): Promise<GameScoreDto[]>;
-  getAllGameScoresCount(): Promise<number>;
+  getGameScoresCount(): Promise<number>;
   createGameScore(input: CreateGameScoreDto): Promise<GameScoreDto>;
   updateGameScore(gameScoreId: string, input: UpdateGameScoreDto): Promise<GameScoreDto>;
   deleteGameScore(gameScoreId: string): Promise<GameScoreDto>;
