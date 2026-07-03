@@ -4,7 +4,7 @@ import { createId } from '@paralleldrive/cuid2';
 import { CreateRoleDto } from '@auth/modules/roles/dto/in/create-role.dto';
 import { RoleDto } from '@auth/modules/roles/dto/in/role.dto';
 import { UpdateRoleDto } from '@auth/modules/roles/dto/in/update-role.dto';
-import { Pagination } from '@common/pagination/pagination';
+import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 import { DbSearchDto } from '@db/dto/search.dto';
 
 import { RoleRepository } from '../../repositories/role.repository';
@@ -110,7 +110,8 @@ export class PostgresRoleRepository implements RoleRepository {
     );
   }
 
-  public async getManyRoles(pagination?: Pagination): Promise<RoleDto[]> {
+  public async getManyRoles(dto?: GetManyItemsDto): Promise<RoleDto[]> {
+    const { pagination } = dto;
     return this.connector.getMany<RoleDto>(
       this.SELECT_ROLES_SQL({
         pagination,

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { PermissionDto } from '@auth/modules/permissions/dto/in/permission.dto';
 import { PermissionType } from '@auth/modules/permissions/enums/permission-type.enum';
-import { Pagination } from '@common/pagination/pagination';
+import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 import { DbSearchDto } from '@db/dto/search.dto';
 
 import { PermissionRepository } from '../../repositories/permission.repository';
@@ -34,8 +34,9 @@ export class PostgresPermissionRepository implements PermissionRepository {
   }
 
   public async getManyPermissions(
-    pagination?: Pagination,
+    dto?: GetManyItemsDto,
   ): Promise<PermissionDto[]> {
+    const { pagination } = dto;
     return this.connector.getMany<PermissionDto>(
       this.SELECT_PERMISSIONS_SQL({
         pagination,
