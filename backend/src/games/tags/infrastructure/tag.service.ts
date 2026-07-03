@@ -5,13 +5,13 @@ import {
   Logger,
 } from '@nestjs/common';
 
+import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 import {
   CustomInternalError,
   CustomNotFoundError,
 } from '@common/errors/service-errors';
 import { validateUpdateDtoNotEmpty } from '@common/helpers/validate-update-dto-not-empty';
 import { Paginated } from '@common/pagination/Paginated';
-import { Pagination } from '@common/pagination/pagination';
 import { TAG_REPOSITORY, TagRepository } from '@db/repositories/tag.repository';
 
 import { CreateTagDto } from '../dto/in/create-tag.dto';
@@ -134,13 +134,11 @@ export class TagService implements TagGateway {
     return tags;
   }
 
-  public async getMany(
-    pagination?: Pagination,
-  ): Promise<Paginated<TagResponse>> {
+  public async getMany(dto?: GetManyItemsDto): Promise<Paginated<TagResponse>> {
     try {
       const [items, total] = await Promise.all([
-        this.tagRepository.getManyTags(pagination),
-        this.tagRepository.getTagsCount(),
+        this.tagRepository.getManyTags(dto),
+        this.tagRepository.getTagsCount(dto),
       ]);
       return {
         page: items.map((tag) => this.mapToResponse(tag)),

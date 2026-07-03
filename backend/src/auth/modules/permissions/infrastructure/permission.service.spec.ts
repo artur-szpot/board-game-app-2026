@@ -1,4 +1,7 @@
-import { CustomInternalError, CustomNotFoundError } from '@common/errors/service-errors';
+import {
+  CustomInternalError,
+  CustomNotFoundError,
+} from '@common/errors/service-errors';
 import { PermissionRepository } from '@db/repositories/permission.repository';
 
 import { PermissionDto } from '../dto/in/permission.dto';
@@ -82,9 +85,7 @@ describe('PermissionService', () => {
       mockRepository.getManyPermissions = jest
         .fn()
         .mockResolvedValueOnce([testPermissionDto, testPermissionDto2]);
-      mockRepository.getPermissionsCount = jest
-        .fn()
-        .mockResolvedValueOnce(2);
+      mockRepository.getPermissionsCount = jest.fn().mockResolvedValueOnce(2);
 
       const result = await service.getMany();
 
@@ -102,16 +103,14 @@ describe('PermissionService', () => {
       mockRepository.getManyPermissions = jest
         .fn()
         .mockResolvedValueOnce([testPermissionDto]);
-      mockRepository.getPermissionsCount = jest
-        .fn()
-        .mockResolvedValueOnce(2);
+      mockRepository.getPermissionsCount = jest.fn().mockResolvedValueOnce(2);
       const pagination = { pageSize: 1, pageNumber: 0 };
 
       const result = await service.getMany({ pagination });
 
-      expect(mockRepository.getManyPermissions).toHaveBeenCalledWith(
+      expect(mockRepository.getManyPermissions).toHaveBeenCalledWith({
         pagination,
-      );
+      });
       expect(mockRepository.getManyPermissions).toHaveBeenCalledTimes(1);
       expect(mockRepository.getPermissionsCount).toHaveBeenCalledTimes(1);
 
@@ -120,9 +119,7 @@ describe('PermissionService', () => {
 
     it('should return empty response if no permissions found', async () => {
       mockRepository.getManyPermissions = jest.fn().mockResolvedValueOnce([]);
-      mockRepository.getPermissionsCount = jest
-        .fn()
-        .mockResolvedValueOnce(0);
+      mockRepository.getPermissionsCount = jest.fn().mockResolvedValueOnce(0);
 
       const result = await service.getMany();
 
@@ -137,9 +134,7 @@ describe('PermissionService', () => {
       mockRepository.getManyPermissions = jest
         .fn()
         .mockRejectedValueOnce(new Error());
-      mockRepository.getPermissionsCount = jest
-        .fn()
-        .mockResolvedValueOnce(2);
+      mockRepository.getPermissionsCount = jest.fn().mockResolvedValueOnce(2);
 
       try {
         await service.getMany();

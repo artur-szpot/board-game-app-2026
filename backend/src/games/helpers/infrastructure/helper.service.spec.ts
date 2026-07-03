@@ -7,6 +7,7 @@ import { HelperService } from './helper.service';
 describe('HelperService', () => {
   const repository = {
     getHelperById: jest.fn(),
+    getHelpersByIds: jest.fn(),
     getHelperByName: jest.fn(),
     getManyHelpers: jest.fn(),
     getHelpersCount: jest.fn(),

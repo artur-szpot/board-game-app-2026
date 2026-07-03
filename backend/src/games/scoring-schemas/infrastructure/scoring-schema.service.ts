@@ -21,6 +21,7 @@ import { ScoringSchemaDto } from '../dto/in/scoring-schema.dto';
 import { UpdateScoringSchemaDto } from '../dto/in/update-scoring-schema.dto';
 import { ScoringSchemaResponse } from '../dto/out/scoring-schema.response';
 import { ScoringSchemaGateway } from './scoring-schema.gateway';
+import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 
 @Injectable()
 export class ScoringSchemaService implements ScoringSchemaGateway {
@@ -81,12 +82,12 @@ export class ScoringSchemaService implements ScoringSchemaGateway {
   }
 
   public async getMany(
-    pagination?: Pagination,
+    dto?: GetManyItemsDto
   ): Promise<Paginated<ScoringSchemaResponse>> {
     try {
       const [items, total] = await Promise.all([
-        this.repository.getManyScoringSchemas(pagination),
-        this.repository.getScoringSchemasCount(),
+        this.repository.getManyScoringSchemas(dto),
+        this.repository.getScoringSchemasCount(dto),
       ]);
       return {
         page: items.map((i) => this.mapToResponse(i)),

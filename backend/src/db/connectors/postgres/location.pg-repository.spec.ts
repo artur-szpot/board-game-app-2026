@@ -54,7 +54,7 @@ describe('PostgresLocationRepository', () => {
       expect.stringContaining('INSERT INTO locations'),
       expect.any(Array),
     );
-    expect((connector.getOne.mock.calls[0][1][]).slice(1)).toEqual([
+    expect((connector.getOne.mock.calls[0][1]).slice(1)).toEqual([
       'Test location',
       'A description',
       null,
@@ -66,12 +66,12 @@ describe('PostgresLocationRepository', () => {
     connector.getMany.mockResolvedValue([{ id: 'location-1' }]);
 
     await expect(
-      repository.getManyLocations({ pagination: { take: 10, skip: 0 } }),
+      repository.getManyLocations({ pagination: { pageSize: 10, pageNumber: 0 } }),
     ).resolves.toEqual([{ id: 'location-1' }]);
 
     expect(connector.searchSQL).toHaveBeenCalledWith({
       orderBy: 'name ASC',
-      pagination: { take: 10, skip: 0 },
+      pagination: { pageSize: 10, pageNumber: 0 },
     });
     expect(connector.getMany).toHaveBeenCalledWith(
       expect.stringContaining('FROM locations'),

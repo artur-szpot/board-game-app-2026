@@ -116,7 +116,7 @@ describe('RoleService', () => {
 
       const result = await service.getMany({ pagination });
 
-      expect(mockRepository.getManyRoles).toHaveBeenCalledWith(pagination);
+      expect(mockRepository.getManyRoles).toHaveBeenCalledWith({ pagination });
       expect(mockRepository.getManyRoles).toHaveBeenCalledTimes(1);
       expect(mockRepository.getRolesCount).toHaveBeenCalledTimes(1);
 

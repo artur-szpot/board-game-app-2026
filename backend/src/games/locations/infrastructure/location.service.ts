@@ -1,19 +1,27 @@
-import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
 
-import { CustomInternalError, CustomNotFoundError } from '@common/errors/service-errors';
+import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
+import {
+  CustomInternalError,
+  CustomNotFoundError,
+} from '@common/errors/service-errors';
 import { validateUpdateDtoNotEmpty } from '@common/helpers/validate-update-dto-not-empty';
 import { Paginated } from '@common/pagination/Paginated';
-import { Pagination } from '@common/pagination/pagination';
-
-import { CreateLocationDto } from '../dto/in/create-location.dto';
-import { LocationResponse } from '../dto/out/location.response';
-import { LocationGateway } from './location.gateway';
-import { UpdateLocationDto } from '../dto/in/update-location.dto';
 import {
   LOCATION_REPOSITORY,
   LocationRepository,
 } from '@db/repositories/location.repository';
+
+import { CreateLocationDto } from '../dto/in/create-location.dto';
 import { LocationDto } from '../dto/in/location.dto';
+import { UpdateLocationDto } from '../dto/in/update-location.dto';
+import { LocationResponse } from '../dto/out/location.response';
+import { LocationGateway } from './location.gateway';
 
 @Injectable()
 export class LocationService implements LocationGateway {
@@ -51,19 +59,23 @@ export class LocationService implements LocationGateway {
   }
 
   private async ensureUniqueName(name: string, existingLocationId?: string) {
-    const existingLocation = await this.locationRepository.getLocationByName(name);
+    const existingLocation =
+      await this.locationRepository.getLocationByName(name);
     if (existingLocation && existingLocation.id !== existingLocationId) {
-      throw new BadRequestException(`Location name "${name}" is already in use`);
+      throw new BadRequestException(
+        `Location name "${name}" is already in use`,
+      );
     }
   }
 
   private async ensureParentLocationExists(parentId: string): Promise<void> {
-    const parentLocation = await this.locationRepository.getLocationById(
-      parentId,
-    );
+    const parentLocation =
+      await this.locationRepository.getLocationById(parentId);
 
     if (!parentLocation) {
-      throw new BadRequestException(`Parent location with ID "${parentId}" not found`);
+      throw new BadRequestException(
+        `Parent location with ID "${parentId}" not found`,
+      );
     }
   }
 
@@ -75,12 +87,13 @@ export class LocationService implements LocationGateway {
       throw new BadRequestException('Location cannot be its own parent');
     }
 
-    const parentLocation = await this.locationRepository.getLocationById(
-      parentId,
-    );
+    const parentLocation =
+      await this.locationRepository.getLocationById(parentId);
 
     if (!parentLocation) {
-      throw new BadRequestException(`Parent location with ID "${parentId}" not found`);
+      throw new BadRequestException(
+        `Parent location with ID "${parentId}" not found`,
+      );
     }
 
     const visited = new Set<string>([locationId, parentId]);
@@ -88,12 +101,13 @@ export class LocationService implements LocationGateway {
 
     while (currentParentId) {
       if (visited.has(currentParentId)) {
-        throw new BadRequestException('Location parent relationship would create a cycle');
+        throw new BadRequestException(
+          'Location parent relationship would create a cycle',
+        );
       }
       visited.add(currentParentId);
-      const currentParent = await this.locationRepository.getLocationById(
-        currentParentId,
-      );
+      const currentParent =
+        await this.locationRepository.getLocationById(currentParentId);
       if (!currentParent) {
         break;
       }
@@ -136,29 +150,30 @@ export class LocationService implements LocationGateway {
   }
 
   public async getMany(
-    pagination?: Pagination,
+    dto?: GetManyItemsDto,
   ): Promise<Paginated<LocationResponse>> {
     try {
       const [items, total] = await Promise.all([
-        this.locationRepository.getManyLocations(pagination),
-        this.locationRepository.getLocationsCount(),
+        this.locationRepository.getManyLocations(dto),
+        this.locationRepository.getLocationsCount(dto),
       ]);
       return {
         page: items.map((location) => this.mapToResponse(location)),
         total,
       };
     } catch (error) {
-      this.logger.error(`Unexpected error while retrieving locations: ${error}`);
+      this.logger.error(
+        `Unexpected error while retrieving locations: ${error}`,
+      );
       throw new CustomInternalError('retrieving locations');
     }
   }
 
-  public async create(
-    input: CreateLocationDto,
-  ): Promise<LocationResponse> {
+  public async create(input: CreateLocationDto): Promise<LocationResponse> {
     try {
       await this.validateCreateInput(input);
-      const createdLocation = await this.locationRepository.createLocation(input);
+      const createdLocation =
+        await this.locationRepository.createLocation(input);
       return this.mapToResponse(createdLocation);
     } catch (error) {
       if (error instanceof BadRequestException) {
@@ -183,7 +198,10 @@ export class LocationService implements LocationGateway {
       );
       return this.mapToResponse(updatedLocation);
     } catch (error) {
-      if (error instanceof BadRequestException || error instanceof CustomNotFoundError) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof CustomNotFoundError
+      ) {
         throw error;
       }
       this.logger.error(`Unexpected error while updating location: ${error}`);

@@ -18,11 +18,11 @@ describe('SearchService', () => {
     }).compile();
 
     const service = moduleRef.get(SearchService);
-    await expect(service.search({ types: ['game', 'tag', 'location'] })).resolves.toEqual({
+    await expect(service.search({ types: ['game', 'tag', 'location'], pagination: { pageSize: 10, pageNumber: 0 } })).resolves.toEqual({
       results: [
-        { type: 'game', items: [{ id: 'g1', name: 'Game 1' }] },
-        { type: 'tag', items: [{ id: 't1', name: 'Tag 1' }] },
-        { type: 'location', items: [{ id: 'l1', name: 'Location 1' }] },
+        { type: 'game', id: 'g1', name: 'Game 1' },
+        { type: 'tag', id: 't1', name: 'Tag 1' },
+        { type: 'location', id: 'l1', name: 'Location 1' },
       ],
     });
   });
