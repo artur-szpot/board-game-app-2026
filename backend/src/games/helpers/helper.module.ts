@@ -15,5 +15,6 @@ const helperGatewayProvider = {
   imports: [DbModule],
   providers: [helperGatewayProvider],
   controllers: [HelperController],
+  exports: [helperGatewayProvider],
 })
 export class HelperModule {}

@@ -28,32 +28,41 @@ jobs:
       - name: Run backend unit tests
         run: npm run test
 
+      - name: Start backend app
+        run: |
+          timeout 20s npm run start > /tmp/backend-start.log 2>&1 || exit_code=$?
+          if [ "${exit_code:-0}" -ne 0 ] && [ "${exit_code:-0}" -ne 124 ]; then
+            cat /tmp/backend-start.log
+            exit "$exit_code"
+          fi
+          cat /tmp/backend-start.log
+
       - name: Build backend
         run: npm run build
 
-  # frontend:
-  #   name: Frontend tests and build
-  #   runs-on: ubuntu-latest
-  #   defaults:
-  #     run:
-  #       working-directory: frontend
+  frontend:
+    name: Frontend tests and build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
 
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v4
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-  #     - name: Setup Node.js
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: 22
-  #         cache: npm
-  #         cache-dependency-path: frontend/package-lock.json
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
-  #     - name: Install frontend dependencies
-  #       run: npm ci
+      - name: Install frontend dependencies
+        run: npm ci
 
-  #     - name: Run frontend unit tests
-  #       run: npm test
+      - name: Run frontend unit tests
+        run: npm test
 
-  #     - name: Build frontend
-  #       run: npm run build
+      - name: Build frontend
+        run: npm run build
