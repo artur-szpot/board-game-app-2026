@@ -5,13 +5,13 @@ import {
   Logger,
 } from '@nestjs/common';
 
+import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 import {
   CustomInternalError,
   CustomNotFoundError,
 } from '@common/errors/service-errors';
 import { validateUpdateDtoNotEmpty } from '@common/helpers/validate-update-dto-not-empty';
 import { Paginated } from '@common/pagination/Paginated';
-import { Pagination } from '@common/pagination/pagination';
 import {
   ROLE_REPOSITORY,
   RoleRepository,
@@ -22,7 +22,6 @@ import { UpdateRoleDto } from '../dto/in/update-role.dto';
 import { RoleResponse } from '../dto/out/role.response';
 import { roleMapper } from '../mappers/role.mapper';
 import { RoleGateway } from './role.gateway';
-import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 
 @Injectable()
 export class RoleService implements RoleGateway {
@@ -73,7 +72,9 @@ export class RoleService implements RoleGateway {
     }
   }
 
-  public async getMany(dto?: GetManyItemsDto): Promise<Paginated<RoleResponse>> {
+  public async getMany(
+    dto?: GetManyItemsDto,
+  ): Promise<Paginated<RoleResponse>> {
     try {
       const [items, total] = await Promise.all([
         this.roleRepository.getManyRoles(dto),
@@ -124,7 +125,7 @@ export class RoleService implements RoleGateway {
   ): Promise<void> {
     const existingRole = await this.roleRepository.getRoleById(roleId);
     if (existingRole === null) {
-      throw new BadRequestException(`Role with ID "${roleId}" doesn\'t exist`);
+      throw new BadRequestException(`Role with ID "${roleId}" doesn't exist`);
     }
     if (existingRole.protectedRole) {
       throw new BadRequestException(

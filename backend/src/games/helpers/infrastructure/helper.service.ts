@@ -11,18 +11,17 @@ import {
 } from '@common/errors/service-errors';
 import { validateUpdateDtoNotEmpty } from '@common/helpers/validate-update-dto-not-empty';
 import { Paginated } from '@common/pagination/Paginated';
-import { Pagination } from '@common/pagination/pagination';
 
-import { CreateHelperDto } from '../dto/in/create-helper.dto';
-import { HelperDto } from '../dto/in/helper.dto';
-import { HelperResponse } from '../dto/out/helper.response';
-import { UpdateHelperDto } from '../dto/in/update-helper.dto';
+import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 import {
   HELPER_REPOSITORY,
   HelperRepository,
 } from '@db/repositories/helper.repository';
+import { CreateHelperDto } from '../dto/in/create-helper.dto';
+import { HelperDto } from '../dto/in/helper.dto';
+import { UpdateHelperDto } from '../dto/in/update-helper.dto';
+import { HelperResponse } from '../dto/out/helper.response';
 import { HelperGateway } from './helper.gateway';
-import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 
 @Injectable()
 export class HelperService implements HelperGateway {

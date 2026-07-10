@@ -1,3 +1,3 @@
-import React from "react";
+import type { FC } from "react"
 
-export const Todo: React.FC<{}> = () => <p>Todo!</p>;
+export const Todo: FC = () => <p>Todo!</p>

@@ -5,7 +5,7 @@ import { Dashboard } from "./Dashboard";
 import { makeStore } from "../../store/store";
 
 describe("Dashboard", () => {
-  it("should be defined", async () => {
+  it("should be defined", () => {
     const store = makeStore({
       currentUser: { accessToken: "test-token" },
     });

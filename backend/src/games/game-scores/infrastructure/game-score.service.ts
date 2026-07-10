@@ -11,17 +11,16 @@ import {
 } from '@common/errors/service-errors';
 import { validateUpdateDtoNotEmpty } from '@common/helpers/validate-update-dto-not-empty';
 import { Paginated } from '@common/pagination/Paginated';
-import { Pagination } from '@common/pagination/pagination';
 import {
   GAME_SCORE_REPOSITORY,
   GameScoreRepository,
 } from '@db/repositories/game-score.repository';
 
+import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 import { CreateGameScoreDto } from '../dto/in/create-game-score.dto';
 import { UpdateGameScoreDto } from '../dto/in/update-game-score.dto';
 import { GameScoreResponse } from '../dto/out/game-score.response';
 import { GameScoreGateway } from '../game-score.gateway';
-import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 
 @Injectable()
 export class GameScoreService implements GameScoreGateway {
