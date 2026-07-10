@@ -13,7 +13,7 @@ This index tracks the priority and completion status of discrete implementation 
 | 7 | Add game score module | Backend | DONE | Depends on scoring schemas and games |
 | 8 | Add search endpoint | Backend | DONE | Depends on searchable backend entities |
 | 9 | Add backend tests for new modules | Backend | DONE | Can follow after backend modules are scaffolded |
-| 10 | Implement frame stack navigation state | Frontend | TODO | Foundation for navigation and callback flow |
+| 10 | Implement frame stack navigation state | Frontend | DONE | Foundation for navigation and callback flow |
 | 11 | Implement generic screen templates | Frontend | TODO | Required before screens are built |
 | 12 | Implement locations and tags screens | Frontend | TODO | Use generic screens and backend endpoints |
 | 13 | Implement games list/detail screens | Frontend | TODO | Depends on locations/tags data and generic screen support |

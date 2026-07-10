@@ -53,7 +53,7 @@ export class GameScoreService implements GameScoreGateway {
       }
       return this.mapToResponse(score);
     } catch (error) {
-      if (error instanceof CustomNotFoundError) throw error;
+      if (error instanceof CustomNotFoundError) {throw error;}
       this.logger.error(
         `Unexpected error while retrieving game score with ID "${id}": ${error}`,
       );
@@ -101,7 +101,7 @@ export class GameScoreService implements GameScoreGateway {
         error instanceof BadRequestException ||
         error instanceof CustomNotFoundError
       )
-        throw error;
+        {throw error;}
       this.logger.error(`Unexpected error while updating game score: ${error}`);
       throw new CustomInternalError('updating the game score');
     }
@@ -112,7 +112,7 @@ export class GameScoreService implements GameScoreGateway {
       const deleted = await this.gameScoreRepository.deleteGameScore(id);
       return this.mapToResponse(deleted);
     } catch (error) {
-      if (error instanceof CustomNotFoundError) throw error;
+      if (error instanceof CustomNotFoundError) {throw error;}
       this.logger.error(`Unexpected error while deleting game score: ${error}`);
       throw new CustomInternalError('deleting the game score');
     }

@@ -1,9 +1,11 @@
 import { Formik } from "formik"
 import type React from "react"
+import { useEffect } from "react"
 
 import axios from "axios"
 import type { LoginDto } from "../../dto/login.dto"
 import { login, selectAccessToken } from "../../store/features/currentUserSlice"
+import { resetToBottomFrame } from "../../store/features/frameStackSlice"
 import { useAppDispatch, useAppSelector } from "../../store/hooks"
 
 type SignupForm = {
@@ -23,6 +25,10 @@ const initialValues: SignupForm = {
 export const Signup: React.FC = () => {
   const dispatch = useAppDispatch()
   const accessToken = useAppSelector(selectAccessToken)
+
+  useEffect(() => {
+    dispatch(resetToBottomFrame())
+  }, [dispatch])
 
   if (accessToken) {
     return (
