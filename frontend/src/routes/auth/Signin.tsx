@@ -1,11 +1,13 @@
 import axios from "axios"
 import { Formik } from "formik"
 import type React from "react"
+import { useEffect } from "react"
 import { Link, useNavigate } from "react-router"
 
 import { type LoginDto } from "../../dto/login.dto"
 import { type UserDataDto } from "../../dto/user-data.dto"
 import { login, selectAccessToken, setUserData } from "../../store/features/currentUserSlice"
+import { resetToBottomFrame } from "../../store/features/frameStackSlice"
 import { useAppDispatch, useAppSelector } from "../../store/hooks"
 
 type SigninForm = {
@@ -23,6 +25,10 @@ export const Signin: React.FC = () => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const accessToken = useAppSelector(selectAccessToken)
+
+  useEffect(() => {
+    dispatch(resetToBottomFrame())
+  }, [dispatch])
 
   if (accessToken) {
     return (

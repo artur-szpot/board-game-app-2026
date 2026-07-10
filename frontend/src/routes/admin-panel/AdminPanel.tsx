@@ -4,7 +4,8 @@ import { useEffect, useState } from "react"
 import { Link } from "react-router"
 
 import { selectAccessToken } from "../../store/features/currentUserSlice"
-import { useAppSelector } from "../../store/hooks"
+import { resetToBottomFrame } from "../../store/features/frameStackSlice"
+import { useAppDispatch, useAppSelector } from "../../store/hooks"
 
 import "./admin-panel.scss"
 import type {
@@ -20,11 +21,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = (
   props: AdminPanelProps,
 ) => {
   const { content } = props
+  const dispatch = useAppDispatch()
   const accessToken = useAppSelector(selectAccessToken)
   const [page, setPage] = useState(0)
   const [items, setItems] = useState<AdminPanelItem[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | undefined>()
+
+  useEffect(() => {
+    dispatch(resetToBottomFrame())
+  }, [dispatch])
 
   useEffect(() => {
     setPage(0)
