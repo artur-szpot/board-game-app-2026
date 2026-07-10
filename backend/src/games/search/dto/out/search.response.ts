@@ -1,4 +1,4 @@
-export type SearchResultType = 'game' | 'tag' | 'location';
+export type SearchResultType = 'game' | 'tag' | 'location' | 'helper' | 'scoring-schema' | 'game-score';
 
 export interface SearchResult {
   id: string;

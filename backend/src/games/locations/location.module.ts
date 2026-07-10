@@ -15,5 +15,6 @@ const locationGatewayProvider = {
   imports: [DbModule],
   providers: [locationGatewayProvider],
   controllers: [LocationController],
+  exports: [locationGatewayProvider],
 })
 export class LocationModule {}

@@ -12,14 +12,11 @@ const gameScoreGatewayProvider = {
   provide: GAME_SCORE_GATEWAY,
   useClass: GameScoreService,
 };
-const gameScoreRepositoryProvider = {
-  provide: GAME_SCORE_REPOSITORY,
-  useClass: PostgresGameScoreRepository,
-};
 
 @Module({
   imports: [DbModule],
   controllers: [GameScoreController],
-  providers: [gameScoreGatewayProvider, gameScoreRepositoryProvider],
+  providers: [gameScoreGatewayProvider],
+  exports: [gameScoreGatewayProvider],
 })
 export class GameScoreModule {}

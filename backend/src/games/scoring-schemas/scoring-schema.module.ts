@@ -15,5 +15,6 @@ const scoringSchemaGatewayProvider = {
   imports: [DbModule],
   providers: [scoringSchemaGatewayProvider],
   controllers: [ScoringSchemaController],
+  exports: [scoringSchemaGatewayProvider],
 })
 export class ScoringSchemaModule {}
