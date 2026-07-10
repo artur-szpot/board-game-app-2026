@@ -6,7 +6,7 @@ import { makeStore } from "../../store/store"
 import { Signin } from "./Signin"
 
 describe("Signin", () => {
-  it("should be defined", async () => {
+  it("should be defined", () => {
     const store = makeStore({
       currentUser: { accessToken: "test-token" },
     })

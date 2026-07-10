@@ -89,7 +89,7 @@ describe('Permission', () => {
       expect(true).toBe(false);
     } catch (error) {
       expect(error).toBeInstanceOf(IncorrectEntityProps);
-      expect(error.message).toContain('id: NonEmptyString');
+      expect((error as IncorrectEntityProps).message).toContain('id: NonEmptyString');
     }
   });
 
@@ -104,7 +104,7 @@ describe('Permission', () => {
       expect(true).toBe(false);
     } catch (error) {
       expect(error).toBeInstanceOf(IncorrectEntityProps);
-      expect(error.message).toContain('description: NonEmptyString');
+      expect((error as IncorrectEntityProps).message).toContain('description: NonEmptyString');
     }
   });
 });

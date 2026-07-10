@@ -1,7 +1,5 @@
 import { Controller, Get, Inject, Query } from '@nestjs/common';
 
-import { paginationMapper } from '@common/pagination/mapper/pagination.mapper';
-
 import { SearchQueryDto } from './dto/in/search-query.dto';
 import { SEARCH_GATEWAY, SearchGateway } from './infrastructure/search.gateway';
 

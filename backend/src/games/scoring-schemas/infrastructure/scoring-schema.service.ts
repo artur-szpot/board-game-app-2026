@@ -10,18 +10,17 @@ import {
   CustomNotFoundError,
 } from '@common/errors/service-errors';
 import { Paginated } from '@common/pagination/Paginated';
-import { Pagination } from '@common/pagination/pagination';
 import {
   SCORING_SCHEMA_REPOSITORY,
   ScoringSchemaRepository,
 } from '@db/repositories/scoring-schema.repository';
 
+import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 import { CreateScoringSchemaDto } from '../dto/in/create-scoring-schema.dto';
 import { ScoringSchemaDto } from '../dto/in/scoring-schema.dto';
 import { UpdateScoringSchemaDto } from '../dto/in/update-scoring-schema.dto';
 import { ScoringSchemaResponse } from '../dto/out/scoring-schema.response';
 import { ScoringSchemaGateway } from './scoring-schema.gateway';
-import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 
 @Injectable()
 export class ScoringSchemaService implements ScoringSchemaGateway {
@@ -82,7 +81,7 @@ export class ScoringSchemaService implements ScoringSchemaGateway {
   }
 
   public async getMany(
-    dto?: GetManyItemsDto
+    dto?: GetManyItemsDto,
   ): Promise<Paginated<ScoringSchemaResponse>> {
     try {
       const [items, total] = await Promise.all([

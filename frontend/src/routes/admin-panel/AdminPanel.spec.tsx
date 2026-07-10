@@ -6,7 +6,7 @@ import { makeStore } from "../../store/store"
 import { AdminPanel } from "./AdminPanel"
 
 describe("AdminPanel", () => {
-  it("should be defined", async () => {
+  it("should be defined", () => {
     const store = makeStore({
       currentUser: { accessToken: "test-token" },
     })

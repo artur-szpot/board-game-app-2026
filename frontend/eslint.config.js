@@ -1,12 +1,13 @@
 import js from "@eslint/js"
+import { defineConfig } from "eslint/config"
 import vitestPlugin from "@vitest/eslint-plugin"
 import prettierConfig from "eslint-config-prettier/flat"
 import reactPlugin from "eslint-plugin-react"
 import reactHooksPlugin from "eslint-plugin-react-hooks"
 import globals from "globals"
-import { config, configs } from "typescript-eslint"
+import { configs } from "typescript-eslint"
 
-const eslintConfig = config(
+const eslintConfig = defineConfig(
   {
     name: "global-ignores",
     ignores: [
@@ -19,6 +20,9 @@ const eslintConfig = config(
       "**/.tmp/",
       "**/.yarn/",
       "**/coverage/",
+      "**/*.cjs",
+      "eslint.config.js",
+      "vite.config.ts",
     ],
   },
   {
@@ -35,6 +39,7 @@ const eslintConfig = config(
   reactHooksPlugin.configs["recommended-latest"],
   {
     name: "main",
+    files: ["**/*.{ts,tsx}"],
     linterOptions: {
       reportUnusedDisableDirectives: 2,
     },
@@ -74,6 +79,12 @@ const eslintConfig = config(
                 "Please use pre-typed versions from `src/app/hooks.ts` instead.",
             },
           ],
+        },
+      ],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          ignoreRestSiblings: true,
         },
       ],
     },

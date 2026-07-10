@@ -11,22 +11,20 @@ import {
 } from '@common/errors/service-errors';
 import { validateUpdateDtoNotEmpty } from '@common/helpers/validate-update-dto-not-empty';
 import { Paginated } from '@common/pagination/Paginated';
-import { Pagination } from '@common/pagination/pagination';
 import {
   USER_REPOSITORY,
   UserRepository,
 } from '@db/repositories/user.repository';
 
+import { permissionMapper } from '@auth/modules/permissions/mappers/permission.mapper';
+import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
+import { User } from '../domain/User';
 import { CreateUserDto } from '../dto/in/create-user.dto';
 import { UpdateUserDto } from '../dto/in/update-user.dto';
+import { MeResponse } from '../dto/out/me.response';
 import { UserResponse } from '../dto/out/user.response';
 import { userMapper } from '../mappers/user.mapper';
 import { UserGateway } from './user.gateway';
-import { MeResponse } from '../dto/out/me.response';
-import { UserDto } from '../dto/in/user.dto';
-import { User } from '../domain/User';
-import { permissionMapper } from '@auth/modules/permissions/mappers/permission.mapper';
-import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 
 @Injectable()
 export class UserService implements UserGateway {
@@ -77,7 +75,9 @@ export class UserService implements UserGateway {
     };
   }
 
-  public async getMany(dto?: GetManyItemsDto): Promise<Paginated<UserResponse>> {
+  public async getMany(
+    dto?: GetManyItemsDto,
+  ): Promise<Paginated<UserResponse>> {
     try {
       const [items, total] = await Promise.all([
         this.userRepository.getManyUsers(dto),
@@ -139,7 +139,7 @@ export class UserService implements UserGateway {
   private async ensureUserExists(userId: string): Promise<void> {
     const existingUser = await this.userRepository.getUserById(userId);
     if (existingUser === null) {
-      throw new BadRequestException(`User with ID "${userId}" doesn\'t exist`);
+      throw new BadRequestException(`User with ID "${userId}" doesn't exist`);
     }
   }
 

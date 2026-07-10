@@ -1,11 +1,11 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 
+import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 import {
   CustomInternalError,
   CustomNotFoundError,
 } from '@common/errors/service-errors';
 import { Paginated } from '@common/pagination/Paginated';
-import { Pagination } from '@common/pagination/pagination';
 import {
   PERMISSION_REPOSITORY,
   PermissionRepository,
@@ -15,7 +15,6 @@ import { PermissionResponse } from '../dto/out/permission.response';
 import { PermissionType } from '../enums/permission-type.enum';
 import { permissionMapper } from '../mappers/permission.mapper';
 import { PermissionGateway } from './permission.gateway';
-import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 
 @Injectable()
 export class PermissionService implements PermissionGateway {
