@@ -57,7 +57,6 @@ const eslintConfig = defineConfig(
       },
     },
     rules: {
-      "curly": [2, "all"],
       "no-undef": [0],
       "@typescript-eslint/consistent-type-definitions": [2, "type"],
       "@typescript-eslint/consistent-type-imports": [
@@ -87,10 +86,16 @@ const eslintConfig = defineConfig(
           ignoreRestSiblings: true,
         },
       ],
+      '@typescript-eslint/no-confusing-void-expression': 'off',
     },
   },
-
   prettierConfig,
+  {
+    name: "enforce-curly-braces",
+    rules: {
+      curly: [2, "all"],
+    },
+  },
 )
 
 export default eslintConfig

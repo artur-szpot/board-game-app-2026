@@ -1,6 +1,7 @@
 import { Controller, Get, Inject, Query } from '@nestjs/common';
 
 import { SearchQueryDto } from './dto/in/search-query.dto';
+import { SearchResponse } from './dto/out/search.response';
 import { SEARCH_GATEWAY, SearchGateway } from './infrastructure/search.gateway';
 
 @Controller('game-api/search')
@@ -11,7 +12,7 @@ export class SearchController {
   ) {}
 
   @Get()
-  public search(@Query() query: SearchQueryDto) {
+  public search(@Query() query: SearchQueryDto): Promise<SearchResponse> {
     return this.searchGateway.search(query);
   }
 }

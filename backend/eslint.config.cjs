@@ -40,7 +40,6 @@ module.exports = [
     rules: {
       ...js.configs.recommended.rules,
       ...tseslint.configs.recommended.rules,
-      curly: ['error', 'all'],
       '@typescript-eslint/interface-name-prefix': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
@@ -51,6 +50,8 @@ module.exports = [
           ignoreRestSiblings: true,
         },
       ],
+      '@typescript-eslint/no-confusing-void-expression': 'off',
+      curly: ['error', 'all'],
     },
   },
   {

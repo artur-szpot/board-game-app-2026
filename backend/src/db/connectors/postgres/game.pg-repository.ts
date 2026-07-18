@@ -20,7 +20,7 @@ export class PostgresGameRepository implements GameRepository {
       length,
       COALESCE((SELECT ARRAY_AGG(gt.tag_id) FROM game_tags gt WHERE gt.game_id = games.id), ARRAY[]::text[]) AS "tagIds",
       COALESCE((SELECT ARRAY_AGG(gl.location_id) FROM game_locations gl WHERE gl.game_id = games.id), ARRAY[]::text[]) AS "locationIds",
-      COALESCE((SELECT ARRAY_AGG(gs.scoring_schema_id) FROM game_scoring_schemas gs WHERE gs.game_id = games.id), ARRAY[]::text[]) AS "scoringSchemaIds",
+      COALESCE((SELECT ARRAY_AGG(gs.schema_id) FROM game_scoring_schemas gs WHERE gs.game_id = games.id), ARRAY[]::text[]) AS "scoringSchemaIds",
       COALESCE((SELECT ARRAY_AGG(gh.helper_id) FROM game_helpers gh WHERE gh.game_id = games.id), ARRAY[]::text[]) AS "helperIds",
       created_on AS "createdOn",
       updated_on AS "updatedOn"
