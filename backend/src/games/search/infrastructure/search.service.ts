@@ -46,7 +46,7 @@ export class SearchService implements SearchGateway {
   public async search(query: SearchQueryDto): Promise<SearchResponse> {
     const requestedTypes = new Set(query.types);
     const { searchTerm, filters } = query;
-    const pagination = paginationMapper.fromDto(query.pagination);
+    const pagination = query.pagination ? paginationMapper.fromDto(query.pagination) : undefined;
     const results: SearchResponse['results'] = [];
     const addToResults = (type: SearchResultType, items: MinimalEntity[]) =>
       items.forEach((item) => results.push(this.toShortResponse(type, item)));

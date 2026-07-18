@@ -1,25 +1,68 @@
 import { describe, expect, it } from "vitest";
 
-import { frameStackSlice, openFrame, closeFrame, resetToBottomFrame } from "./frameStackSlice";
+import {
+  selectionStrategyChooseOne,
+  selectionStrategySelectNumber,
+} from "../../components/screens/selection-strategies";
+import {
+  closeFrame,
+  frameStackSlice,
+  FrameTypeEnum,
+  openOptionsFrame,
+  openSearchFrame,
+  resetToBottomFrame,
+} from "./frameStackSlice";
+import type { OptionsScreenProps } from "../../components/screens/OptionsScreenProps";
+import { ActionEnum } from "./frame-actions";
 
 const initialState = frameStackSlice.getInitialState();
+
+const mockOptionsProps: { params: OptionsScreenProps } = {
+  params: {
+    dataType: "other",
+    options: [
+      {
+        label: "Option 1",
+        value: "1",
+      },
+      {
+        label: "Option 2",
+        value: "2",
+      },
+      {
+        label: "Option 3",
+        value: "3",
+      },
+    ],
+    strategy: selectionStrategyChooseOne(),
+    title: "Test Options Screen",
+  },
+};
 
 describe("frameStackSlice", () => {
   it("should initialize with BOTTOM FRAME", () => {
     expect(initialState.stack).toHaveLength(1);
-    expect(initialState.stack[0]).toMatchObject({ frameName: "BOTTOM FRAME" });
+    expect(initialState.stack[0]).toMatchObject({
+      frameType: FrameTypeEnum.SELF,
+    });
   });
 
   it("should open a new frame", () => {
     const nextState = frameStackSlice.reducer(
       initialState,
-      openFrame({ frameName: "SEARCH", state: { query: "test" } }),
+      openSearchFrame({
+        params: {
+          title: "test",
+          dataTypes: ["game"],
+          strategy: selectionStrategySelectNumber({ min: 2 }),
+        },
+      }),
     );
 
     expect(nextState.stack).toHaveLength(2);
     expect(nextState.stack[1]).toMatchObject({
-      frameName: "SEARCH",
-      state: { query: "test" },
+      frameType: FrameTypeEnum.SEARCH,
+      params: { title: "test", dataTypes: ["game"] },
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       callbackReceiver: expect.any(Function),
     });
@@ -28,24 +71,36 @@ describe("frameStackSlice", () => {
   it("should close top frame with without callback if no result produced", () => {
     const state = frameStackSlice.reducer(
       initialState,
-      openFrame({ frameName: "SEARCH" }),
+      openSearchFrame({
+        params: {
+          title: "test",
+          dataTypes: ["game"],
+          strategy: selectionStrategySelectNumber({ min: 2 }),
+        },
+      }),
     );
     const nextState = frameStackSlice.reducer(
       state,
       closeFrame({
         id: state.stack.at(-1)?.id ?? "",
-        result: { action: "SOME_ACTION", payload: { a: true } },
+        result: { action: ActionEnum.CHOICE_MADE, payload: { a: true } },
       }),
     );
 
     expect(nextState.stack).toHaveLength(1);
-    expect(nextState.stack[0].frameName).toBe("BOTTOM FRAME");
+    expect(nextState.stack[0].frameType).toBe(FrameTypeEnum.SELF);
   });
 
   it("should close top frame with without callback if cancelled", () => {
     const state = frameStackSlice.reducer(
       initialState,
-      openFrame({ frameName: "SEARCH" }),
+      openSearchFrame({
+        params: {
+          title: "test",
+          dataTypes: ["game"],
+          strategy: selectionStrategySelectNumber({ min: 2 }),
+        },
+      }),
     );
     const nextState = frameStackSlice.reducer(
       state,
@@ -53,19 +108,23 @@ describe("frameStackSlice", () => {
     );
 
     expect(nextState.stack).toHaveLength(1);
-    expect(nextState.stack[0].frameName).toBe("BOTTOM FRAME");
+    expect(nextState.stack[0].frameType).toBe(FrameTypeEnum.SELF);
   });
 
   it("should throw when closing non-top frame", () => {
     const state = frameStackSlice.reducer(
       initialState,
-      openFrame({
-        frameName: "LIST",
-      }),
+      openOptionsFrame(mockOptionsProps),
     );
     const nestedState = frameStackSlice.reducer(
       state,
-      openFrame({ frameName: "DETAIL" }),
+      openSearchFrame({
+        params: {
+          title: "test",
+          dataTypes: ["game"],
+          strategy: selectionStrategySelectNumber({ min: 2 }),
+        },
+      }),
     );
     expect(() =>
       frameStackSlice.reducer(
@@ -80,9 +139,7 @@ describe("frameStackSlice", () => {
   it("should throw when closing bottom frame", () => {
     const state = frameStackSlice.reducer(
       initialState,
-      openFrame({
-        frameName: "LIST",
-      }),
+      openOptionsFrame(mockOptionsProps),
     );
     expect(() =>
       frameStackSlice.reducer(
@@ -97,11 +154,17 @@ describe("frameStackSlice", () => {
   it("should reset stack to bottom frame", () => {
     const state = frameStackSlice.reducer(
       initialState,
-      openFrame({ frameName: "SEARCH" }),
+      openSearchFrame({
+        params: {
+          title: "test",
+          dataTypes: ["game"],
+          strategy: selectionStrategySelectNumber({ min: 2 }),
+        },
+      }),
     );
     const resetState = frameStackSlice.reducer(state, resetToBottomFrame());
 
     expect(resetState.stack).toHaveLength(1);
-    expect(resetState.stack[0].frameName).toBe("BOTTOM FRAME");
+    expect(resetState.stack[0].frameType).toBe(FrameTypeEnum.SELF);
   });
 });
