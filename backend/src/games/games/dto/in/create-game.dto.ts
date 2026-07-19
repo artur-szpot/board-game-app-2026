@@ -1,11 +1,16 @@
 import { GameLength } from './game-length.enum';
 
+export interface CreateGameLocationDto {
+  locationId: string;
+  note?: string;
+}
+
 export interface CreateGameDto {
   name: string;
-  description?: string | null;
+  description?: string;
   length: GameLength;
   tagIds?: string[];
-  locationIds?: string[];
+  locations?: CreateGameLocationDto[];
   scoringSchemaIds?: string[];
   helperIds?: string[];
 }

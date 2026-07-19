@@ -77,6 +77,8 @@ export class GameService implements GameGateway {
     input: CreateGameDto | UpdateGameDto,
     id?: string,
   ) {
+    const locationIds = input.locations?.map((location) => location.locationId);
+
     const existingGame = await this.gameRepository.getGameByName(input.name);
     if (existingGame && existingGame.id !== id) {
       throw new BadRequestException(
@@ -91,7 +93,7 @@ export class GameService implements GameGateway {
         'Tag',
       ),
       this.ensureIdsExist(
-        input.locationIds,
+        locationIds,
         (ids) => this.locationGateway.getByIds(ids),
         'Location',
       ),

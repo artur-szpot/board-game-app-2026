@@ -1,5 +1,6 @@
 import { Test } from '@nestjs/testing';
 
+import { GameDataType } from '@common/enums/GameDataType.enum';
 import { SEARCH_GATEWAY } from './infrastructure/search.gateway';
 import { SearchController } from './search.controller';
 
@@ -14,10 +15,8 @@ describe('SearchController', () => {
 
     const controller = moduleRef.get(SearchController);
     await expect(
-      controller.search({ types: ['game'] }),
+      controller.search({ types: [GameDataType.GAME] }),
     ).resolves.toEqual({ results: [] });
-    expect(search).toHaveBeenCalledWith(
-      { types: ['game'] },
-    );
+    expect(search).toHaveBeenCalledWith({ types: [GameDataType.GAME] });
   });
 });

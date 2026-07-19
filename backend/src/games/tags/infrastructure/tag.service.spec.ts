@@ -14,6 +14,7 @@ describe('TagService', () => {
   const testTagDto: TagDto = {
     id: 'tag-1',
     name: 'Test Tag',
+    description: 'Test tag description',
     createdOn: new Date().toISOString(),
     updatedOn: new Date().toISOString(),
   };
@@ -42,6 +43,7 @@ describe('TagService', () => {
       expect(result).toStrictEqual({
         id: testTagDto.id,
         name: testTagDto.name,
+        description: testTagDto.description,
         parentId: undefined,
         createdOn: testTagDto.createdOn,
         updatedOn: testTagDto.updatedOn,
@@ -81,6 +83,7 @@ describe('TagService', () => {
           {
             id: testTagDto.id,
             name: testTagDto.name,
+            description: testTagDto.description,
             parentId: undefined,
             createdOn: testTagDto.createdOn,
             updatedOn: testTagDto.updatedOn,
@@ -113,6 +116,7 @@ describe('TagService', () => {
       expect(result).toStrictEqual({
         id: testTagDto.id,
         name: testTagDto.name,
+        description: testTagDto.description,
         parentId: undefined,
         createdOn: testTagDto.createdOn,
         updatedOn: testTagDto.updatedOn,
@@ -153,6 +157,7 @@ describe('TagService', () => {
       expect(result).toStrictEqual({
         id: updatedTagDto.id,
         name: updatedTagDto.name,
+        description: updatedTagDto.description,
         parentId: undefined,
         createdOn: updatedTagDto.createdOn,
         updatedOn: updatedTagDto.updatedOn,
@@ -181,6 +186,7 @@ describe('TagService', () => {
       expect(result).toStrictEqual({
         id: testTagDto.id,
         name: testTagDto.name,
+        description: testTagDto.description,
         parentId: undefined,
         createdOn: testTagDto.createdOn,
         updatedOn: testTagDto.updatedOn,

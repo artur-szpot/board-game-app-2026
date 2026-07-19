@@ -1,4 +1,4 @@
-import type { SelectionType, SelectionStrategy } from "./selection-strategies";
+import type { GameDataType, SelectionStrategy } from "./selection-strategies";
 
 export type OptionProps = {
   label: string;
@@ -9,7 +9,7 @@ export type OptionProps = {
 };
 
 export const mapOptionToSelectionResult =
-  (dataType: SelectionType) => (option: OptionProps) => ({
+  (dataType: GameDataType) => (option: OptionProps) => ({
     value: option.value,
     name: option.label,
     type: dataType,
@@ -17,8 +17,9 @@ export const mapOptionToSelectionResult =
 
 export type OptionsScreenProps = {
   title: string;
-  dataType: SelectionType;
+  dataType: GameDataType;
   strategy: SelectionStrategy;
+  correctnessStrategy?: SelectionStrategy;
   options: OptionProps[];
 };
 

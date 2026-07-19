@@ -52,6 +52,11 @@ export const selectionStrategySelectNumber = (values: {
     exact,
   };
 };
+export const selectionStrategySelectAnyNumber = (): SelectionStrategy => {
+  return {
+    strategy: SelectionStrategyEnum.SELECT_MULTIPLE,
+  };
+};
 
 export const isConfirmAllowed = (strategy: SelectionStrategy) =>
   strategy.strategy === SelectionStrategyEnum.SELECT_MULTIPLE;
@@ -75,17 +80,25 @@ export const isSelectionCorrect = (
   return true;
 };
 
-export type SelectionType =
-  | "game"
-  | "tag"
-  | "location"
-  | "helper"
-  | "scoring-schema"
-  | "game-score"
-  | "other";
+export enum GameDataType {
+  GAME = "game",
+  TAG = "tag",
+  LOCATION = "location",
+  HELPER = "helper",
+  SCORING_SCHEMA = "scoring-schema",
+  GAME_SCORE = "game-score",
+  OTHER = "other",
+}
 
 export type SelectionResult = {
-  type: SelectionType;
+  type: GameDataType;
   value: string;
   name: string;
 };
+
+export enum ResultMappingStrategy {
+  VALUES_ONLY = "VALUES_ONLY",
+  SINGLE_VALUE_ONLY = "SINGLE_VALUE_ONLY",
+  VALUES_AND_TYPES = "VALUES_AND_TYPES",
+  SINGLE_VALUE_AND_TYPE = "SINGLE_VALUE_AND_TYPE",
+}

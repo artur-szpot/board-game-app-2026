@@ -15,6 +15,7 @@ export class PostgresTagRepository implements TagRepository {
    SELECT
       id,
       name,
+      description,
       parent_id AS "parentId",
       created_on AS "createdOn",
       updated_on AS "updatedOn"
@@ -25,15 +26,18 @@ export class PostgresTagRepository implements TagRepository {
     'SELECT COUNT(*) AS total FROM tags;';
 
   private readonly CREATE_TAG_SQL = `
-     INSERT INTO tags (id, name, parent_id)
-     VALUES ($1, $2, $3)
-     RETURNING id, name, parent_id AS "parentId", created_on AS "createdOn", updated_on AS "updatedOn";
+      INSERT INTO tags (id, name, description, parent_id)
+      VALUES ($1, $2, $3, $4)
+      RETURNING id, name, description, parent_id AS "parentId", created_on AS "createdOn", updated_on AS "updatedOn";
   `;
 
   private readonly UPDATE_TAG_SQL = (input: UpdateTagDto): string => {
     const valuesToSet: string[] = [];
     if (input.name !== undefined) {
       valuesToSet.push('name = $2');
+    }
+    if (input.description !== undefined) {
+      valuesToSet.push('description = $' + (valuesToSet.length + 2));
     }
     if (input.parentId !== undefined) {
       valuesToSet.push('parent_id = $' + (valuesToSet.length + 2));
@@ -44,14 +48,14 @@ export class PostgresTagRepository implements TagRepository {
          ${valuesToSet.join(', ')},
          updated_on = CURRENT_TIMESTAMP
       WHERE id = $1
-      RETURNING id, name, parent_id AS "parentId", created_on AS "createdOn", updated_on AS "updatedOn";
+      RETURNING id, name, description, parent_id AS "parentId", created_on AS "createdOn", updated_on AS "updatedOn";
     `;
   };
 
   private readonly DELETE_TAG_SQL = `
    DELETE FROM tags
    WHERE id = $1
-   RETURNING id, name, parent_id AS "parentId", created_on AS "createdOn", updated_on AS "updatedOn";
+    RETURNING id, name, description, parent_id AS "parentId", created_on AS "createdOn", updated_on AS "updatedOn";
   `;
 
   constructor(private readonly connector: PostgresConnector) {}
@@ -100,6 +104,7 @@ export class PostgresTagRepository implements TagRepository {
     const result = await this.connector.getOne<TagDto>(this.CREATE_TAG_SQL, [
       id,
       input.name,
+      input.description ?? null,
       input.parentId ?? null,
     ]);
     return result;
@@ -109,6 +114,9 @@ export class PostgresTagRepository implements TagRepository {
     const parameters: any[] = [tagId];
     if (input.name !== undefined) {
       parameters.push(input.name);
+    }
+    if (input.description !== undefined) {
+      parameters.push(input.description);
     }
     if (input.parentId !== undefined) {
       parameters.push(input.parentId);

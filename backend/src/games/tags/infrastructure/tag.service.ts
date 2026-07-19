@@ -33,6 +33,7 @@ export class TagService implements TagGateway {
     return {
       id: tag.id,
       name: tag.name,
+      description: tag.description ?? undefined,
       parentId: tag.parentId ?? undefined,
       createdOn: tag.createdOn,
       updatedOn: tag.updatedOn,

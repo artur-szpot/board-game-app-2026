@@ -1,13 +1,14 @@
 import type {
   SelectionResult,
   SelectionStrategy,
-  SelectionType,
+  GameDataType,
 } from "./selection-strategies";
 
 export type SearchScreenProps = {
   title: string;
-  dataTypes: SelectionType[];
+  dataTypes: GameDataType[];
   strategy: SelectionStrategy;
+  correctnessStrategy?: SelectionStrategy;
   initialSearchTerm?: string;
   currentSelection?: SelectionResult[];
 };

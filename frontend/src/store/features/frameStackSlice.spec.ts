@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   selectionStrategyChooseOne,
+  GameDataType,
   selectionStrategySelectNumber,
 } from "../../components/screens/selection-strategies";
 import {
@@ -19,7 +20,7 @@ const initialState = frameStackSlice.getInitialState();
 
 const mockOptionsProps: { params: OptionsScreenProps } = {
   params: {
-    dataType: "other",
+    dataType: GameDataType.OTHER,
     options: [
       {
         label: "Option 1",
@@ -53,7 +54,7 @@ describe("frameStackSlice", () => {
       openSearchFrame({
         params: {
           title: "test",
-          dataTypes: ["game"],
+          dataTypes: [GameDataType.GAME],
           strategy: selectionStrategySelectNumber({ min: 2 }),
         },
       }),
@@ -62,7 +63,7 @@ describe("frameStackSlice", () => {
     expect(nextState.stack).toHaveLength(2);
     expect(nextState.stack[1]).toMatchObject({
       frameType: FrameTypeEnum.SEARCH,
-      params: { title: "test", dataTypes: ["game"] },
+      params: { title: "test", dataTypes: [GameDataType.GAME] },
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       callbackReceiver: expect.any(Function),
     });
@@ -74,7 +75,7 @@ describe("frameStackSlice", () => {
       openSearchFrame({
         params: {
           title: "test",
-          dataTypes: ["game"],
+          dataTypes: [GameDataType.GAME],
           strategy: selectionStrategySelectNumber({ min: 2 }),
         },
       }),
@@ -91,26 +92,6 @@ describe("frameStackSlice", () => {
     expect(nextState.stack[0].frameType).toBe(FrameTypeEnum.SELF);
   });
 
-  it("should close top frame with without callback if cancelled", () => {
-    const state = frameStackSlice.reducer(
-      initialState,
-      openSearchFrame({
-        params: {
-          title: "test",
-          dataTypes: ["game"],
-          strategy: selectionStrategySelectNumber({ min: 2 }),
-        },
-      }),
-    );
-    const nextState = frameStackSlice.reducer(
-      state,
-      closeFrame({ id: state.stack.at(-1)?.id ?? "", cancel: true }),
-    );
-
-    expect(nextState.stack).toHaveLength(1);
-    expect(nextState.stack[0].frameType).toBe(FrameTypeEnum.SELF);
-  });
-
   it("should throw when closing non-top frame", () => {
     const state = frameStackSlice.reducer(
       initialState,
@@ -121,7 +102,7 @@ describe("frameStackSlice", () => {
       openSearchFrame({
         params: {
           title: "test",
-          dataTypes: ["game"],
+          dataTypes: [GameDataType.GAME],
           strategy: selectionStrategySelectNumber({ min: 2 }),
         },
       }),
@@ -157,7 +138,7 @@ describe("frameStackSlice", () => {
       openSearchFrame({
         params: {
           title: "test",
-          dataTypes: ["game"],
+          dataTypes: [GameDataType.GAME],
           strategy: selectionStrategySelectNumber({ min: 2 }),
         },
       }),

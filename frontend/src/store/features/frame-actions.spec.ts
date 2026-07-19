@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import type { FormScreenValues } from "../../components/screens/FormScreenProps"
-import type { SelectionResult } from "../../components/screens/selection-strategies"
+import { type SelectionResult, GameDataType } from "../../components/screens/selection-strategies"
 import {
   ActionEnum,
   buildChoiceMadeFromItems,
@@ -12,7 +12,7 @@ import {
 describe("frame-actions", () => {
   it("builds and maps a choice-made payload", () => {
     const chosen: SelectionResult[] = [
-      { type: "tag", value: "tag-1", name: "Strategy" },
+      { type: GameDataType.TAG, value: "tag-1", name: "Strategy" },
     ]
     const result = buildChoiceMadeFromItems(chosen)
 

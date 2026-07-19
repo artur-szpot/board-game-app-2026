@@ -90,6 +90,7 @@ export const SearchScreen: FC<SearchScreenPropsFull> = ({
     }
   })(strategy);
 
+  // TODO: add a loader for when API call is being made
   return (
     <div className="search-screen">
       <section aria-label={`search screen`}>

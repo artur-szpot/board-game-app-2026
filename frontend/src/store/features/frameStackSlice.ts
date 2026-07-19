@@ -183,7 +183,6 @@ export const frameStackSlice = createAppSlice({
         state,
         action: PayloadAction<{
           id: string;
-          cancel?: boolean;
           result?: FrameCallbackContent;
         }>,
       ) => {
@@ -205,8 +204,8 @@ export const frameStackSlice = createAppSlice({
           );
         }
 
-        // If top frame was cancelled or returned nothing, that's it.
-        if (action.payload.cancel || !action.payload.result) {
+        // If top frame returned nothing, that's it (most likely cancelled).
+        if (!action.payload.result) {
           return;
         }
 
@@ -218,6 +217,31 @@ export const frameStackSlice = createAppSlice({
 
         // If new top frame has a receiver, send result there.
         newTopFrame.callbackReceiver(action.payload.result);
+      },
+    ),
+    sameFrameResult: create.reducer(
+      (
+        state,
+        action: PayloadAction<{
+          result: FrameCallbackContent;
+        }>,
+      ) => {
+        const topFrame = state.stack.at(-1);
+        // It must be defined based on checks above, this is just to silence typescript.
+        if (topFrame === undefined) {
+          throw new Error(
+            "Unknown error: top frame exists, but doesn't at the same time",
+          );
+        }
+
+        // If the frame has an emitter, send result there and finish processing.
+        if (topFrame.callbackEmitter) {
+          topFrame.callbackEmitter(action.payload.result);
+          return;
+        }
+
+        // If top frame has a receiver, send result there.
+        topFrame.callbackReceiver(action.payload.result);
       },
     ),
     resetToBottomFrame: create.reducer((state: FrameStackState) => {
@@ -233,6 +257,18 @@ export const frameStackSlice = createAppSlice({
         state.stack[0].callbackReceiver = action.payload;
       },
     ),
+    addCallbackReceiverToTopFrame: create.reducer(
+      (
+        state: FrameStackState,
+        action: PayloadAction<FrameCallbackReceiver>,
+      ) => {
+        const topFrame = state.stack.at(-1);
+        if (topFrame === undefined) {
+          throw new Error("No frames in the stack");
+        }
+        topFrame.callbackReceiver = action.payload;
+      },
+    ),
   }),
 });
 
@@ -241,8 +277,10 @@ export const {
   openSearchFrame,
   openFormFrame,
   closeFrame,
+  sameFrameResult,
   resetToBottomFrame,
   resetToBottomFrameWithReceiver,
+  addCallbackReceiverToTopFrame,
 } = frameStackSlice.actions;
 
 export const selectFrameStack = (state: { frameStack: FrameStackState }) =>

@@ -12,12 +12,9 @@ import {
 } from '@db/repositories/location.repository';
 import { TAG_REPOSITORY, TagRepository } from '@db/repositories/tag.repository';
 
+import { GameDataType } from '@common/enums/GameDataType.enum';
 import { SearchQueryDto } from '../dto/in/search-query.dto';
-import {
-  SearchResponse,
-  SearchResult,
-  SearchResultType,
-} from '../dto/out/search.response';
+import { SearchResponse, SearchResult } from '../dto/out/search.response';
 import { SearchGateway } from './search.gateway';
 
 type MinimalEntity = { id: string; name: string };
@@ -36,7 +33,7 @@ export class SearchService implements SearchGateway {
   ) {}
 
   private toShortResponse(
-    type: SearchResultType,
+    type: GameDataType,
     entity: MinimalEntity,
   ): SearchResult {
     const { id, name } = entity;
@@ -46,24 +43,26 @@ export class SearchService implements SearchGateway {
   public async search(query: SearchQueryDto): Promise<SearchResponse> {
     const requestedTypes = new Set(query.types);
     const { searchTerm, filters } = query;
-    const pagination = query.pagination ? paginationMapper.fromDto(query.pagination) : undefined;
+    const pagination = query.pagination
+      ? paginationMapper.fromDto(query.pagination)
+      : undefined;
     const results: SearchResponse['results'] = [];
-    const addToResults = (type: SearchResultType, items: MinimalEntity[]) =>
+    const addToResults = (type: GameDataType, items: MinimalEntity[]) =>
       items.forEach((item) => results.push(this.toShortResponse(type, item)));
     const dto = { pagination, searchTerm, filters };
 
     try {
-      if (requestedTypes.has('game')) {
+      if (requestedTypes.has(GameDataType.GAME)) {
         const items = await this.gameRepository.getManyGames(dto);
-        addToResults('game', items);
+        addToResults(GameDataType.GAME, items);
       }
-      if (requestedTypes.has('tag')) {
+      if (requestedTypes.has(GameDataType.TAG)) {
         const items = await this.tagRepository.getManyTags(dto);
-        addToResults('tag', items);
+        addToResults(GameDataType.TAG, items);
       }
-      if (requestedTypes.has('location')) {
+      if (requestedTypes.has(GameDataType.LOCATION)) {
         const items = await this.locationRepository.getManyLocations(dto);
-        addToResults('location', items);
+        addToResults(GameDataType.LOCATION, items);
       }
 
       return { results };

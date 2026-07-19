@@ -7,6 +7,10 @@ export class UpdateTagDto {
   name?: string;
 
   @IsString()
+  @IsOptional()
+  description?: string;
+
+  @IsString()
   @IsNotEmpty()
   @IsOptional()
   parentId?: string;

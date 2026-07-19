@@ -1,9 +1,9 @@
-export type SearchResultType = 'game' | 'tag' | 'location' | 'helper' | 'scoring-schema' | 'game-score';
+import { GameDataType } from '@common/enums/GameDataType.enum';
 
 export interface SearchResult {
   id: string;
   name: string;
-  type: SearchResultType;
+  type: GameDataType;
 }
 
 export interface SearchResponse {

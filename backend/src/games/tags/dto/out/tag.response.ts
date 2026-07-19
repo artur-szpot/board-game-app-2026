@@ -11,6 +11,10 @@ export class TagResponse {
 
   @IsString()
   @IsOptional()
+  description?: string;
+
+  @IsString()
+  @IsOptional()
   parentId?: string;
 
   @IsString()

@@ -1,15 +1,16 @@
+import axios from "axios";
 import type { ChangeEvent, FC } from "react";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-import {
-  buildFormFilledFromForm,
-  resultMapper,
-} from "../../store/features/frame-actions";
+import { resultMapper } from "../../store/features/frame-actions";
 import type {
   FrameCallbackContent,
   FrameCallbackReceiver,
 } from "../../store/features/frameStackSlice";
-import { closeFrame } from "../../store/features/frameStackSlice";
+import {
+  addCallbackReceiverToTopFrame,
+  closeFrame,
+} from "../../store/features/frameStackSlice";
 import { useAppDispatch } from "../../store/hooks";
 import { FormFieldType } from "../forms/common";
 import { FormCheckboxField } from "../forms/FormCheckboxField";
@@ -17,10 +18,11 @@ import { FormOptionsField } from "../forms/FormOptionsField";
 import { FormSearchField } from "../forms/FormSearchField";
 import { FormTextField } from "../forms/FormTextField";
 import { MainActions } from "../MainActions";
-import type {
-  FormScreenField,
-  FormScreenPropsFull,
-  FormScreenValues,
+import {
+  mapFormValuesToResults,
+  type FormScreenField,
+  type FormScreenPropsFull,
+  type FormScreenValues,
 } from "./FormScreenProps";
 import {
   isSelectionCorrect,
@@ -69,6 +71,8 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
   frameId,
   title,
   fields,
+  action,
+  method,
 }: FormScreenPropsFull) => {
   const draft = formScreenDraftCache.get(frameId);
 
@@ -81,6 +85,18 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
   const [selectionValues, setSelectionValues] = useState<
     Record<string, SelectionResult[]>
   >(draft?.selectionValues ?? buildInitialSelectionValues(fields));
+
+  // Initialize cache entry on mount
+  useEffect(() => {
+    if (!formScreenDraftCache.has(frameId)) {
+      formScreenDraftCache.set(frameId, {
+        stringValues,
+        booleanValues,
+        selectionValues,
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [frameId]);
 
   const handleStringChange =
     (name: string) => (event: ChangeEvent<HTMLInputElement>) => {
@@ -111,31 +127,38 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
       });
     };
 
-  const selectionChangeReceiver =
-    (name: string): FrameCallbackReceiver =>
-    (result: FrameCallbackContent) => {
-      const mapped = resultMapper.toChoiceMade(result);
+  const selectionChangeReceiver = useCallback(
+    (name?: string): FrameCallbackReceiver =>
+      (result: FrameCallbackContent) => {
+        const mapped = resultMapper.toChoiceMade(result);
+        const resolvedName = name ?? mapped.payload.name;
+        if (resolvedName === undefined) {
+          throw new Error(
+            "No name associated with the received choice made result",
+          );
+        }
 
-      const chosen = mapped.payload.chosen.map(choice => ({ ...choice }));
-      const cachedDraft = formScreenDraftCache.get(frameId) ?? {
-        stringValues,
-        booleanValues,
-        selectionValues,
-      };
-      const cachedNext = {
-        ...cachedDraft,
-        selectionValues: {
-          ...cachedDraft.selectionValues,
-          [name]: chosen,
-        },
-      };
-      formScreenDraftCache.set(frameId, cachedNext);
+        const chosen = mapped.payload.chosen.map(choice => ({ ...choice }));
+        const cachedDraft = formScreenDraftCache.get(frameId);
+        if (!cachedDraft) {
+          throw new Error("No cached draft found for this frame");
+        }
+        const cachedNext = {
+          ...cachedDraft,
+          selectionValues: {
+            ...cachedDraft.selectionValues,
+            [resolvedName]: chosen,
+          },
+        };
+        formScreenDraftCache.set(frameId, cachedNext);
 
-      setSelectionValues(current => ({
-        ...current,
-        [name]: chosen,
-      }));
-    };
+        setSelectionValues(current => ({
+          ...current,
+          [resolvedName]: chosen,
+        }));
+      },
+    [frameId],
+  );
 
   const isFieldOk = (field: FormScreenField) => {
     switch (field.kind) {
@@ -146,7 +169,7 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
       case FormFieldType.OPTIONS:
       case FormFieldType.SEARCH:
         return isSelectionCorrect(
-          field.params.strategy,
+          field.params.correctnessStrategy ?? field.params.strategy,
           selectionValues[field.name].length,
         );
       default:
@@ -156,12 +179,29 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
   const isConfirmEnabled = () => fields.every(isFieldOk);
 
   const dispatch = useAppDispatch();
-  const dispatchResults = (_values: FormScreenValues) => {
+
+  useEffect(() => {
+    dispatch(addCallbackReceiverToTopFrame(selectionChangeReceiver()));
+  }, [frameId, dispatch, selectionChangeReceiver]);
+
+  const dispatchResults = async (_values: FormScreenValues) => {
+    const result = mapFormValuesToResults(_values, fields);
+    try {
+      await axios({
+        method,
+        url: `${import.meta.env.VITE_API_URL as string}/${action}`,
+        data: result,
+      });
+    } catch (error) {
+      // TODO: make pretty error display
+      alert(error instanceof Error ? error.message : String(error));
+      return;
+    }
+    // TODO: display a success message
     formScreenDraftCache.delete(frameId);
     dispatch(
       closeFrame({
         id: frameId,
-        result: buildFormFilledFromForm(_values),
       }),
     );
   };
@@ -225,13 +265,13 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
         })}
         <MainActions
           confirmEnabled={isConfirmEnabled()}
-          confirmCallback={() =>
-            dispatchResults({
+          confirmCallback={() => {
+            void dispatchResults({
               stringValues,
               booleanValues,
               selectionValues,
-            })
-          }
+            });
+          }}
           frameId={frameId}
         />
       </section>
