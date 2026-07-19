@@ -10,6 +10,7 @@ export enum ActionEnum {
 export type ChoiceMadeResult = {
   action: ActionEnum.CHOICE_MADE;
   payload: {
+    name?: string;
     chosen: SelectionResult[];
   };
 };
@@ -23,16 +24,18 @@ export type FormFilledResult = {
 
 export const buildChoiceMadeFromItems = (
   items: SelectionResult[],
-): FrameCallbackContent => ({
+  name?: string
+): ChoiceMadeResult => ({
   action: ActionEnum.CHOICE_MADE,
   payload: {
+    name,
     chosen: items,
   },
 });
 
 export const buildFormFilledFromForm = (
   values: FormScreenValues,
-): FrameCallbackContent => ({
+): FormFilledResult => ({
   action: ActionEnum.FORM_FILLED,
   payload: { values },
 });

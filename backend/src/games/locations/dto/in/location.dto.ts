@@ -3,7 +3,6 @@ export interface LocationDto {
   name: string;
   description?: string | null;
   parentId?: string | null;
-  isGameId: boolean;
   createdOn: string;
   updatedOn: string;
 }

@@ -6,6 +6,7 @@ import { buildChoiceMadeFromItems } from "../../store/features/frame-actions"
 import { closeFrame } from "../../store/features/frameStackSlice"
 import { OptionsScreen } from "./OptionsScreen"
 import {
+  GameDataType,
   selectionStrategyChooseOne,
   selectionStrategySelectNumber,
 } from "./selection-strategies"
@@ -27,7 +28,7 @@ describe("OptionsScreen", () => {
     render(
       <OptionsScreen
         frameId="frame-1"
-        dataType="tag"
+        dataType={GameDataType.TAG}
         title="Pick a tag"
         strategy={selectionStrategyChooseOne()}
         options={[
@@ -43,7 +44,7 @@ describe("OptionsScreen", () => {
       closeFrame({
         id: "frame-1",
         result: buildChoiceMadeFromItems([
-          { type: "tag", value: "tag-2", name: "Family" },
+          { type: GameDataType.TAG, value: "tag-2", name: "Family" },
         ]),
       }),
     )
@@ -56,7 +57,7 @@ describe("OptionsScreen", () => {
     render(
       <OptionsScreen
         frameId="frame-2"
-        dataType="location"
+        dataType={GameDataType.LOCATION}
         title="Pick locations"
         strategy={selectionStrategySelectNumber({ min: 2, max: 3 })}
         options={[
@@ -89,8 +90,8 @@ describe("OptionsScreen", () => {
       closeFrame({
         id: "frame-2",
         result: buildChoiceMadeFromItems([
-          { type: "location", value: "loc-1", name: "Table" },
-          { type: "location", value: "loc-2", name: "Shelf" },
+          { type: GameDataType.LOCATION, value: "loc-1", name: "Table" },
+          { type: GameDataType.LOCATION, value: "loc-2", name: "Shelf" },
         ]),
       }),
     )

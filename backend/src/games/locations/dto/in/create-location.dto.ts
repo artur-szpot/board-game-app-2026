@@ -14,9 +14,4 @@ export class CreateLocationDto {
   @IsNotEmpty()
   @IsOptional()
   parentId?: string;
-
-  @IsBoolean()
-  @Type(() => Boolean)
-  @IsOptional()
-  isGameId?: boolean;
 }
