@@ -8,14 +8,7 @@ export type AdminPanelProps = {
   content?: AdminPanelCategory
 }
 
-export const PAGE_SIZE = 10
-
 export type AdminPanelItem =
   | PermissionResponseDto
   | RoleResponseDto
   | UserResponseDto
-
-export type PaginatedResponse<T> = {
-  page: T[]
-  total: number
-}

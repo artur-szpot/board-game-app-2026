@@ -1,4 +1,17 @@
-import { Body, Controller, Delete, Get, Inject, Param, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Inject,
+  Param,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
+
+import { PaginationDto } from '@common/pagination/dto/in/pagination.dto';
+import { paginationMapper } from '@common/pagination/mapper/pagination.mapper';
 
 import { CreateHelperDto } from './dto/in/create-helper.dto';
 import { UpdateHelperDto } from './dto/in/update-helper.dto';
@@ -17,8 +30,10 @@ export class HelperController {
   }
 
   @Get()
-  getMany() {
-    return this.helperGateway.getMany();
+  getMany(@Query() pagination: PaginationDto) {
+    return this.helperGateway.getMany({
+      pagination: paginationMapper.fromDto(pagination),
+    });
   }
 
   @Post()

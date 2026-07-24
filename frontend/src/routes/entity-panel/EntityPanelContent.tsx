@@ -1,8 +1,8 @@
-import type { AdminPanelCategory, AdminPanelItem } from "./admin-types"
+import type { EntityPanelTab } from "./entity-panel-types"
 
-export type AdminPanelContentProps = {
-  content?: AdminPanelCategory
-  items: AdminPanelItem[]
+type EntityPanelContentProps<Category extends string, Item> = {
+  tab?: EntityPanelTab<Category>
+  items: Item[]
   loading: boolean
   error?: string
 }
@@ -23,7 +23,7 @@ const renderValue = (value: unknown) => {
   return JSON.stringify(value)
 }
 
-const renderItem = (item: AdminPanelItem) => {
+const renderItem = (item: unknown) => {
   const itemRecord = item as Record<string, unknown>
   const keys = Object.keys(itemRecord)
   if (keys.length === 0) {
@@ -31,7 +31,7 @@ const renderItem = (item: AdminPanelItem) => {
   }
 
   return (
-    <div className="admin-item">
+    <div className="entity-panel-item">
       {keys.map(key => (
         <div key={key}>
           <strong>{key}</strong>: {renderValue(itemRecord[key])}
@@ -41,18 +41,20 @@ const renderItem = (item: AdminPanelItem) => {
   )
 }
 
-export const AdminPanelContent: React.FC<AdminPanelContentProps> = ({
-  content,
+export const EntityPanelContent = <Category extends string, Item>({
+  tab,
   items,
   loading,
   error,
-}) => {
-  if (!content) {
+}: EntityPanelContentProps<Category, Item>) => {
+  if (!tab) {
     return <div>404</div>
   }
 
+  const typeLabel = (tab.label ?? tab.category).toLowerCase()
+
   if (loading) {
-    return <div>Loading {content}…</div>
+    return <div>Loading {typeLabel}...</div>
   }
 
   if (error) {
@@ -60,12 +62,12 @@ export const AdminPanelContent: React.FC<AdminPanelContentProps> = ({
   }
 
   if (items.length === 0) {
-    return <div>No {content} found.</div>
+    return <div>No {typeLabel} found.</div>
   }
 
   return (
     <div>
-      <h4>{`${content.charAt(0).toUpperCase()}${content.slice(1)}`}</h4>
+      <h4>{tab.label ?? tab.category}</h4>
       <ul>
         {items.map((item, index) => (
           <li key={index}>{renderItem(item)}</li>
