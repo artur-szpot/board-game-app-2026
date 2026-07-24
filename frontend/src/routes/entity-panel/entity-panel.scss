@@ -28,3 +28,24 @@ div.entity-panel-nav {
     align-self: center;
   }
 }
+
+div.entity-panel-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.entity-panel-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.entity-panel-search {
+  flex: 1;
+  max-width: 420px;
+}
+
+.entity-panel-pagination {
+  align-self: center;
+}

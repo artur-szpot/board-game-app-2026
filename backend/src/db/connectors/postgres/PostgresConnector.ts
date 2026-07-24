@@ -77,11 +77,23 @@ export class PostgresConnector {
 
   public async getCount(query: string): Promise<number> {
     const connection = await this.getConnection();
-    const resultRaw = await connection.query<{ total: number }>(query);
+    const resultRaw = await connection.query<{ total: number | string }>(query);
     connection.release();
     if (!resultRaw?.rows?.[0]) {
       return 0;
     }
-    return resultRaw.rows[0].total;
+
+    const rawTotal = resultRaw.rows[0].total;
+    if (typeof rawTotal === 'number') {
+      return rawTotal;
+    }
+
+    const parsedTotal = Number.parseInt(rawTotal, 10);
+    if (Number.isNaN(parsedTotal)) {
+      this.logger.warn(`Could not parse count value "${rawTotal}" as number`);
+      return 0;
+    }
+
+    return parsedTotal;
   }
 }

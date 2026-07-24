@@ -1,5 +1,8 @@
 import type React from "react";
 
+import { createGameScreen } from "../../components/screens/definitions/create-game";
+import { createLocationScreen } from "../../components/screens/definitions/create-location";
+import { createTagScreen } from "../../components/screens/definitions/create-tag";
 import { GameDataType } from "../../components/screens/selection-strategies";
 import type { EntityPanelTab } from "../entity-panel/entity-panel-types";
 import { EntityPanel } from "../entity-panel/EntityPanel";
@@ -14,18 +17,21 @@ const COLLECTION_TABS: EntityPanelTab<CollectionPanelCategory>[] = [
     endpoint: "game-api/games",
     routeSegment: "games",
     label: "Games",
+    createScreen: createGameScreen,
   },
   {
     category: GameDataType.TAG,
     endpoint: "game-api/tags",
     routeSegment: "tags",
     label: "Tags",
+    createScreen: createTagScreen,
   },
   {
     category: GameDataType.LOCATION,
     endpoint: "game-api/locations",
     routeSegment: "locations",
     label: "Locations",
+    createScreen: createLocationScreen,
   },
   {
     category: GameDataType.HELPER,

@@ -1,14 +1,15 @@
+import type { FormScreenProps } from "../../components/screens/FormScreenProps";
+
 export type EntityPanelTab<Category extends string> = {
   category: Category;
   endpoint: string;
   label?: string;
   routeSegment?: string;
+  createScreen?: FormScreenProps;
 };
 
 export type EntityPanelProps<Category extends string, Item> = {
-  getItemsFromResponse?: (
-    data: PaginatedResponse<Item> | Item[],
-  ) => Item[];
+  getItemsFromResponse?: (data: PaginatedResponse<Item>) => Item[];
   title: string;
   basePath: string;
   tabs: EntityPanelTab<Category>[];
@@ -22,4 +23,4 @@ export type PaginatedResponse<T> = {
   total: number;
 };
 
-export const DEFAULT_PAGE_SIZE = 10;
+export const DEFAULT_PAGE_SIZE = 3;
