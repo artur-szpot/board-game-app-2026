@@ -2,6 +2,7 @@ CREATE TABLE scoring_schemas (
    id VARCHAR(40) NOT NULL,
    name TEXT NOT NULL,
    schema JSON NOT NULL,
+   description TEXT,
    created_on TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
    updated_on TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
