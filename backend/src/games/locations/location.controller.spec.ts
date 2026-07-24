@@ -45,7 +45,6 @@ describe('LocationController (e2e)', () => {
       name: 'Forest',
       description: 'A place',
       parentId: null,
-      isGameId: true,
       createdOn: new Date(),
       updatedOn: new Date(),
     });
@@ -53,7 +52,7 @@ describe('LocationController (e2e)', () => {
     const response = await fetch(`${baseUrl}/game-api/locations`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'Forest', description: 'A place', isGameId: true }),
+      body: JSON.stringify({ name: 'Forest', description: 'A place' }),
     });
 
     expect(response.status).toBe(201);
@@ -62,7 +61,6 @@ describe('LocationController (e2e)', () => {
     expect(gateway.create).toHaveBeenCalledWith({
       name: 'Forest',
       description: 'A place',
-      isGameId: true,
     });
   });
 
@@ -72,7 +70,6 @@ describe('LocationController (e2e)', () => {
       name: 'Forest',
       description: 'A place',
       parentId: null,
-      isGameId: true,
       createdOn: new Date(),
       updatedOn: new Date(),
     });

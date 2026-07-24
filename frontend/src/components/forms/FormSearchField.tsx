@@ -75,7 +75,7 @@ export const FormSearchField: FC<FormFieldSearchPropsFull> = ({
         {label}
         {chosen.length > 0 &&
           chosen.map(result => (
-            <DataDisplay item={result} removeItem={removeItem} />
+            <DataDisplay key={result.value} item={result} removeItem={removeItem} />
           ))}
         <button
           type="button"
@@ -88,7 +88,7 @@ export const FormSearchField: FC<FormFieldSearchPropsFull> = ({
             )
           }
         >
-          {chosen.length ? "Change" : "Find"}
+          {chosen.length ? "Change" : "Search for options"}
         </button>
       </label>
       {chosen.length > 0 && (

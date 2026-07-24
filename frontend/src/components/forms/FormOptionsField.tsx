@@ -79,6 +79,7 @@ export const FormOptionsField: FC<FormFieldOptionsPropsFull> = ({
         {chosen.length > 0 &&
           chosen.map(option => (
             <DataDisplay
+              key={option.value}
               item={mapOptionToSelectionResult(params.dataType)(option)}
               removeItem={removeItem}
             />

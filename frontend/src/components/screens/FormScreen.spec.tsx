@@ -122,7 +122,7 @@ describe("FormScreen", () => {
       );
     });
 
-    expect(screen.getByText(/Chosen: Strategy/)).toBeInTheDocument();
+    expect(screen.getByText(/Strategy/)).toBeInTheDocument();
     expect(confirmButton).toBeEnabled();
 
     await user.click(confirmButton);

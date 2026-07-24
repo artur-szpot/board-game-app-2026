@@ -14,7 +14,6 @@ describe('LocationService', () => {
   const testLocationDto: LocationDto = {
     id: 'location-1',
     name: 'Test Location',
-    isGameId: false,
     createdOn: new Date().toISOString(),
     updatedOn: new Date().toISOString(),
   };
@@ -45,7 +44,6 @@ describe('LocationService', () => {
         name: testLocationDto.name,
         description: undefined,
         parentId: undefined,
-        isGameId: false,
         createdOn: testLocationDto.createdOn,
         updatedOn: testLocationDto.updatedOn,
       });
@@ -86,7 +84,6 @@ describe('LocationService', () => {
             name: testLocationDto.name,
             description: undefined,
             parentId: undefined,
-            isGameId: false,
             createdOn: testLocationDto.createdOn,
             updatedOn: testLocationDto.updatedOn,
           },
@@ -109,7 +106,6 @@ describe('LocationService', () => {
     it('should create a new location when input is valid', async () => {
       const createLocationDto: CreateLocationDto = {
         name: 'New Location',
-        isGameId: false,
       };
 
       mockRepository.getLocationByName.mockResolvedValueOnce(null);
@@ -124,7 +120,6 @@ describe('LocationService', () => {
         name: testLocationDto.name,
         description: undefined,
         parentId: undefined,
-        isGameId: false,
         createdOn: testLocationDto.createdOn,
         updatedOn: testLocationDto.updatedOn,
       });
@@ -133,7 +128,6 @@ describe('LocationService', () => {
     it('should throw BadRequestException when location name is already in use', async () => {
       const createLocationDto: CreateLocationDto = {
         name: testLocationDto.name,
-        isGameId: false,
       };
 
       mockRepository.getLocationByName.mockResolvedValueOnce(testLocationDto);
@@ -173,7 +167,6 @@ describe('LocationService', () => {
         name: updatedLocationDto.name,
         description: undefined,
         parentId: undefined,
-        isGameId: false,
         createdOn: updatedLocationDto.createdOn,
         updatedOn: updatedLocationDto.updatedOn,
       });
@@ -203,7 +196,6 @@ describe('LocationService', () => {
         name: testLocationDto.name,
         description: undefined,
         parentId: undefined,
-        isGameId: false,
         createdOn: testLocationDto.createdOn,
         updatedOn: testLocationDto.updatedOn,
       });

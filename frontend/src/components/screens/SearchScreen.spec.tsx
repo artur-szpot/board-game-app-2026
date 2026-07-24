@@ -34,7 +34,7 @@ describe("SearchScreen", () => {
     const getSpy = vi.spyOn(axios, "get");
     getSpy.mockResolvedValue({
       data: {
-        results: [{ type: GameDataType.GAME, value: "game-1", name: "Brass" }],
+        results: [{ type: GameDataType.GAME, id: "game-1", name: "Brass" }],
       },
     } as Awaited<ReturnType<typeof axios.get>>);
 
@@ -94,8 +94,8 @@ describe("SearchScreen", () => {
     getSpy.mockResolvedValue({
       data: {
         results: [
-          { type: GameDataType.HELPER, value: "helper-1", name: "Auto Score" },
-          { type: GameDataType.HELPER, value: "helper-2", name: "Tie Break" },
+          { type: GameDataType.HELPER, id: "helper-1", name: "Auto Score" },
+          { type: GameDataType.HELPER, id: "helper-2", name: "Tie Break" },
         ],
       },
     } as Awaited<ReturnType<typeof axios.get>>);
