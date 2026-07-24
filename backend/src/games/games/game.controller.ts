@@ -17,7 +17,7 @@ import { CreateGameDto } from './dto/in/create-game.dto';
 import { UpdateGameDto } from './dto/in/update-game.dto';
 import { GameGateway, GAME_GATEWAY } from './infrastructure/game.gateway';
 
-@Controller('games')
+@Controller('game-api/games')
 export class GameController {
   constructor(
     @Inject(GAME_GATEWAY)

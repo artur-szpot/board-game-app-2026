@@ -2,6 +2,7 @@
 
 body {
   margin: 0;
+  font-size: 1.2em;
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
     "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
@@ -32,4 +33,50 @@ div.main-container {
   padding: 0.8em;
   overflow-wrap: break-word;
   word-wrap: break-word;
+}
+
+div.form-screen,
+div.options-screen,
+div.search-screen {
+  width: 500px;
+  margin: auto;
+}
+
+div.form-text, div.form-checkbox, div.form-options, div.form-search {
+  width: 100%;
+  & > label {
+    & > input {
+      width: 100%;
+    }
+  }
+}
+
+div.main-actions {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  padding: 10px 0;
+  & > button {
+    font-size: 1.6em;
+  }
+}
+
+div.data-item {
+  width: 80%;
+  margin: auto;
+  display: flex;
+  flex-direction: row;
+  border: 2px solid red;
+  border-radius: 3px;
+  padding: 3px;
+
+  & > p {
+    flex-grow: 1;
+    margin: 0;
+  }
+  
+  & > button {
+    flex-grow: 0;
+  }
 }

@@ -35,7 +35,6 @@ describe('PostgresLocationRepository', () => {
       name: 'Test location',
       description: 'A description',
       parentId: null,
-      isGameId: true,
       createdOn: new Date(),
       updatedOn: new Date(),
     };
@@ -46,7 +45,6 @@ describe('PostgresLocationRepository', () => {
         name: 'Test location',
         description: 'A description',
         parentId: null,
-        isGameId: true,
       }),
     ).resolves.toEqual(createdLocation);
 
@@ -58,7 +56,6 @@ describe('PostgresLocationRepository', () => {
       'Test location',
       'A description',
       null,
-      true,
     ]);
   });
 

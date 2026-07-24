@@ -38,7 +38,6 @@ export class LocationService implements LocationGateway {
       name: location.name,
       description: location.description ?? undefined,
       parentId: location.parentId ?? undefined,
-      isGameId: location.isGameId,
       createdOn: location.createdOn,
       updatedOn: location.updatedOn,
     };

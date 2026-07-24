@@ -7,6 +7,7 @@ import { UpdateGameDto } from '../dto/in/update-game.dto';
 
 export interface GameGateway {
   getById(id: string): Promise<GameDto>;
+  getByIds(ids: string[]): Promise<GameDto[]>;
   getMany(dto?: GetManyItemsDto): Promise<Paginated<GameDto>>;
   create(input: CreateGameDto): Promise<GameDto>;
   update(id: string, input: UpdateGameDto): Promise<GameDto>;

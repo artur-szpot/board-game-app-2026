@@ -1,4 +1,4 @@
-import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class LocationResponse {
   @IsString()
@@ -16,9 +16,6 @@ export class LocationResponse {
   @IsString()
   @IsOptional()
   parentId?: string;
-
-  @IsBoolean()
-  isGameId: boolean;
 
   @IsString()
   @IsNotEmpty()

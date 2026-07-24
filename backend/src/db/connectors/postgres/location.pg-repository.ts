@@ -17,7 +17,6 @@ export class PostgresLocationRepository implements LocationRepository {
       name,
       description,
       parent_id AS "parentId",
-      is_game_id AS "isGameId",
       created_on AS "createdOn",
       updated_on AS "updatedOn"
    FROM locations
@@ -29,7 +28,7 @@ export class PostgresLocationRepository implements LocationRepository {
   private readonly CREATE_LOCATION_SQL = `
      INSERT INTO locations (id, name, description, parent_id, is_game_id)
      VALUES ($1, $2, $3, $4, $5)
-     RETURNING id, name, description, parent_id AS "parentId", is_game_id AS "isGameId", created_on AS "createdOn", updated_on AS "updatedOn";
+     RETURNING id, name, description, parent_id AS "parentId", created_on AS "createdOn", updated_on AS "updatedOn";
   `;
 
   private readonly UPDATE_LOCATION_SQL = (input: UpdateLocationDto): string => {
@@ -43,23 +42,20 @@ export class PostgresLocationRepository implements LocationRepository {
     if (input.parentId !== undefined) {
       valuesToSet.push('parent_id = $' + (valuesToSet.length + 2));
     }
-    if (input.isGameId !== undefined) {
-      valuesToSet.push('is_game_id = $' + (valuesToSet.length + 2));
-    }
     return `
       UPDATE locations
       SET
          ${valuesToSet.join(', ')},
          updated_on = CURRENT_TIMESTAMP
       WHERE id = $1
-      RETURNING id, name, description, parent_id AS "parentId", is_game_id AS "isGameId", created_on AS "createdOn", updated_on AS "updatedOn";
+      RETURNING id, name, description, parent_id AS "parentId", created_on AS "createdOn", updated_on AS "updatedOn";
     `;
   };
 
   private readonly DELETE_LOCATION_SQL = `
    DELETE FROM locations
    WHERE id = $1
-   RETURNING id, name, description, parent_id AS "parentId", is_game_id AS "isGameId", created_on AS "createdOn", updated_on AS "updatedOn";
+   RETURNING id, name, description, parent_id AS "parentId", created_on AS "createdOn", updated_on AS "updatedOn";
   `;
 
   constructor(private readonly connector: PostgresConnector) {}
@@ -116,7 +112,6 @@ export class PostgresLocationRepository implements LocationRepository {
         input.name,
         input.description ?? null,
         input.parentId ?? null,
-        input.isGameId ?? false,
       ],
     );
     return result;
@@ -135,9 +130,6 @@ export class PostgresLocationRepository implements LocationRepository {
     }
     if (input.parentId !== undefined) {
       parameters.push(input.parentId);
-    }
-    if (input.isGameId !== undefined) {
-      parameters.push(input.isGameId);
     }
 
     return this.connector.getOne<LocationDto>(

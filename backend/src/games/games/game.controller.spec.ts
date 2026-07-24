@@ -48,7 +48,7 @@ describe('GameController', () => {
       updatedOn: new Date(),
     });
 
-    const response = await fetch(`${baseUrl}/games`, {
+    const response = await fetch(`${baseUrl}/game-api/games`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: 'Catan', description: 'Trade and build', length: 'medium' }),
@@ -74,7 +74,7 @@ describe('GameController', () => {
       updatedOn: new Date(),
     });
 
-    const response = await fetch(`${baseUrl}/games/game-1`);
+    const response = await fetch(`${baseUrl}/game-api/games/game-1`);
 
     expect(response.status).toBe(200);
     const payload = await response.json();

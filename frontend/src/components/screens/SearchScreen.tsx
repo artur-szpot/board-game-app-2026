@@ -7,6 +7,7 @@ import { closeFrame } from "../../store/features/frameStackSlice";
 import { useAppDispatch } from "../../store/hooks";
 import { MainActions } from "../MainActions";
 import type { SearchScreenPropsFull } from "./SearchScreenProps";
+import type { SearchResult } from "./selection-strategies";
 import {
   isConfirmAllowed,
   isSelectionCorrect,
@@ -25,8 +26,11 @@ export const SearchScreen: FC<SearchScreenPropsFull> = ({
   dataTypes,
   currentSelection: preselection,
 }: SearchScreenPropsFull) => {
+  // What is being sought
   const [searchTerm, setSearchTerm] = useState<string>(initialSearchTerm ?? "");
+  // What has been found
   const [results, setResults] = useState<SelectionResult[]>([]);
+  // What has been selected
   const [chosen, setChosen] = useState<SelectionResult[]>(preselection ?? []);
 
   const dispatch = useAppDispatch();
@@ -44,14 +48,20 @@ export const SearchScreen: FC<SearchScreenPropsFull> = ({
         try {
           // TODO wire pagination and filters into this
           const response = await axios.get<{
-            results: SelectionResult[];
+            results: SearchResult[];
           }>(`${import.meta.env.VITE_API_URL as string}/game-api/search`, {
             params: {
               types: dataTypes,
               searchTerm,
             },
           });
-          setResults(response.data.results);
+          setResults(
+            response.data.results.map(result => ({
+              value: result.id,
+              name: result.name,
+              type: result.type,
+            })),
+          );
         } catch (error) {
           console.log(
             `Error while fetching search results: ${(error as Error).message}`,
@@ -90,6 +100,7 @@ export const SearchScreen: FC<SearchScreenPropsFull> = ({
     }
   })(strategy);
 
+  // TODO: add a loader for when API call is being made
   return (
     <div className="search-screen">
       <section aria-label={`search screen`}>

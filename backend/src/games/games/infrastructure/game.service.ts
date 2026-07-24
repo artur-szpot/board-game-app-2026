@@ -77,6 +77,9 @@ export class GameService implements GameGateway {
     input: CreateGameDto | UpdateGameDto,
     id?: string,
   ) {
+    const locationIds = input.locations?.filter((location)=>!location.isGameId).map((location) => location.locationId);
+    const gamelocationIds = input.locations?.filter((location)=>location.isGameId).map((location) => location.locationId);
+
     const existingGame = await this.gameRepository.getGameByName(input.name);
     if (existingGame && existingGame.id !== id) {
       throw new BadRequestException(
@@ -91,9 +94,14 @@ export class GameService implements GameGateway {
         'Tag',
       ),
       this.ensureIdsExist(
-        input.locationIds,
+        locationIds,
         (ids) => this.locationGateway.getByIds(ids),
         'Location',
+      ),
+      this.ensureIdsExist(
+        gamelocationIds,
+        (ids) => this.getByIds(ids),
+        'Game',
       ),
       this.ensureIdsExist(
         input.scoringSchemaIds,
@@ -125,6 +133,11 @@ export class GameService implements GameGateway {
       );
       throw new CustomInternalError('retrieving the game');
     }
+  }
+
+  public async getByIds(ids: string[]): Promise<GameDto[]> {
+    const games = await Promise.all(ids.map((id) => this.getById(id)));
+    return games;
   }
 
   public async getMany(dto?: GetManyItemsDto): Promise<Paginated<GameDto>> {
