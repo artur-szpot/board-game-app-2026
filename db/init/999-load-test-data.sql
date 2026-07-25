@@ -20,25 +20,24 @@ SET
 	parent_id = EXCLUDED.parent_id,
 	updated_on = CURRENT_TIMESTAMP;
 
-INSERT INTO locations (id, name, description, parent_id, is_game_id)
+INSERT INTO locations (id, name, description, parent_id)
 VALUES
-	('test-location-01', 'Test Location 01', 'Main shelf A for test games.', NULL, false),
-	('test-location-02', 'Test Location 02', 'Main shelf B for test games.', NULL, false),
-	('test-location-03', 'Test Location 03', 'Closet top section for test games.', NULL, false),
-	('test-location-04', 'Test Location 04', 'Closet middle section for test games.', NULL, false),
-	('test-location-05', 'Test Location 05', 'Closet bottom section for test games.', NULL, false),
-	('test-location-06', 'Test Location 06', 'Living room cabinet left side.', NULL, false),
-	('test-location-07', 'Test Location 07', 'Living room cabinet right side.', NULL, false),
-	('test-location-08', 'Test Location 08', 'Travel bag storage location.', NULL, false),
-	('test-location-09', 'Test Location 09', 'Guest room shelf for overflow.', NULL, false),
-	('test-location-10', 'Test Location 10', 'Office shelf for prototypes.', NULL, false)
+	('test-location-01', 'Test Location 01', 'Main shelf A for test games.', NULL),
+	('test-location-02', 'Test Location 02', 'Main shelf B for test games.', NULL),
+	('test-location-03', 'Test Location 03', 'Closet top section for test games.', NULL),
+	('test-location-04', 'Test Location 04', 'Closet middle section for test games.', NULL),
+	('test-location-05', 'Test Location 05', 'Closet bottom section for test games.', NULL),
+	('test-location-06', 'Test Location 06', 'Living room cabinet left side.', NULL),
+	('test-location-07', 'Test Location 07', 'Living room cabinet right side.', NULL),
+	('test-location-08', 'Test Location 08', 'Travel bag storage location.', NULL),
+	('test-location-09', 'Test Location 09', 'Guest room shelf for overflow.', NULL),
+	('test-location-10', 'Test Location 10', 'Office shelf for prototypes.', NULL)
 ON CONFLICT (id)
 DO UPDATE
 SET
 	name = EXCLUDED.name,
 	description = EXCLUDED.description,
 	parent_id = EXCLUDED.parent_id,
-	is_game_id = EXCLUDED.is_game_id,
 	updated_on = CURRENT_TIMESTAMP;
 
 INSERT INTO games (id, name, description, length)

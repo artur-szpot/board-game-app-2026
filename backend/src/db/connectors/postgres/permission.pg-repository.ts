@@ -22,6 +22,37 @@ export class PostgresPermissionRepository implements PermissionRepository {
 
   constructor(private readonly connector: PostgresConnector) {}
 
+  private buildOrderBy(sort?: GetManyItemsDto['sort']): string {
+    const sortableFields: Record<string, string> = {
+      permissionType: 'type',
+      description: 'description',
+    };
+
+    // TODO: validate incoming sort keys and directions centrally instead of silently ignoring unsupported values.
+    const clauses = Object.entries(sort ?? {})
+      .filter(
+        ([field, direction]) =>
+          sortableFields[field] && (direction === 'asc' || direction === 'desc'),
+      )
+      .map(
+        ([field, direction]) =>
+          `${sortableFields[field]} ${direction.toUpperCase()}`,
+      );
+
+    return clauses.length > 0 ? clauses.join(', ') : 'type ASC';
+  }
+
+  private buildSearchArgs(dto?: GetManyItemsDto) {
+    const { pagination, searchTerm, sort } = dto ?? {};
+    const args = searchTerm ? [`%${searchTerm}%`] : undefined;
+    const where = searchTerm
+      ? `(type ILIKE $1 OR description ILIKE $1)`
+      : undefined;
+    const orderBy = this.buildOrderBy(sort);
+
+    return { pagination, args, orderBy, where };
+  }
+
   public async getPermissionByType(
     permissionType: PermissionType,
   ): Promise<PermissionDto | null> {
@@ -36,15 +67,22 @@ export class PostgresPermissionRepository implements PermissionRepository {
   public async getManyPermissions(
     dto?: GetManyItemsDto,
   ): Promise<PermissionDto[]> {
-    const { pagination } = dto;
+    const { pagination, args, orderBy, where } = this.buildSearchArgs(dto);
     return this.connector.getMany<PermissionDto>(
       this.SELECT_PERMISSIONS_SQL({
+        where,
+        orderBy,
         pagination,
       }),
+      args,
     );
   }
 
-  public async getPermissionsCount(): Promise<number> {
-    return this.connector.getCount(this.SELECT_PERMISSIONS_COUNT_SQL);
+  public async getPermissionsCount(dto?: GetManyItemsDto): Promise<number> {
+    const { args, where } = this.buildSearchArgs(dto);
+    const query = where
+      ? `SELECT COUNT(*) AS total FROM permissions WHERE ${where};`
+      : this.SELECT_PERMISSIONS_COUNT_SQL;
+    return this.connector.getCount(query, args);
   }
 }

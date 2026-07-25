@@ -43,11 +43,16 @@ export class PostgresConnector {
 
   public searchSQL = (args?: DbSearchDto): string => {
     const { where, orderBy, pagination } = args ?? {};
-    const { pageNumber, pageSize } = pagination ?? {};
+    const { offset, pageNumber, pageSize } = pagination ?? {};
+    const resolvedOffset = offset ?? (pageNumber !== undefined && pageSize !== undefined
+      ? pageNumber * pageSize
+      : undefined);
     return `
        ${where ? `WHERE ${where}` : ''}
        ${orderBy ? `ORDER BY ${orderBy}` : ''}
-       ${pagination ? `LIMIT ${pageSize} OFFSET ${pageNumber * pageSize}` : ''}
+       ${pageSize !== undefined && resolvedOffset !== undefined
+         ? `LIMIT ${pageSize} OFFSET ${resolvedOffset}`
+         : ''}
     `;
   };
 
@@ -75,13 +80,28 @@ export class PostgresConnector {
     return result;
   }
 
-  public async getCount(query: string): Promise<number> {
+  public async getCount(query: string, args?: any[]): Promise<number> {
     const connection = await this.getConnection();
-    const resultRaw = await connection.query<{ total: number }>(query);
+    const resultRaw = await connection.query<{ total: number | string }>(
+      query,
+      args,
+    );
     connection.release();
     if (!resultRaw?.rows?.[0]) {
       return 0;
     }
-    return resultRaw.rows[0].total;
+
+    const rawTotal = resultRaw.rows[0].total;
+    if (typeof rawTotal === 'number') {
+      return rawTotal;
+    }
+
+    const parsedTotal = Number.parseInt(rawTotal, 10);
+    if (Number.isNaN(parsedTotal)) {
+      this.logger.warn(`Could not parse count value "${rawTotal}" as number`);
+      return 0;
+    }
+
+    return parsedTotal;
   }
 }

@@ -7,7 +7,6 @@ import {
   Param,
   Patch,
   Post,
-  Query,
   UseGuards,
 } from '@nestjs/common';
 
@@ -15,9 +14,6 @@ import { RequirePermissions } from '@auth/decorators/permissions.decorator';
 import { JwtAuthGuard } from '@auth/guards/jwt.guard';
 import { PermisionsGuard } from '@auth/guards/permissions.guard';
 import { GetEntityByIdDto } from '@common/dto/in/get-entity-by-id.dto';
-import { PaginationDto } from '@common/pagination/dto/in/pagination.dto';
-import { paginationMapper } from '@common/pagination/mapper/pagination.mapper';
-import { Paginated } from '@common/pagination/Paginated';
 
 import { PermissionLevel } from '../permissions/enums/permission-level.enum';
 import { PermissionType } from '../permissions/enums/permission-type.enum';
@@ -53,19 +49,6 @@ export class RoleController {
     @Param() params: GetRoleByNameDto,
   ): Promise<RoleResponse> {
     return this.gateway.getByName(params.name);
-  }
-
-  @Get()
-  @RequirePermissions(
-    [PermissionType.ROLES, PermissionLevel.READ],
-    [PermissionType.PERMISSIONS, PermissionLevel.READ],
-  )
-  async getRoles(
-    @Query() pagination: PaginationDto,
-  ): Promise<Paginated<RoleResponse>> {
-    return this.gateway.getMany({
-      pagination: paginationMapper.fromDto(pagination),
-    });
   }
 
   @Post()

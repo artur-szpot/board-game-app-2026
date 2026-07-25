@@ -1,25 +1,48 @@
+import type { FormScreenProps } from "../../components/screens/FormScreenProps";
+
 export type EntityPanelTab<Category extends string> = {
   category: Category;
-  endpoint: string;
   label?: string;
   routeSegment?: string;
+  createScreen?: FormScreenProps;
 };
 
-export type EntityPanelProps<Category extends string, Item> = {
-  getItemsFromResponse?: (
-    data: PaginatedResponse<Item> | Item[],
-  ) => Item[];
-  title: string;
-  basePath: string;
-  tabs: EntityPanelTab<Category>[];
-  content?: Category;
-  pageSize?: number;
-  fetchErrorMessage?: string;
+type SearchResultWithDetail<Type extends string, Detail> = {
+  id: string;
+  name: string;
+  type: Type;
+  detail?: Detail;
 };
 
-export type PaginatedResponse<T> = {
-  page: T[];
+export type SearchResult<
+  ItemType extends string,
+  DetailByType extends Record<ItemType, unknown>,
+> = {
+  [Type in ItemType]: SearchResultWithDetail<Type, DetailByType[Type]>;
+}[ItemType];
+
+export type SearchResponse<
+  ItemType extends string,
+  DetailByType extends Record<ItemType, unknown>,
+> = {
+  results: SearchResult<ItemType, DetailByType>[];
   total: number;
 };
 
-export const DEFAULT_PAGE_SIZE = 10;
+export type EntityPanelProps<
+  Category extends string,
+  Item,
+  DetailByType extends Record<Category, unknown>,
+> = {
+  getItemsFromResponse?: (data: SearchResponse<Category, DetailByType>) => Item[];
+  title: string;
+  basePath: string;
+  searchEndpoint: string;
+  tabs: EntityPanelTab<Category>[];
+  content?: Category;
+  pageSize?: number;
+  includeDetail?: boolean;
+  fetchErrorMessage?: string;
+};
+
+export const DEFAULT_PAGE_SIZE = 3;

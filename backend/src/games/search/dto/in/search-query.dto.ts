@@ -2,6 +2,7 @@ import { Type } from 'class-transformer';
 import {
   ArrayMinSize,
   IsArray,
+  IsBoolean,
   IsEnum,
   IsOptional,
   IsString,
@@ -9,6 +10,7 @@ import {
 } from 'class-validator';
 
 import { PaginationDto } from '@common/pagination/dto/in/pagination.dto';
+import { SortDirection } from '@common/dto/in/get-many-items.dto';
 import { GameDataType } from '@common/enums/GameDataType.enum';
 
 export class SearchQueryDto {
@@ -28,4 +30,11 @@ export class SearchQueryDto {
 
   @IsOptional()
   filters?: Record<string, string>;
+
+  @IsOptional()
+  sort?: Record<string, SortDirection>;
+
+  @IsOptional()
+  @IsBoolean()
+  includeDetail?: boolean;
 }

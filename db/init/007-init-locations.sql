@@ -3,7 +3,6 @@ CREATE TABLE locations (
    name TEXT NOT NULL,
    description TEXT,
    parent_id VARCHAR(40),
-   is_game_id BOOLEAN NOT NULL DEFAULT false,
    created_on TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
    updated_on TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

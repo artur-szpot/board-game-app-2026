@@ -67,7 +67,6 @@ export const EntityPanelContent = <Category extends string, Item>({
 
   return (
     <div>
-      <h4>{tab.label ?? tab.category}</h4>
       <ul>
         {items.map((item, index) => (
           <li key={index}>{renderItem(item)}</li>

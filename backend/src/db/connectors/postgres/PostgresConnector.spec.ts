@@ -32,6 +32,15 @@ describe('PostgresConnector', () => {
     expect(result).toStrictEqual('LIMIT 4 OFFSET 8');
   });
 
+  it('should prefer explicit offset when pagination provides one', async () => {
+    const result = normalizeSQL(
+      connector.searchSQL({
+        pagination: { pageNumber: 2, pageSize: 4, offset: 3 },
+      }),
+    );
+    expect(result).toStrictEqual('LIMIT 4 OFFSET 3');
+  });
+
   it('should construct search SQL with all parameters', async () => {
     const result = normalizeSQL(
       connector.searchSQL({

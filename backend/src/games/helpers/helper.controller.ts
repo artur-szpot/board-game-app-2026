@@ -7,11 +7,7 @@ import {
   Param,
   Post,
   Put,
-  Query,
 } from '@nestjs/common';
-
-import { PaginationDto } from '@common/pagination/dto/in/pagination.dto';
-import { paginationMapper } from '@common/pagination/mapper/pagination.mapper';
 
 import { CreateHelperDto } from './dto/in/create-helper.dto';
 import { UpdateHelperDto } from './dto/in/update-helper.dto';
@@ -27,13 +23,6 @@ export class HelperController {
   @Get(':id')
   getById(@Param('id') id: string) {
     return this.helperGateway.getById(id);
-  }
-
-  @Get()
-  getMany(@Query() pagination: PaginationDto) {
-    return this.helperGateway.getMany({
-      pagination: paginationMapper.fromDto(pagination),
-    });
   }
 
   @Post()

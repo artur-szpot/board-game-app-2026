@@ -1,45 +1,58 @@
 import type React from "react";
 
+import { createGameScreen } from "../../components/screens/definitions/create-game";
+import { createLocationScreen } from "../../components/screens/definitions/create-location";
+import { createTagScreen } from "../../components/screens/definitions/create-tag";
 import { GameDataType } from "../../components/screens/selection-strategies";
 import type { EntityPanelTab } from "../entity-panel/entity-panel-types";
 import { EntityPanel } from "../entity-panel/EntityPanel";
 import type {
   CollectionPanelCategory,
+  CollectionPanelDetailsByType,
+  CollectionPanelItem,
   CollectionPanelProps,
 } from "./collection-types";
 
 const COLLECTION_TABS: EntityPanelTab<CollectionPanelCategory>[] = [
   {
     category: GameDataType.GAME,
-    endpoint: "game-api/games",
     routeSegment: "games",
     label: "Games",
+    createScreen: createGameScreen,
   },
   {
     category: GameDataType.TAG,
-    endpoint: "game-api/tags",
     routeSegment: "tags",
     label: "Tags",
+    createScreen: createTagScreen,
   },
   {
     category: GameDataType.LOCATION,
-    endpoint: "game-api/locations",
     routeSegment: "locations",
     label: "Locations",
+    createScreen: createLocationScreen,
   },
   {
     category: GameDataType.HELPER,
-    endpoint: "game-api/helpers",
     routeSegment: "helpers",
     label: "Helpers",
   },
   {
     category: GameDataType.SCORING_SCHEMA,
-    endpoint: "game-api/scoring-schemas",
     routeSegment: "scoring-schemas",
     label: "Scoring Schemas",
   },
 ];
+
+const mapCollectionItemsFromResponse = (
+  data: {
+    results: { detail?: CollectionPanelDetailsByType[CollectionPanelCategory] }[];
+  },
+): CollectionPanelItem[] => {
+  return data.results.flatMap((result) =>
+    result.detail ? [result.detail as CollectionPanelItem] : [],
+  );
+};
 
 export const CollectionPanel: React.FC<CollectionPanelProps> = (
   props: CollectionPanelProps,
@@ -47,11 +60,18 @@ export const CollectionPanel: React.FC<CollectionPanelProps> = (
   const { content } = props;
 
   return (
-    <EntityPanel
+    <EntityPanel<
+      CollectionPanelCategory,
+      CollectionPanelItem,
+      CollectionPanelDetailsByType
+    >
       title="Collection panel"
       basePath="/collection"
+      searchEndpoint="game-api/search"
       tabs={COLLECTION_TABS}
       content={content}
+      includeDetail
+      getItemsFromResponse={mapCollectionItemsFromResponse}
       fetchErrorMessage="Unable to load collection items"
     />
   );

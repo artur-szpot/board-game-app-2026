@@ -43,34 +43,36 @@ export const SearchScreen: FC<SearchScreenPropsFull> = ({
     );
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      const fetchResults = async () => {
-        try {
-          // TODO wire pagination and filters into this
-          const response = await axios.get<{
-            results: SearchResult[];
-          }>(`${import.meta.env.VITE_API_URL as string}/game-api/search`, {
-            params: {
+    const timer = window.setTimeout(
+      () => {
+        const fetchResults = async () => {
+          try {
+            // TODO wire pagination and filters into this
+            const response = await axios.post<{
+              results: SearchResult[];
+              total: number;
+            }>(`${import.meta.env.VITE_API_URL as string}/game-api/search`, {
               types: dataTypes,
               searchTerm,
-            },
-          });
-          setResults(
-            response.data.results.map(result => ({
-              value: result.id,
-              name: result.name,
-              type: result.type,
-            })),
-          );
-        } catch (error) {
-          console.log(
-            `Error while fetching search results: ${(error as Error).message}`,
-          );
-          setResults([]);
-        }
-      };
-      void fetchResults();
-    }, INPUT_STABILITY_IN_MS);
+            });
+            setResults(
+              response.data.results.map(result => ({
+                value: result.id,
+                name: result.name,
+                type: result.type,
+              })),
+            );
+          } catch (error) {
+            console.log(
+              `Error while fetching search results: ${(error as Error).message}`,
+            );
+            setResults([]);
+          }
+        };
+        void fetchResults();
+      },
+      searchTerm.length > 0 ? INPUT_STABILITY_IN_MS : 0,
+    );
 
     return () => window.clearTimeout(timer);
   }, [dataTypes, searchTerm]);

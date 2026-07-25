@@ -78,7 +78,7 @@ export class GameService implements GameGateway {
     id?: string,
   ) {
     const locationIds = input.locations?.filter((location)=>!location.isGameId).map((location) => location.locationId);
-    const gamelocationIds = input.locations?.filter((location)=>location.isGameId).map((location) => location.locationId);
+    const gameLocationIds = input.locations?.filter((location)=>location.isGameId).map((location) => location.locationId);
 
     const existingGame = await this.gameRepository.getGameByName(input.name);
     if (existingGame && existingGame.id !== id) {
@@ -99,7 +99,7 @@ export class GameService implements GameGateway {
         'Location',
       ),
       this.ensureIdsExist(
-        gamelocationIds,
+        gameLocationIds,
         (ids) => this.getByIds(ids),
         'Game',
       ),

@@ -92,6 +92,37 @@ export class PostgresRoleRepository implements RoleRepository {
 
   constructor(private readonly connector: PostgresConnector) {}
 
+  private buildOrderBy(sort?: GetManyItemsDto['sort']): string {
+    const sortableFields: Record<string, string> = {
+      name: 'name',
+      description: 'description',
+    };
+
+    // TODO: validate incoming sort keys and directions centrally instead of silently ignoring unsupported values.
+    const clauses = Object.entries(sort ?? {})
+      .filter(
+        ([field, direction]) =>
+          sortableFields[field] && (direction === 'asc' || direction === 'desc'),
+      )
+      .map(
+        ([field, direction]) =>
+          `${sortableFields[field]} ${direction.toUpperCase()}`,
+      );
+
+    return clauses.length > 0 ? clauses.join(', ') : 'name ASC';
+  }
+
+  private buildSearchArgs(dto?: GetManyItemsDto) {
+    const { pagination, searchTerm, sort } = dto ?? {};
+    const args = searchTerm ? [`%${searchTerm}%`] : undefined;
+    const where = searchTerm
+      ? `(name ILIKE $1 OR COALESCE(description, '') ILIKE $1)`
+      : undefined;
+    const orderBy = this.buildOrderBy(sort);
+
+    return { pagination, args, orderBy, where };
+  }
+
   public async getRoleById(roleId: string): Promise<RoleDto | null> {
     return this.connector.getOne<RoleDto>(
       this.SELECT_ROLES_SQL({
@@ -111,16 +142,23 @@ export class PostgresRoleRepository implements RoleRepository {
   }
 
   public async getManyRoles(dto?: GetManyItemsDto): Promise<RoleDto[]> {
-    const { pagination } = dto;
+    const { pagination, args, orderBy, where } = this.buildSearchArgs(dto);
     return this.connector.getMany<RoleDto>(
       this.SELECT_ROLES_SQL({
+        where,
+        orderBy,
         pagination,
       }),
+      args,
     );
   }
 
-  public async getRolesCount(): Promise<number> {
-    return this.connector.getCount(this.SELECT_ROLES_COUNT_SQL);
+  public async getRolesCount(dto?: GetManyItemsDto): Promise<number> {
+    const { args, where } = this.buildSearchArgs(dto);
+    const query = where
+      ? `SELECT COUNT(*) AS total FROM roles WHERE ${where};`
+      : this.SELECT_ROLES_COUNT_SQL;
+    return this.connector.getCount(query, args);
   }
 
   private async createRolePermissions(

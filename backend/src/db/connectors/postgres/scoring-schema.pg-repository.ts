@@ -61,6 +61,38 @@ export class PostgresScoringSchemaRepository implements ScoringSchemaRepository 
 
   constructor(private readonly connector: PostgresConnector) {}
 
+  private buildOrderBy(sort?: GetManyItemsDto['sort']): string {
+    const sortableFields: Record<string, string> = {
+      name: 'name',
+      createdOn: 'created_on',
+      updatedOn: 'updated_on',
+    };
+
+    // TODO: validate incoming sort keys and directions centrally instead of silently ignoring unsupported values.
+    const clauses = Object.entries(sort ?? {})
+      .filter(
+        ([field, direction]) =>
+          sortableFields[field] && (direction === 'asc' || direction === 'desc'),
+      )
+      .map(
+        ([field, direction]) =>
+          `${sortableFields[field]} ${direction.toUpperCase()}`,
+      );
+
+    return clauses.length > 0 ? clauses.join(', ') : 'name ASC';
+  }
+
+  private buildSearchArgs(dto?: GetManyItemsDto) {
+    const { pagination, searchTerm, sort } = dto ?? {};
+    const args = searchTerm ? [`%${searchTerm}%`] : undefined;
+    const where = searchTerm
+      ? `(name ILIKE $1 OR COALESCE(description, '') ILIKE $1)`
+      : undefined;
+    const orderBy = this.buildOrderBy(sort);
+
+    return { pagination, args, orderBy, where };
+  }
+
   public async getScoringSchemaById(
     id: string,
   ): Promise<ScoringSchemaDto | null> {
@@ -95,14 +127,19 @@ export class PostgresScoringSchemaRepository implements ScoringSchemaRepository 
   public async getManyScoringSchemas(
     dto?: GetManyItemsDto,
   ): Promise<ScoringSchemaDto[]> {
-    const { pagination } = dto ?? {};
+    const { pagination, args, orderBy, where } = this.buildSearchArgs(dto);
     return this.connector.getMany<ScoringSchemaDto>(
-      `${this.SELECT_SCORING_SCHEMA_SQL} ${this.connector.searchSQL({ orderBy: 'name ASC', pagination })}`,
+      `${this.SELECT_SCORING_SCHEMA_SQL} ${this.connector.searchSQL({ where, orderBy, pagination })}`,
+      args,
     );
   }
 
-  public async getScoringSchemasCount(): Promise<number> {
-    return this.connector.getCount(this.SELECT_SCORING_SCHEMAS_COUNT_SQL);
+  public async getScoringSchemasCount(dto?: GetManyItemsDto): Promise<number> {
+    const { args, where } = this.buildSearchArgs(dto);
+    const query = where
+      ? `SELECT COUNT(*) AS total FROM scoring_schemas WHERE ${where};`
+      : this.SELECT_SCORING_SCHEMAS_COUNT_SQL;
+    return this.connector.getCount(query, args);
   }
 
   public async createScoringSchema(input: any): Promise<ScoringSchemaDto> {

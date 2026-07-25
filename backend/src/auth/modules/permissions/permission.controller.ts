@@ -3,16 +3,12 @@ import {
   Get,
   Inject,
   Param,
-  Query,
   UseGuards,
 } from '@nestjs/common';
 
 import { RequirePermissions } from '@auth/decorators/permissions.decorator';
 import { JwtAuthGuard } from '@auth/guards/jwt.guard';
 import { PermisionsGuard } from '@auth/guards/permissions.guard';
-import { Paginated } from '@common/pagination/Paginated';
-import { PaginationDto } from '@common/pagination/dto/in/pagination.dto';
-import { paginationMapper } from '@common/pagination/mapper/pagination.mapper';
 
 import { GetPermissionByTypeDto } from './dto/in/get-permission-by-type.dto';
 import { PermissionResponse } from './dto/out/permission.response';
@@ -40,13 +36,4 @@ export class PermissionController {
     return this.gateway.getByType(permissionType);
   }
 
-  @Get('/')
-  @RequirePermissions([PermissionType.PERMISSIONS, PermissionLevel.READ])
-  async getPermissions(
-    @Query() pagination: PaginationDto,
-  ): Promise<Paginated<PermissionResponse>> {
-    return this.gateway.getMany({
-      pagination: paginationMapper.fromDto(pagination),
-    });
-  }
 }

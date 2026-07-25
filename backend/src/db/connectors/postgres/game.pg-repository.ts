@@ -20,7 +20,6 @@ export class PostgresGameRepository implements GameRepository {
       length,
       COALESCE((SELECT ARRAY_AGG(gt.tag_id) FROM game_tags gt WHERE gt.game_id = games.id), ARRAY[]::text[]) AS "tagIds",
       COALESCE((SELECT ARRAY_AGG(JSON_BUILD_OBJECT('locationId', gl.location_id, 'note', gl.note)) FROM game_locations gl WHERE gl.game_id = games.id), ARRAY[]::json[]) AS "locations",
-      COALESCE((SELECT ARRAY_AGG(gl.location_id) FROM game_locations gl WHERE gl.game_id = games.id), ARRAY[]::text[]) AS "locationIds",
       COALESCE((SELECT ARRAY_AGG(gs.schema_id) FROM game_scoring_schemas gs WHERE gs.game_id = games.id), ARRAY[]::text[]) AS "scoringSchemaIds",
       COALESCE((SELECT ARRAY_AGG(gh.helper_id) FROM game_helpers gh WHERE gh.game_id = games.id), ARRAY[]::text[]) AS "helperIds",
       created_on AS "createdOn",
@@ -81,6 +80,39 @@ export class PostgresGameRepository implements GameRepository {
 
   constructor(private readonly connector: PostgresConnector) {}
 
+  private buildOrderBy(sort?: GetManyItemsDto['sort']): string {
+    const sortableFields: Record<string, string> = {
+      name: 'name',
+      createdOn: 'created_on',
+      updatedOn: 'updated_on',
+      length: 'length',
+    };
+
+    // TODO: validate incoming sort keys and directions centrally instead of silently ignoring unsupported values.
+    const clauses = Object.entries(sort ?? {})
+      .filter(
+        ([field, direction]) =>
+          sortableFields[field] && (direction === 'asc' || direction === 'desc'),
+      )
+      .map(
+        ([field, direction]) =>
+          `${sortableFields[field]} ${direction.toUpperCase()}`,
+      );
+
+    return clauses.length > 0 ? clauses.join(', ') : 'name ASC';
+  }
+
+  private buildSearchArgs(dto?: GetManyItemsDto) {
+    const { pagination, searchTerm, sort } = dto ?? {};
+    const args = searchTerm ? [`%${searchTerm}%`] : undefined;
+    const where = searchTerm
+      ? `(name ILIKE $1 OR COALESCE(description, '') ILIKE $1)`
+      : undefined;
+    const orderBy = this.buildOrderBy(sort);
+
+    return { pagination, args, orderBy, where };
+  }
+
   public async getGameById(gameId: string): Promise<GameDto | null> {
     return this.connector.getOne<GameDto>(
       `${this.SELECT_GAMES_SQL} WHERE id = $1`,
@@ -96,14 +128,19 @@ export class PostgresGameRepository implements GameRepository {
   }
 
   public async getManyGames(dto?: GetManyItemsDto): Promise<GameDto[]> {
-    const { pagination } = dto ?? {};
+    const { pagination, args, orderBy, where } = this.buildSearchArgs(dto);
     return this.connector.getMany<GameDto>(
-      `${this.SELECT_GAMES_SQL} ${this.connector.searchSQL({ orderBy: 'name ASC', pagination })}`,
+      `${this.SELECT_GAMES_SQL} ${this.connector.searchSQL({ where, orderBy, pagination })}`,
+      args,
     );
   }
 
-  public async getGamesCount(): Promise<number> {
-    return this.connector.getCount(this.SELECT_GAMES_COUNT_SQL);
+  public async getGamesCount(dto?: GetManyItemsDto): Promise<number> {
+    const { args, where } = this.buildSearchArgs(dto);
+    const query = where
+      ? `SELECT COUNT(*) AS total FROM games WHERE ${where};`
+      : this.SELECT_GAMES_COUNT_SQL;
+    return this.connector.getCount(query, args);
   }
 
   public async createGame(input: CreateGameDto): Promise<GameDto> {
