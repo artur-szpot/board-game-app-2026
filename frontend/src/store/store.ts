@@ -3,6 +3,7 @@ import { combineSlices, configureStore } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
 
 import { currentUserSlice } from "./features/currentUserSlice";
+import { frameStackListenerMiddleware } from "./features/frameStackListeners";
 import { frameStackSlice } from "./features/frameStackSlice";
 
 const rootReducer = combineSlices(currentUserSlice, frameStackSlice);
@@ -12,6 +13,8 @@ export const makeStore = (preloadedState?: Partial<RootState>) => {
   const store = configureStore({
     reducer: rootReducer,
     preloadedState,
+    middleware: getDefaultMiddleware =>
+      getDefaultMiddleware().prepend(frameStackListenerMiddleware.middleware),
   });
   setupListeners(store.dispatch);
   return store;

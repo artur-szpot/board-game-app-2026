@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import {
   selectionStrategyChooseOne,
@@ -6,9 +6,14 @@ import {
   selectionStrategySelectNumber,
 } from "../../components/screens/selection-strategies";
 import {
+  clearFrameCallbacks,
+  invokeFrameCallback,
+} from "./frameCallbackRegistry";
+import {
   closeFrame,
   frameStackSlice,
   FrameTypeEnum,
+  openFormFrame,
   openOptionsFrame,
   openSearchFrame,
   resetToBottomFrame,
@@ -16,6 +21,7 @@ import {
 } from "./frameStackSlice";
 import type { OptionsScreenProps } from "../../components/screens/OptionsScreenProps";
 import { ActionEnum } from "./frame-actions";
+import { makeStore } from "../store";
 
 const initialState = frameStackSlice.getInitialState();
 
@@ -41,7 +47,25 @@ const mockOptionsProps: { params: OptionsScreenProps } = {
   },
 };
 
+const getPayloadToken = (action: unknown, key: string): string | undefined => {
+  if (typeof action !== "object" || action === null || !("payload" in action)) {
+    return undefined;
+  }
+
+  const payload = action.payload;
+  if (typeof payload !== "object" || payload === null || !(key in payload)) {
+    return undefined;
+  }
+
+  const token = payload[key as keyof typeof payload];
+  return typeof token === "string" ? token : undefined;
+};
+
 describe("frameStackSlice", () => {
+  beforeEach(() => {
+    clearFrameCallbacks();
+  });
+
   it("should initialize with BOTTOM FRAME", () => {
     expect(initialState.stack).toHaveLength(1);
     expect(initialState.stack[0]).toMatchObject({
@@ -65,8 +89,7 @@ describe("frameStackSlice", () => {
     expect(nextState.stack[1]).toMatchObject({
       frameType: FrameTypeEnum.SEARCH,
       params: { title: "test", dataTypes: [GameDataType.GAME] },
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      callbackReceiver: expect.any(Function),
+      callbackReceiverId: undefined,
     });
   });
 
@@ -152,20 +175,21 @@ describe("frameStackSlice", () => {
 
   it("should send same-frame result to top frame receiver when emitter is missing", () => {
     const receiver = vi.fn();
-    const state = frameStackSlice.reducer(
-      initialState,
-      openSearchFrame({
+    const store = makeStore();
+
+    store.dispatch(
+      openFormFrame({
         params: {
-          title: "test",
-          dataTypes: [GameDataType.GAME],
-          strategy: selectionStrategySelectNumber({ min: 1 }),
+          title: "test form",
+          method: "POST",
+          action: "some/path",
+          fields: [],
         },
         callbackReceiver: receiver,
       }),
     );
 
-    frameStackSlice.reducer(
-      state,
+    store.dispatch(
       sameFrameResult({
         result: {
           action: ActionEnum.CHOICE_MADE,
@@ -178,5 +202,72 @@ describe("frameStackSlice", () => {
       action: ActionEnum.CHOICE_MADE,
       payload: { chosen: [] },
     });
+  });
+
+  it("should unregister callback emitter after closing a frame", () => {
+    const emitter = vi.fn();
+    const store = makeStore();
+
+    const openAction = store.dispatch(
+      openOptionsFrame({
+        ...mockOptionsProps,
+        callbackEmitter: emitter,
+      }),
+    );
+
+    const callbackToken = getPayloadToken(openAction, "callbackEmitterId");
+    expect(callbackToken).toBeDefined();
+
+    const topFrameId = store.getState().frameStack.stack.at(-1)?.id;
+    expect(topFrameId).toBeDefined();
+
+    store.dispatch(
+      closeFrame({
+        id: topFrameId ?? "",
+        result: {
+          action: ActionEnum.CHOICE_MADE,
+          payload: { chosen: [] },
+        },
+      }),
+    );
+
+    expect(emitter).toHaveBeenCalledWith({
+      action: ActionEnum.CHOICE_MADE,
+      payload: { chosen: [] },
+    });
+
+    const invokedAfterCleanup = invokeFrameCallback(callbackToken ?? "", {
+      action: ActionEnum.CHOICE_MADE,
+      payload: { chosen: [] },
+    });
+    expect(invokedAfterCleanup).toBe(false);
+  });
+
+  it("should unregister callback receiver after resetting to bottom frame", () => {
+    const receiver = vi.fn();
+    const store = makeStore();
+
+    const openAction = store.dispatch(
+      openSearchFrame({
+        params: {
+          title: "test",
+          dataTypes: [GameDataType.GAME],
+          strategy: selectionStrategySelectNumber({ min: 1 }),
+        },
+        callbackReceiver: receiver,
+      }),
+    );
+
+    const callbackToken = getPayloadToken(openAction, "callbackReceiverId");
+    expect(callbackToken).toBeDefined();
+
+    store.dispatch(resetToBottomFrame());
+
+    const invokedAfterCleanup = invokeFrameCallback(callbackToken ?? "", {
+      action: ActionEnum.CHOICE_MADE,
+      payload: { chosen: [] },
+    });
+    expect(invokedAfterCleanup).toBe(false);
+    expect(receiver).not.toHaveBeenCalled();
   });
 });
