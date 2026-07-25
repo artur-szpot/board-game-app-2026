@@ -84,6 +84,9 @@ const eslintConfig = defineConfig(
         'error',
         {
           ignoreRestSiblings: true,
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
         },
       ],
       '@typescript-eslint/no-confusing-void-expression': 'off',

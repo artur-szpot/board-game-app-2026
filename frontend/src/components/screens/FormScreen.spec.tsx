@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { buildChoiceMadeFromItems } from "../../store/features/frame-actions";
+import { invokeFrameCallback } from "../../store/features/frameCallbackRegistry";
 import {
   closeFrame,
   openOptionsFrame,
@@ -43,6 +44,24 @@ const isSearchAction = (
   action !== null &&
   "type" in action &&
   action.type === openSearchFrame.type;
+
+const getCallbackEmitterId = (action: unknown): string | undefined => {
+  if (typeof action !== "object" || action === null || !("payload" in action)) {
+    return undefined;
+  }
+
+  const payload = action.payload;
+  if (
+    typeof payload === "object" &&
+    payload !== null &&
+    "callbackEmitterId" in payload &&
+    typeof payload.callbackEmitterId === "string"
+  ) {
+    return payload.callbackEmitterId;
+  }
+
+  return undefined;
+};
 
 describe("FormScreen", () => {
   beforeEach(() => {
@@ -110,12 +129,21 @@ describe("FormScreen", () => {
     expect(searchAction).toBeDefined();
 
     act(() => {
-      optionsAction?.payload.callbackEmitter?.(
+      const optionsToken = getCallbackEmitterId(optionsAction);
+      const searchToken = getCallbackEmitterId(searchAction);
+
+      if (!optionsToken || !searchToken) {
+        throw new Error("Missing callback token on dispatched frame actions");
+      }
+
+      invokeFrameCallback(
+        optionsToken,
         buildChoiceMadeFromItems([
           { type: GameDataType.TAG, value: "tag-1", name: "Strategy" },
         ]),
       );
-      searchAction?.payload.callbackEmitter?.(
+      invokeFrameCallback(
+        searchToken,
         buildChoiceMadeFromItems([
           { type: GameDataType.HELPER, value: "helper-1", name: "Auto Score" },
         ]),

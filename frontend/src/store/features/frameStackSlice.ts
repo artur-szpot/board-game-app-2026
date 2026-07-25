@@ -13,6 +13,10 @@ import type {
   SearchScreenPropsFull,
 } from "../../components/screens/SearchScreenProps";
 import { createAppSlice } from "../createAppSlice";
+import {
+  registerFrameCallback,
+  type FrameCallbackToken,
+} from "./frameCallbackRegistry";
 import type { ActionEnum } from "./frame-actions";
 
 export type FrameCallbackContent = {
@@ -32,24 +36,27 @@ export type FrameCallbackReceiver = (result: FrameCallbackContent) => void;
 export type FrameStackItem = {
   id: string;
   frameType: FrameTypeEnum;
-  // This function (if present) will be called when the frame itself is being closed.
-  callbackEmitter?: FrameCallbackReceiver;
-  // This function will be called when the frame on top of it is closed (unless emitter was already called).
-  callbackReceiver: FrameCallbackReceiver;
+  // If present, receives close/same-frame result for this frame.
+  callbackEmitterId?: FrameCallbackToken;
+  // Receives close/same-frame result from top frame when emitter is missing.
+  callbackReceiverId?: FrameCallbackToken;
   params:
     | OptionsScreenPropsFull
     | SearchScreenPropsFull
     | FormScreenPropsFull
     | undefined;
-  getOptionsScreenProps: () => OptionsScreenPropsFull;
-  getSearchScreenProps: () => SearchScreenPropsFull;
-  getFormScreenProps: () => FormScreenPropsFull;
 };
 
 export type FrameStackDto<T> = {
   params: T;
-  callbackEmitter?: FrameStackItem["callbackEmitter"];
-  callbackReceiver?: FrameStackItem["callbackReceiver"];
+  callbackEmitter?: FrameCallbackReceiver;
+  callbackReceiver?: FrameCallbackReceiver;
+};
+
+type FrameStackReducerDto<T> = {
+  params: T;
+  callbackEmitterId?: FrameCallbackToken;
+  callbackReceiverId?: FrameCallbackToken;
 };
 
 export type FrameStackState = {
@@ -89,17 +96,7 @@ const initialState: FrameStackState = {
     {
       id: "bottom_frame",
       frameType: FrameTypeEnum.SELF,
-      callbackReceiver: () => null,
       params: undefined,
-      getOptionsScreenProps: castOptionsScreenProps(
-        FrameTypeEnum.SELF,
-        undefined,
-      ),
-      getSearchScreenProps: castSearchScreenProps(
-        FrameTypeEnum.SELF,
-        undefined,
-      ),
-      getFormScreenProps: castFormScreenProps(FrameTypeEnum.SELF, undefined),
     },
   ],
 };
@@ -108,18 +105,15 @@ const createFrame = (
   id: string,
   frameType: FrameTypeEnum,
   params: FrameStackItem["params"],
-  callbackReceiver?: FrameStackItem["callbackReceiver"],
-  callbackEmitter?: FrameStackItem["callbackEmitter"],
+  callbackReceiverId?: FrameStackItem["callbackReceiverId"],
+  callbackEmitterId?: FrameStackItem["callbackEmitterId"],
 ): FrameStackItem => {
   return {
     id,
     frameType,
     params,
-    callbackReceiver: callbackReceiver ?? (() => null),
-    callbackEmitter,
-    getOptionsScreenProps: castOptionsScreenProps(frameType, params),
-    getSearchScreenProps: castSearchScreenProps(frameType, params),
-    getFormScreenProps: castFormScreenProps(frameType, params),
+    callbackReceiverId,
+    callbackEmitterId,
   };
 };
 
@@ -127,10 +121,21 @@ export const frameStackSlice = createAppSlice({
   name: "frameStack",
   initialState,
   reducers: create => ({
-    openOptionsFrame: create.reducer(
+    openOptionsFrame: create.preparedReducer(
+      (payload: FrameStackDto<OptionsScreenProps>) => ({
+        payload: {
+          params: payload.params,
+          callbackReceiverId: payload.callbackReceiver
+            ? registerFrameCallback(payload.callbackReceiver)
+            : undefined,
+          callbackEmitterId: payload.callbackEmitter
+            ? registerFrameCallback(payload.callbackEmitter)
+            : undefined,
+        },
+      }),
       (
         state: FrameStackState,
-        action: PayloadAction<FrameStackDto<OptionsScreenProps>>,
+        action: PayloadAction<FrameStackReducerDto<OptionsScreenProps>>,
       ) => {
         const id = crypto.randomUUID();
         state.stack.push(
@@ -138,16 +143,27 @@ export const frameStackSlice = createAppSlice({
             id,
             FrameTypeEnum.OPTIONS,
             { ...action.payload.params, frameId: id },
-            action.payload.callbackReceiver,
-            action.payload.callbackEmitter,
+            action.payload.callbackReceiverId,
+            action.payload.callbackEmitterId,
           ),
         );
       },
     ),
-    openSearchFrame: create.reducer(
+    openSearchFrame: create.preparedReducer(
+      (payload: FrameStackDto<SearchScreenProps>) => ({
+        payload: {
+          params: payload.params,
+          callbackReceiverId: payload.callbackReceiver
+            ? registerFrameCallback(payload.callbackReceiver)
+            : undefined,
+          callbackEmitterId: payload.callbackEmitter
+            ? registerFrameCallback(payload.callbackEmitter)
+            : undefined,
+        },
+      }),
       (
         state: FrameStackState,
-        action: PayloadAction<FrameStackDto<SearchScreenProps>>,
+        action: PayloadAction<FrameStackReducerDto<SearchScreenProps>>,
       ) => {
         const id = crypto.randomUUID();
         state.stack.push(
@@ -155,16 +171,27 @@ export const frameStackSlice = createAppSlice({
             id,
             FrameTypeEnum.SEARCH,
             { ...action.payload.params, frameId: id },
-            action.payload.callbackReceiver,
-            action.payload.callbackEmitter,
+            action.payload.callbackReceiverId,
+            action.payload.callbackEmitterId,
           ),
         );
       },
     ),
-    openFormFrame: create.reducer(
+    openFormFrame: create.preparedReducer(
+      (payload: FrameStackDto<FormScreenProps>) => ({
+        payload: {
+          params: payload.params,
+          callbackReceiverId: payload.callbackReceiver
+            ? registerFrameCallback(payload.callbackReceiver)
+            : undefined,
+          callbackEmitterId: payload.callbackEmitter
+            ? registerFrameCallback(payload.callbackEmitter)
+            : undefined,
+        },
+      }),
       (
         state: FrameStackState,
-        action: PayloadAction<FrameStackDto<FormScreenProps>>,
+        action: PayloadAction<FrameStackReducerDto<FormScreenProps>>,
       ) => {
         const id = crypto.randomUUID();
         state.stack.push(
@@ -172,8 +199,8 @@ export const frameStackSlice = createAppSlice({
             id,
             FrameTypeEnum.FORM,
             { ...action.payload.params, frameId: id },
-            action.payload.callbackReceiver,
-            action.payload.callbackEmitter,
+            action.payload.callbackReceiverId,
+            action.payload.callbackEmitterId,
           ),
         );
       },
@@ -208,21 +235,12 @@ export const frameStackSlice = createAppSlice({
         if (!action.payload.result) {
           return;
         }
-
-        // If the frame being closed has an emitter, send result there and finish processing.
-        if (frameToClose.callbackEmitter) {
-          frameToClose.callbackEmitter(action.payload.result);
-          return;
-        }
-
-        // If new top frame has a receiver, send result there.
-        newTopFrame.callbackReceiver(action.payload.result);
       },
     ),
     sameFrameResult: create.reducer(
       (
         state,
-        action: PayloadAction<{
+        _action: PayloadAction<{
           result: FrameCallbackContent;
         }>,
       ) => {
@@ -233,40 +251,37 @@ export const frameStackSlice = createAppSlice({
             "Unknown error: top frame exists, but doesn't at the same time",
           );
         }
-
-        // If the frame has an emitter, send result there and finish processing.
-        if (topFrame.callbackEmitter) {
-          topFrame.callbackEmitter(action.payload.result);
-          return;
-        }
-
-        // If top frame has a receiver, send result there.
-        topFrame.callbackReceiver(action.payload.result);
       },
     ),
     resetToBottomFrame: create.reducer((state: FrameStackState) => {
       state.stack = [state.stack[0]];
-      state.stack[0].callbackReceiver = () => null;
+      state.stack[0].callbackReceiverId = undefined;
     }),
-    resetToBottomFrameWithReceiver: create.reducer(
+    resetToBottomFrameWithReceiver: create.preparedReducer(
+      (receiver: FrameCallbackReceiver) => ({
+        payload: registerFrameCallback(receiver),
+      }),
       (
         state: FrameStackState,
-        action: PayloadAction<FrameCallbackReceiver>,
+        action: PayloadAction<FrameCallbackToken>,
       ) => {
         state.stack = [state.stack[0]];
-        state.stack[0].callbackReceiver = action.payload;
+        state.stack[0].callbackReceiverId = action.payload;
       },
     ),
-    addCallbackReceiverToTopFrame: create.reducer(
+    addCallbackReceiverToTopFrame: create.preparedReducer(
+      (receiver: FrameCallbackReceiver) => ({
+        payload: registerFrameCallback(receiver),
+      }),
       (
         state: FrameStackState,
-        action: PayloadAction<FrameCallbackReceiver>,
+        action: PayloadAction<FrameCallbackToken>,
       ) => {
         const topFrame = state.stack.at(-1);
         if (topFrame === undefined) {
           throw new Error("No frames in the stack");
         }
-        topFrame.callbackReceiver = action.payload;
+        topFrame.callbackReceiverId = action.payload;
       },
     ),
   }),
@@ -288,3 +303,9 @@ export const selectFrameStack = (state: { frameStack: FrameStackState }) =>
 
 export const selectTopFrame = (state: { frameStack: FrameStackState }) =>
   state.frameStack.stack.at(-1);
+
+export const frameStackTypeGuards = {
+  toOptionsScreenProps: castOptionsScreenProps,
+  toSearchScreenProps: castSearchScreenProps,
+  toFormScreenProps: castFormScreenProps,
+};
