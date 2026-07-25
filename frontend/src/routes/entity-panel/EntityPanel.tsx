@@ -14,16 +14,19 @@ import { Link } from "react-router";
 
 import { selectAccessToken } from "../../store/features/currentUserSlice";
 import {
+  FrameTypeEnum,
   openFormFrame,
   resetToBottomFrame,
+  selectTopFrame,
 } from "../../store/features/frameStackSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { FrameStackScreenWrapper } from "../../components/frames/FrameStackScreenWrapper";
 
 import { EntityPanelContent } from "./EntityPanelContent";
 import type {
   EntityPanelProps,
   EntityPanelTab,
-  PaginatedResponse,
+  SearchResponse,
 } from "./entity-panel-types";
 import { DEFAULT_PAGE_SIZE } from "./entity-panel-types";
 
@@ -47,17 +50,24 @@ const withDefaultLabels = <Category extends string>(
   }));
 };
 
-export const EntityPanel = <Category extends string, Item>({
+export const EntityPanel = <
+  Category extends string,
+  Item,
+  DetailByType extends Record<Category, unknown>,
+>({
   getItemsFromResponse,
   title,
   basePath,
+  searchEndpoint,
   tabs,
   content,
   pageSize = DEFAULT_PAGE_SIZE,
+  includeDetail = true,
   fetchErrorMessage = "Unable to load items",
-}: EntityPanelProps<Category, Item>) => {
+}: EntityPanelProps<Category, Item, DetailByType>) => {
   const dispatch = useAppDispatch();
   const accessToken = useAppSelector(selectAccessToken);
+  const topFrame = useAppSelector(selectTopFrame);
   const [page, setPage] = useState(0);
   const [items, setItems] = useState<Item[]>([]);
   const [total, setTotal] = useState<number>(0);
@@ -67,6 +77,7 @@ export const EntityPanel = <Category extends string, Item>({
 
   const labelledTabs = useMemo(() => withDefaultLabels(tabs), [tabs]);
   const activeTab = labelledTabs.find(tab => tab.category === content);
+  const isTopFrameSelf = topFrame?.frameType === FrameTypeEnum.SELF;
 
   useEffect(() => {
     dispatch(resetToBottomFrame());
@@ -85,46 +96,62 @@ export const EntityPanel = <Category extends string, Item>({
       return;
     }
 
-    const timer = window.setTimeout(() => {
-      const fetchItems = async () => {
-        setLoading(true);
-        setError(undefined);
+    if (!isTopFrameSelf) {
+      return;
+    }
 
-        try {
-          const trimmedSearchTerm = searchTerm.trim();
-          const response = await axios.get<PaginatedResponse<Item>>(
-            `${import.meta.env.VITE_API_URL as string}/${activeTab.endpoint}`,
-            {
-              params: {
-                pageNumber: page,
-                pageSize,
-                searchTerm: trimmedSearchTerm === "" ? undefined : trimmedSearchTerm,
+    const timer = window.setTimeout(
+      () => {
+        const fetchItems = async () => {
+          setLoading(true);
+          setError(undefined);
+
+          try {
+            const trimmedSearchTerm = searchTerm.trim();
+            const response = await axios.post<
+              SearchResponse<Category, DetailByType>
+            >(
+              `${import.meta.env.VITE_API_URL as string}/${searchEndpoint}`,
+              {
+                types: [activeTab.category],
+                searchTerm:
+                  trimmedSearchTerm === "" ? undefined : trimmedSearchTerm,
+                includeDetail,
+                pagination: {
+                  pageNumber: page,
+                  pageSize,
+                },
               },
-              headers: accessToken
-                ? {
-                    Authorization: `Bearer ${accessToken}`,
-                  }
-                : undefined,
-            },
-          );
+              {
+                headers: accessToken
+                  ? {
+                      Authorization: `Bearer ${accessToken}`,
+                    }
+                  : undefined,
+              },
+            );
 
-          const responseItems = getItemsFromResponse
-            ? getItemsFromResponse(response.data)
-            : response.data.page;
+            const responseItems = getItemsFromResponse
+              ? getItemsFromResponse(response.data)
+              : response.data.results.map(
+                  result => (result.detail ?? result) as Item,
+                );
 
-          setItems(responseItems);
-          setTotal(response.data.total);
-        } catch {
-          setError(fetchErrorMessage);
-          setItems([]);
-          setTotal(0);
-        } finally {
-          setLoading(false);
-        }
-      };
+            setItems(responseItems);
+            setTotal(response.data.total);
+          } catch {
+            setError(fetchErrorMessage);
+            setItems([]);
+            setTotal(0);
+          } finally {
+            setLoading(false);
+          }
+        };
 
-      void fetchItems();
-    }, INPUT_STABILITY_IN_MS);
+        void fetchItems();
+      },
+      searchTerm.length > 0 ? INPUT_STABILITY_IN_MS : 0,
+    );
 
     return () => window.clearTimeout(timer);
   }, [
@@ -134,7 +161,10 @@ export const EntityPanel = <Category extends string, Item>({
     searchTerm,
     accessToken,
     fetchErrorMessage,
+    includeDetail,
+    isTopFrameSelf,
     getItemsFromResponse,
+    searchEndpoint,
   ]);
 
   useEffect(() => {
@@ -161,7 +191,7 @@ export const EntityPanel = <Category extends string, Item>({
       return;
     }
 
-    dispatch(openFormFrame({params: activeTab.createScreen}));
+    dispatch(openFormFrame({ params: activeTab.createScreen }));
   };
 
   const onClearSearch = () => {
@@ -171,9 +201,11 @@ export const EntityPanel = <Category extends string, Item>({
   const totalPages = Math.ceil(total / pageSize);
   const showPagination =
     !loading && !error && Boolean(activeTab) && totalPages > 0;
+  const pageStartItem = total === 0 ? 0 : page * pageSize + 1;
+  const pageEndItem = total === 0 ? 0 : Math.min(total, (page + 1) * pageSize);
 
   return (
-    <>
+    <FrameStackScreenWrapper>
       <div className="entity-panel-nav">
         <h3>{title}</h3>
         {labelledTabs.map(tab => panelLink(tab.category))}
@@ -220,16 +252,21 @@ export const EntityPanel = <Category extends string, Item>({
           error={error}
         />
         {showPagination && (
-          <Pagination
-            className="entity-panel-pagination"
-            count={totalPages}
-            page={page + 1}
-            onChange={(_event, nextPage) => setPage(nextPage - 1)}
-            shape="rounded"
-            disabled={totalPages <= 1}
-          />
+          <>
+            <div className="entity-panel-pagination-summary">
+              Showing items {pageStartItem} to {pageEndItem} of {total}
+            </div>
+            <Pagination
+              className="entity-panel-pagination"
+              count={totalPages}
+              page={page + 1}
+              onChange={(_event, nextPage) => setPage(nextPage - 1)}
+              shape="rounded"
+              disabled={totalPages <= 1}
+            />
+          </>
         )}
       </div>
-    </>
+    </FrameStackScreenWrapper>
   );
 };

@@ -107,6 +107,38 @@ export class PostgresUserRepository implements UserRepository {
 
   constructor(private readonly connector: PostgresConnector) {}
 
+  private buildOrderBy(sort?: GetManyItemsDto['sort']): string {
+    const sortableFields: Record<string, string> = {
+      username: 'username',
+      email: 'email',
+      joinedDate: 'joined_date',
+    };
+
+    // TODO: validate incoming sort keys and directions centrally instead of silently ignoring unsupported values.
+    const clauses = Object.entries(sort ?? {})
+      .filter(
+        ([field, direction]) =>
+          sortableFields[field] && (direction === 'asc' || direction === 'desc'),
+      )
+      .map(
+        ([field, direction]) =>
+          `${sortableFields[field]} ${direction.toUpperCase()}`,
+      );
+
+    return clauses.length > 0 ? clauses.join(', ') : 'username ASC';
+  }
+
+  private buildSearchArgs(dto?: GetManyItemsDto) {
+    const { pagination, searchTerm, sort } = dto ?? {};
+    const args = searchTerm ? [`%${searchTerm}%`] : undefined;
+    const where = searchTerm
+      ? `(username ILIKE $1 OR email ILIKE $1)`
+      : undefined;
+    const orderBy = this.buildOrderBy(sort);
+
+    return { pagination, args, orderBy, where };
+  }
+
   public async getUserById(userId: string): Promise<UserDto | null> {
     return this.connector.getOne<UserDto>(
       this.SELECT_USERS_SQL({ where: `id = $1` }),
@@ -129,17 +161,23 @@ export class PostgresUserRepository implements UserRepository {
   }
 
   public async getManyUsers(dto?: GetManyItemsDto): Promise<UserDto[]> {
-    const { pagination } = dto;
+    const { pagination, args, orderBy, where } = this.buildSearchArgs(dto);
     return this.connector.getMany<UserDto>(
       this.SELECT_USERS_SQL({
-        orderBy: 'username ASC',
+        where,
+        orderBy,
         pagination,
       }),
+      args,
     );
   }
 
-  public async getUsersCount(): Promise<number> {
-    return this.connector.getCount(this.SELECT_USERS_COUNT_SQL);
+  public async getUsersCount(dto?: GetManyItemsDto): Promise<number> {
+    const { args, where } = this.buildSearchArgs(dto);
+    const query = where
+      ? `SELECT COUNT(*) AS total FROM users WHERE ${where};`
+      : this.SELECT_USERS_COUNT_SQL;
+    return this.connector.getCount(query, args);
   }
 
   private async createUserRoles(

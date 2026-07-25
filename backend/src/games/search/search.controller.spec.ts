@@ -6,7 +6,7 @@ import { SearchController } from './search.controller';
 
 describe('SearchController', () => {
   it('delegates search requests to the gateway', async () => {
-    const search = jest.fn().mockResolvedValue({ results: [] });
+    const search = jest.fn().mockResolvedValue({ results: [], total: 0 });
 
     const moduleRef = await Test.createTestingModule({
       controllers: [SearchController],
@@ -16,7 +16,7 @@ describe('SearchController', () => {
     const controller = moduleRef.get(SearchController);
     await expect(
       controller.search({ types: [GameDataType.GAME] }),
-    ).resolves.toEqual({ results: [] });
+    ).resolves.toEqual({ results: [], total: 0 });
     expect(search).toHaveBeenCalledWith({ types: [GameDataType.GAME] });
   });
 });

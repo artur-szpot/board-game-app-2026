@@ -7,13 +7,9 @@ import {
   Param,
   Patch,
   Post,
-  Query,
 } from '@nestjs/common';
 
 import { GetEntityByIdDto } from '@common/dto/in/get-entity-by-id.dto';
-import { PaginationDto } from '@common/pagination/dto/in/pagination.dto';
-import { paginationMapper } from '@common/pagination/mapper/pagination.mapper';
-import { Paginated } from '@common/pagination/Paginated';
 
 import {
   SCORING_SCHEMA_GATEWAY,
@@ -35,15 +31,6 @@ export class ScoringSchemaController {
     @Param() params: GetEntityByIdDto,
   ): Promise<ScoringSchemaResponse> {
     return this.gateway.getById(params.id);
-  }
-
-  @Get()
-  public async getMany(
-    @Query() pagination: PaginationDto,
-  ): Promise<Paginated<ScoringSchemaResponse>> {
-    return this.gateway.getMany({
-      pagination: paginationMapper.fromDto(pagination),
-    });
   }
 
   @Post()

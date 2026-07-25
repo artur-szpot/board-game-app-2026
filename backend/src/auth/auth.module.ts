@@ -8,11 +8,19 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './infrastructure/auth.service';
 import { PermissionModule } from './modules/permissions/permission.module';
 import { RoleModule } from './modules/roles/role.module';
+import { AuthSearchModule } from './modules/search/auth-search.module';
 import { UserModule } from './modules/users/user.module';
 import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
-  imports: [ConfigModule, DbModule, UserModule, RoleModule, PermissionModule],
+  imports: [
+    ConfigModule,
+    DbModule,
+    UserModule,
+    RoleModule,
+    PermissionModule,
+    AuthSearchModule,
+  ],
   controllers: [AuthController],
   providers: [AuthService, JwtService, JwtStrategy],
 })

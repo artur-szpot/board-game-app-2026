@@ -9,15 +9,16 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-import { PaginationDto } from '@common/pagination/dto/in/pagination.dto';
 import { SortDirection } from '@common/dto/in/get-many-items.dto';
-import { GameDataType } from '@common/enums/GameDataType.enum';
+import { PaginationDto } from '@common/pagination/dto/in/pagination.dto';
 
-export class SearchQueryDto {
+import { AdminDataType } from '../../enums/AdminDataType.enum';
+
+export class AuthSearchQueryDto {
   @IsArray()
   @ArrayMinSize(1)
-  @IsEnum(GameDataType, { each: true })
-  types: GameDataType[];
+  @IsEnum(AdminDataType, { each: true })
+  types: AdminDataType[];
 
   @IsOptional()
   @IsString()

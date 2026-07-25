@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router"
 import { Footer } from "./components/bars/Footer"
 import { Navbar } from "./components/bars/Navbar"
 import { GameDataType } from "./components/screens/selection-strategies"
+import { AdminDataType } from "./routes/admin-panel/admin-data-type.enum"
 import { AdminPanel } from "./routes/admin-panel/AdminPanel"
 import { CollectionPanel } from "./routes/collection-panel/CollectionPanel"
 import { Signin } from "./routes/auth/Signin"
@@ -27,10 +28,10 @@ export const App = () => {
           <Route path="/admin">
             <Route
               path="permissions"
-              element={<AdminPanel content="permissions" />}
+              element={<AdminPanel content={AdminDataType.PERMISSION} />}
             />
-            <Route path="roles" element={<AdminPanel content="roles" />} />
-            <Route path="users" element={<AdminPanel content="users" />} />
+            <Route path="roles" element={<AdminPanel content={AdminDataType.ROLE} />} />
+            <Route path="users" element={<AdminPanel content={AdminDataType.USER} />} />
             <Route path="*" element={<AdminPanel />} />
           </Route>
           <Route path="/collection">

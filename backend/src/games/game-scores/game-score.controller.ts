@@ -7,13 +7,9 @@ import {
   Param,
   Patch,
   Post,
-  Query,
 } from '@nestjs/common';
 
 import { GetEntityByIdDto } from '@common/dto/in/get-entity-by-id.dto';
-import { PaginationDto } from '@common/pagination/dto/in/pagination.dto';
-import { paginationMapper } from '@common/pagination/mapper/pagination.mapper';
-import { Paginated } from '@common/pagination/Paginated';
 
 import { GAME_SCORE_GATEWAY, GameScoreGateway } from './game-score.gateway';
 import { CreateGameScoreDto } from './dto/in/create-game-score.dto';
@@ -30,14 +26,6 @@ export class GameScoreController {
     @Param() params: GetEntityByIdDto,
   ): Promise<GameScoreResponse> {
     return this.gateway.getById(params.id);
-  }
-
-  @Get() public async getMany(
-    @Query() pagination: PaginationDto,
-  ): Promise<Paginated<GameScoreResponse>> {
-    return this.gateway.getMany({
-      pagination: paginationMapper.fromDto(pagination),
-    });
   }
 
   @Post() public async create(

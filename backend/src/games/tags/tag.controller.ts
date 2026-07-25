@@ -7,13 +7,9 @@ import {
   Param,
   Patch,
   Post,
-  Query,
 } from '@nestjs/common';
 
 import { GetEntityByIdDto } from '@common/dto/in/get-entity-by-id.dto';
-import { PaginationDto } from '@common/pagination/dto/in/pagination.dto';
-import { paginationMapper } from '@common/pagination/mapper/pagination.mapper';
-import { Paginated } from '@common/pagination/Paginated';
 
 import { TAG_GATEWAY, TagGateway } from './infrastructure/tag.gateway';
 import { CreateTagDto } from './dto/in/create-tag.dto';
@@ -32,15 +28,6 @@ export class TagController {
     @Param() params: GetEntityByIdDto,
   ): Promise<TagResponse> {
     return this.gateway.getById(params.id);
-  }
-
-  @Get()
-  public async getTags(
-    @Query() pagination: PaginationDto,
-  ): Promise<Paginated<TagResponse>> {
-    return this.gateway.getMany({
-      pagination: paginationMapper.fromDto(pagination),
-    });
   }
 
   @Post()

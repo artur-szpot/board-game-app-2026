@@ -3,6 +3,7 @@ import { GameLength } from './game-length.enum';
 export interface GameLocationDto {
   locationId: string;
   note?: string;
+  isGameId: boolean;
 }
 
 export interface GameDto {
@@ -12,7 +13,6 @@ export interface GameDto {
   length: GameLength;
   tagIds: string[];
   locations: GameLocationDto[];
-  locationIds: string[];
   scoringSchemaIds: string[];
   helperIds: string[];
   createdOn: Date;

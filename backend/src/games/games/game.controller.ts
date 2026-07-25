@@ -7,11 +7,7 @@ import {
   Param,
   Patch,
   Post,
-  Query,
 } from '@nestjs/common';
-
-import { PaginationDto } from '@common/pagination/dto/in/pagination.dto';
-import { paginationMapper } from '@common/pagination/mapper/pagination.mapper';
 
 import { CreateGameDto } from './dto/in/create-game.dto';
 import { UpdateGameDto } from './dto/in/update-game.dto';
@@ -27,13 +23,6 @@ export class GameController {
   @Get(':id')
   public getById(@Param('id') id: string) {
     return this.gameGateway.getById(id);
-  }
-
-  @Get()
-  public getMany(@Query() pagination: PaginationDto) {
-    return this.gameGateway.getMany({
-      pagination: paginationMapper.fromDto(pagination),
-    });
   }
 
   @Post()

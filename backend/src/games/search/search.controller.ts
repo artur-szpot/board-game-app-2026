@@ -1,4 +1,4 @@
-import { Controller, Get, Inject, Query } from '@nestjs/common';
+import { Body, Controller, Inject, Post } from '@nestjs/common';
 
 import { SearchQueryDto } from './dto/in/search-query.dto';
 import { SearchResponse } from './dto/out/search.response';
@@ -11,8 +11,8 @@ export class SearchController {
     private readonly searchGateway: SearchGateway,
   ) {}
 
-  @Get()
-  public search(@Query() query: SearchQueryDto): Promise<SearchResponse> {
+  @Post()
+  public search(@Body() query: SearchQueryDto): Promise<SearchResponse> {
     return this.searchGateway.search(query);
   }
 }

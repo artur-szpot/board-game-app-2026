@@ -55,6 +55,36 @@ export class PostgresHelperRepository implements HelperRepository {
 
   constructor(private readonly connector: PostgresConnector) {}
 
+  private buildOrderBy(sort?: GetManyItemsDto['sort']): string {
+    const sortableFields: Record<string, string> = {
+      name: 'name',
+      createdOn: 'created_on',
+      updatedOn: 'updated_on',
+    };
+
+    // TODO: validate incoming sort keys and directions centrally instead of silently ignoring unsupported values.
+    const clauses = Object.entries(sort ?? {})
+      .filter(
+        ([field, direction]) =>
+          sortableFields[field] && (direction === 'asc' || direction === 'desc'),
+      )
+      .map(
+        ([field, direction]) =>
+          `${sortableFields[field]} ${direction.toUpperCase()}`,
+      );
+
+    return clauses.length > 0 ? clauses.join(', ') : 'name ASC';
+  }
+
+  private buildSearchArgs(dto?: GetManyItemsDto) {
+    const { pagination, searchTerm, sort } = dto ?? {};
+    const args = searchTerm ? [`%${searchTerm}%`] : undefined;
+    const where = searchTerm ? `name ILIKE $1` : undefined;
+    const orderBy = this.buildOrderBy(sort);
+
+    return { pagination, args, orderBy, where };
+  }
+
   public async getHelperById(helperId: string): Promise<HelperDto | null> {
     return this.connector.getOne<HelperDto>(
       `${this.SELECT_HELPERS_SQL} WHERE id = $1`,
@@ -81,14 +111,19 @@ export class PostgresHelperRepository implements HelperRepository {
   }
 
   public async getManyHelpers(dto?: GetManyItemsDto): Promise<HelperDto[]> {
-    const { pagination } = dto ?? {};
+    const { pagination, args, orderBy, where } = this.buildSearchArgs(dto);
     return this.connector.getMany<HelperDto>(
-      `${this.SELECT_HELPERS_SQL} ${this.connector.searchSQL({ orderBy: 'name ASC', pagination })}`,
+      `${this.SELECT_HELPERS_SQL} ${this.connector.searchSQL({ where, orderBy, pagination })}`,
+      args,
     );
   }
 
-  public async getHelpersCount(): Promise<number> {
-    return this.connector.getCount(this.SELECT_HELPERS_COUNT_SQL);
+  public async getHelpersCount(dto?: GetManyItemsDto): Promise<number> {
+    const { args, where } = this.buildSearchArgs(dto);
+    const query = where
+      ? `SELECT COUNT(*) AS total FROM helpers WHERE ${where};`
+      : this.SELECT_HELPERS_COUNT_SQL;
+    return this.connector.getCount(query, args);
   }
 
   public async createHelper(input: CreateHelperDto): Promise<HelperDto> {

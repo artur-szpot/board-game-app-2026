@@ -31,12 +31,13 @@ describe("SearchScreen", () => {
   });
 
   it("debounces search requests and closes immediately for choose-one results", async () => {
-    const getSpy = vi.spyOn(axios, "get");
-    getSpy.mockResolvedValue({
+    const postSpy = vi.spyOn(axios, "post");
+    postSpy.mockResolvedValue({
       data: {
         results: [{ type: GameDataType.GAME, id: "game-1", name: "Brass" }],
+        total: 1,
       },
-    } as Awaited<ReturnType<typeof axios.get>>);
+    } as Awaited<ReturnType<typeof axios.post>>);
 
     render(
       <SearchScreen
@@ -54,19 +55,17 @@ describe("SearchScreen", () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(499);
     });
-    expect(getSpy).not.toHaveBeenCalled();
+    expect(postSpy).not.toHaveBeenCalled();
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(1);
     });
 
-    expect(getSpy).toHaveBeenCalledWith(
+    expect(postSpy).toHaveBeenCalledWith(
       expect.stringContaining("/game-api/search"),
       {
-        params: {
-          types: [GameDataType.GAME],
-          searchTerm: "Brass",
-        },
+        types: [GameDataType.GAME],
+        searchTerm: "Brass",
       },
     );
 
@@ -90,15 +89,16 @@ describe("SearchScreen", () => {
   });
 
   it("enables confirm for valid multi-select search results", async () => {
-    const getSpy = vi.spyOn(axios, "get");
-    getSpy.mockResolvedValue({
+    const postSpy = vi.spyOn(axios, "post");
+    postSpy.mockResolvedValue({
       data: {
         results: [
           { type: GameDataType.HELPER, id: "helper-1", name: "Auto Score" },
           { type: GameDataType.HELPER, id: "helper-2", name: "Tie Break" },
         ],
+        total: 2,
       },
-    } as Awaited<ReturnType<typeof axios.get>>);
+    } as Awaited<ReturnType<typeof axios.post>>);
 
     render(
       <SearchScreen

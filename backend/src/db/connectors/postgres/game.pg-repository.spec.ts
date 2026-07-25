@@ -127,6 +127,20 @@ describe('PostgresGameRepository', () => {
     });
   });
 
+  it('forwards supported sort fields to searchSQL', async () => {
+    connector.getMany.mockResolvedValue([{ id: 'game-1' }]);
+
+    await repository.getManyGames({
+      sort: { createdOn: 'desc', name: 'asc' },
+    });
+
+    expect(connector.searchSQL).toHaveBeenCalledWith({
+      where: undefined,
+      orderBy: 'created_on DESC, name ASC',
+      pagination: undefined,
+    });
+  });
+
   it('throws CustomNotFoundError when updating a missing game', async () => {
     connector.getOne.mockResolvedValue(null);
 

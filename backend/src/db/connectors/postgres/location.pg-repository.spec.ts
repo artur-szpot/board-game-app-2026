@@ -72,6 +72,7 @@ describe('PostgresLocationRepository', () => {
     });
     expect(connector.getMany).toHaveBeenCalledWith(
       expect.stringContaining('FROM locations'),
+      undefined,
     );
   });
 });
