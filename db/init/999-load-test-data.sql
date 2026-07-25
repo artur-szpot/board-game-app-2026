@@ -40,18 +40,18 @@ SET
 	parent_id = EXCLUDED.parent_id,
 	updated_on = CURRENT_TIMESTAMP;
 
-INSERT INTO games (id, name, description, length)
+INSERT INTO games (id, name, description, length, min_players, max_players)
 VALUES
-	('test-game-01', 'Test Game 01', 'Small-box card drafting game for tests.', 'FILLER'),
-	('test-game-02', 'Test Game 02', 'Fast tactical skirmish game for tests.', 'SHORT'),
-	('test-game-03', 'Test Game 03', 'Resource management game for tests.', 'MEDIUM'),
-	('test-game-04', 'Test Game 04', 'Epic campaign game for tests.', 'LONG'),
-	('test-game-05', 'Test Game 05', 'Push-your-luck dice game for tests.', 'FILLER'),
-	('test-game-06', 'Test Game 06', 'Two-player duel game for tests.', 'SHORT'),
-	('test-game-07', 'Test Game 07', 'Economic strategy game for tests.', 'MEDIUM'),
-	('test-game-08', 'Test Game 08', 'Civilization game for tests.', 'LONG'),
-	('test-game-09', 'Test Game 09', 'Tile-laying puzzle game for tests.', 'SHORT'),
-	('test-game-10', 'Test Game 10', 'Narrative adventure game for tests.', 'MEDIUM')
+	('test-game-01', 'Test Game 01', 'Small-box card drafting game for tests.', 'FILLER', 2, 5),
+	('test-game-02', 'Test Game 02', 'Fast tactical skirmish game for tests.', 'SHORT', 2, 4),
+	('test-game-03', 'Test Game 03', 'Resource management game for tests.', 'MEDIUM', 3, 6),
+	('test-game-04', 'Test Game 04', 'Epic campaign game for tests.', 'LONG', 4, 8),
+	('test-game-05', 'Test Game 05', 'Push-your-luck dice game for tests.', 'FILLER', 2, 6),
+	('test-game-06', 'Test Game 06', 'Two-player duel game for tests.', 'SHORT', 2, 2),
+	('test-game-07', 'Test Game 07', 'Economic strategy game for tests.', 'MEDIUM', 2, 5),
+	('test-game-08', 'Test Game 08', 'Civilization game for tests.', 'LONG', 3, 6),
+	('test-game-09', 'Test Game 09', 'Tile-laying puzzle game for tests.', 'SHORT', 1, 4),
+	('test-game-10', 'Test Game 10', 'Narrative adventure game for tests.', 'MEDIUM', 2, 6)
 ON CONFLICT (id)
 DO UPDATE
 SET

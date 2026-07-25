@@ -98,6 +98,8 @@ describe('GameService', () => {
       service.create({
         name: 'Duplicate',
         length: GameLength.SHORT,
+        minPlayers: 2,
+        maxPlayers: 4,
       }),
     ).rejects.toBeInstanceOf(BadRequestException);
   });
@@ -108,6 +110,8 @@ describe('GameService', () => {
       name: 'Terraforming Mars',
       description: null,
       length: GameLength.LONG,
+      minPlayers: 2,
+      maxPlayers: 5,
       tagIds: ['tag-1'],
       locations: [{ locationId: 'location-1', note: 'top shelf' }],
       locationIds: ['location-1'],
@@ -129,6 +133,8 @@ describe('GameService', () => {
       name: 'Terraforming Mars',
       description: null,
       length: GameLength.LONG,
+      minPlayers: 2,
+      maxPlayers: 5,
       tagIds: ['tag-1'],
       locations: [{ locationId: 'location-1', note: 'top shelf' }],
       locationIds: ['location-1'],
