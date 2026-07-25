@@ -18,6 +18,8 @@ export class PostgresGameRepository implements GameRepository {
       name,
       description,
       length,
+      min_players AS "minPlayers",
+      max_players AS "maxPlayers",
       COALESCE((SELECT ARRAY_AGG(gt.tag_id) FROM game_tags gt WHERE gt.game_id = games.id), ARRAY[]::text[]) AS "tagIds",
       COALESCE((SELECT ARRAY_AGG(JSON_BUILD_OBJECT('locationId', gl.location_id, 'note', gl.note)) FROM game_locations gl WHERE gl.game_id = games.id), ARRAY[]::json[]) AS "locations",
       COALESCE((SELECT ARRAY_AGG(gs.schema_id) FROM game_scoring_schemas gs WHERE gs.game_id = games.id), ARRAY[]::text[]) AS "scoringSchemaIds",
@@ -32,9 +34,9 @@ export class PostgresGameRepository implements GameRepository {
 
   private readonly CREATE_GAME_SQL = `
     INSERT INTO games (
-      id, name, description, length
+      id, name, description, length, min_players, max_players
     )
-    VALUES ($1, $2, $3, $4)
+    VALUES ($1, $2, $3, $4, $5, $6)
   `;
 
   private readonly CREATE_GAME_TAG_SQL = `
@@ -154,6 +156,8 @@ export class PostgresGameRepository implements GameRepository {
         input.name,
         input.description ?? null,
         input.length,
+        input.minPlayers ?? null,
+        input.maxPlayers ?? null,
       ]);
 
       if (input.tagIds?.length) {
@@ -226,6 +230,14 @@ export class PostgresGameRepository implements GameRepository {
     if (input.length !== undefined) {
       columns.push(`length = $${values.length + 1}`);
       values.push(input.length);
+    }
+    if (input.minPlayers !== undefined) {
+      columns.push(`min_players = $${values.length + 1}`);
+      values.push(input.minPlayers);
+    }
+    if (input.maxPlayers !== undefined) {
+      columns.push(`max_players = $${values.length + 1}`);
+      values.push(input.maxPlayers);
     }
 
     const locations = input.locations;
@@ -316,7 +328,7 @@ export class PostgresGameRepository implements GameRepository {
 
   public async deleteGame(gameId: string): Promise<GameDto> {
     const deleted = await this.connector.getOne<GameDto>(
-      `DELETE FROM games WHERE id = $1 RETURNING id, name, description, length, created_on AS "createdOn", updated_on AS "updatedOn";`,
+      `DELETE FROM games WHERE id = $1 RETURNING id, name, description, length, min_players AS "minPlayers", max_players AS "maxPlayers", created_on AS "createdOn", updated_on AS "updatedOn";`,
       [gameId],
     );
 

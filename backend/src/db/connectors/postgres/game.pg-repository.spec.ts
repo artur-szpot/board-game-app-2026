@@ -39,6 +39,8 @@ describe('PostgresGameRepository', () => {
       name: 'Catan',
       description: 'Trade and build',
       length: 'medium',
+      minPlayers: 2,
+      maxPlayers: 4,
       tagIds: ['tag-1'],
       locations: [{ locationId: 'location-1', note: 'shelf-2' }],
       locationIds: ['location-1'],
@@ -62,6 +64,8 @@ describe('PostgresGameRepository', () => {
         name: 'Catan',
         description: 'Trade and build',
         length: GameLength.MEDIUM,
+        minPlayers: 2,
+        maxPlayers: 4,
         tagIds: ['tag-1'],
         locations: [{ locationId: 'location-1', note: 'shelf-2' }],
         scoringSchemaIds: ['schema-1'],
@@ -77,6 +81,14 @@ describe('PostgresGameRepository', () => {
     const createGameCall = connection.query.mock.calls.find((call: any[]) =>
       String(call[0]).includes('INSERT INTO games'),
     );
+    expect(createGameCall?.[1]).toEqual([
+      expect.any(String),
+      'Catan',
+      'Trade and build',
+      GameLength.MEDIUM,
+      2,
+      4,
+    ]);
     const createdGameId = createGameCall?.[1]?.[0];
 
     expect(connection.query).toHaveBeenCalledWith(
@@ -155,6 +167,8 @@ describe('PostgresGameRepository', () => {
       name: 'Old Name',
       description: null,
       length: GameLength.SHORT,
+      minPlayers: 1,
+      maxPlayers: 2,
       tagIds: [],
       locations: [],
       locationIds: [],
@@ -169,6 +183,8 @@ describe('PostgresGameRepository', () => {
       name: 'New Name',
       description: 'updated',
       length: GameLength.LONG,
+      minPlayers: 2,
+      maxPlayers: 6,
       tagIds: ['tag-1'],
       locations: [{ locationId: 'location-1', note: 'cabinet A' }],
       locationIds: ['location-1'],
@@ -197,6 +213,8 @@ describe('PostgresGameRepository', () => {
         name: 'New Name',
         description: 'updated',
         length: GameLength.LONG,
+        minPlayers: 2,
+        maxPlayers: 6,
         tagIds: ['tag-1'],
         locations: [{ locationId: 'location-1', note: 'cabinet A' }],
         scoringSchemaIds: ['schema-1'],
@@ -207,7 +225,7 @@ describe('PostgresGameRepository', () => {
     expect(connection.query).toHaveBeenCalledWith('BEGIN');
     expect(connection.query).toHaveBeenCalledWith(
       expect.stringContaining('UPDATE games SET'),
-      ['New Name', 'updated', GameLength.LONG, 'game-1'],
+      ['New Name', 'updated', GameLength.LONG, 2, 6, 'game-1'],
     );
     expect(connection.query).toHaveBeenCalledWith(
       expect.stringContaining('DELETE FROM game_tags'),

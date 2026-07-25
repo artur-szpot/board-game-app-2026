@@ -3,6 +3,8 @@ CREATE TABLE games (
    name TEXT NOT NULL,
    description TEXT,
    length GAME_LENGTH,
+   min_players INTEGER,
+   max_players INTEGER,
    created_on TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
    updated_on TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

@@ -11,6 +11,8 @@ export interface GameDto {
   name: string;
   description?: string;
   length: GameLength;
+  minPlayers: number;
+  maxPlayers: number;
   tagIds: string[];
   locations: GameLocationDto[];
   scoringSchemaIds: string[];

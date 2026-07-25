@@ -5,6 +5,8 @@ export interface UpdateGameDto {
   name?: string;
   description?: string | null;
   length?: GameLength;
+  minPlayers?: number;
+  maxPlayers?: number;
   tagIds?: string[];
   locations?: CreateGameLocationDto[];
   scoringSchemaIds?: string[];
