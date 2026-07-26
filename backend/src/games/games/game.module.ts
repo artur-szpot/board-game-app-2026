@@ -27,5 +27,6 @@ const gameGatewayProvider = {
   ],
   providers: [gameGatewayProvider],
   controllers: [GameController],
+  exports: [gameGatewayProvider],
 })
 export class GameModule {}

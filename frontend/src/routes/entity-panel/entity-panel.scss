@@ -55,3 +55,29 @@ div.entity-panel-content {
   align-self: center;
   font-size: 0.92rem;
 }
+
+div.entity-panel-item {
+  border: 2px solid white;
+  border-radius: 5px;
+  margin: 15px;
+  padding: 20px;
+  h3 {
+    margin: 0;
+  }
+  p {
+    font-style: italic;
+    margin: 0;
+  }
+  div.entity-panel-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+}
+
+div.entity-panel-items {
+  ul {
+    list-style-type: none;
+  }
+}

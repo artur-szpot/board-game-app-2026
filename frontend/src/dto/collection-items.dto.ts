@@ -1,9 +1,21 @@
 import type { GameLength } from "./game-length.enum";
 
+export type GameLocationPathDto = {
+  name: string;
+  id: string;
+};
+
 export type GameLocationDto = {
   locationId: string;
   note?: string;
   isGameId: boolean;
+  path: GameLocationPathDto[];
+};
+
+export type GameTagResponseDto = {
+  id: string;
+  name: string;
+  description?: string;
 };
 
 export type GameResponseDto = {
@@ -13,7 +25,7 @@ export type GameResponseDto = {
   length: GameLength;
   minPlayers: number;
   maxPlayers: number;
-  tagIds: string[];
+  tags: GameTagResponseDto[];
   locations: GameLocationDto[];
   scoringSchemaIds: string[];
   helperIds: string[];
@@ -35,6 +47,7 @@ export type LocationResponseDto = {
   name: string;
   description?: string;
   parentId?: string;
+  path: GameLocationPathDto[];
   createdOn: string;
   updatedOn: string;
 };

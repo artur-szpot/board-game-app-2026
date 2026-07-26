@@ -1,10 +1,10 @@
 import { Test } from '@nestjs/testing';
 
-import { GAME_REPOSITORY } from '@db/repositories/game.repository';
-import { HELPER_REPOSITORY } from '@db/repositories/helper.repository';
-import { LOCATION_REPOSITORY } from '@db/repositories/location.repository';
-import { SCORING_SCHEMA_REPOSITORY } from '@db/repositories/scoring-schema.repository';
-import { TAG_REPOSITORY } from '@db/repositories/tag.repository';
+import { GAME_GATEWAY } from '../../games/infrastructure/game.gateway';
+import { HELPER_GATEWAY } from '../../helpers/infrastructure/helper.gateway';
+import { LOCATION_GATEWAY } from '../../locations/infrastructure/location.gateway';
+import { SCORING_SCHEMA_GATEWAY } from '../../scoring-schemas/infrastructure/scoring-schema.gateway';
+import { TAG_GATEWAY } from '../../tags/infrastructure/tag.gateway';
 
 import { SearchService } from './search.service';
 import { GameDataType } from '@common/enums/GameDataType.enum';
@@ -15,44 +15,33 @@ describe('SearchService', () => {
       providers: [
         SearchService,
         {
-          provide: GAME_REPOSITORY,
+          provide: GAME_GATEWAY,
           useValue: {
-            getManyGames: jest
-              .fn()
-              .mockResolvedValue([{ id: 'g1', name: 'Game 1' }]),
-            getGamesCount: jest.fn().mockResolvedValue(1),
+            getMany: jest.fn().mockResolvedValue({ page: [{ id: 'g1', name: 'Game 1' }], total: 1 }),
           },
         },
         {
-          provide: TAG_REPOSITORY,
+          provide: TAG_GATEWAY,
           useValue: {
-            getManyTags: jest
-              .fn()
-              .mockResolvedValue([{ id: 't1', name: 'Tag 1' }]),
-            getTagsCount: jest.fn().mockResolvedValue(1),
+            getMany: jest.fn().mockResolvedValue({ page: [{ id: 't1', name: 'Tag 1' }], total: 1 }),
           },
         },
         {
-          provide: LOCATION_REPOSITORY,
+          provide: LOCATION_GATEWAY,
           useValue: {
-            getManyLocations: jest
-              .fn()
-              .mockResolvedValue([{ id: 'l1', name: 'Location 1' }]),
-            getLocationsCount: jest.fn().mockResolvedValue(1),
+            getMany: jest.fn().mockResolvedValue({ page: [{ id: 'l1', name: 'Location 1' }], total: 1 }),
           },
         },
         {
-          provide: HELPER_REPOSITORY,
+          provide: HELPER_GATEWAY,
           useValue: {
-            getManyHelpers: jest.fn().mockResolvedValue([]),
-            getHelpersCount: jest.fn().mockResolvedValue(0),
+            getMany: jest.fn().mockResolvedValue({ page: [], total: 0 }),
           },
         },
         {
-          provide: SCORING_SCHEMA_REPOSITORY,
+          provide: SCORING_SCHEMA_GATEWAY,
           useValue: {
-            getManyScoringSchemas: jest.fn().mockResolvedValue([]),
-            getScoringSchemasCount: jest.fn().mockResolvedValue(0),
+            getMany: jest.fn().mockResolvedValue({ page: [], total: 0 }),
           },
         },
       ],
@@ -75,39 +64,32 @@ describe('SearchService', () => {
   });
 
   it('paginates globally across requested data types in request order', async () => {
-    const gameRepository = {
-      getManyGames: jest
-        .fn()
-        .mockResolvedValue([
-          { id: 'g4', name: 'Game 4' },
-          { id: 'g5', name: 'Game 5' },
-        ]),
-      getGamesCount: jest.fn().mockResolvedValue(5),
+    const gameGateway = {
+      getMany: jest.fn().mockResolvedValue({
+        page: [{ id: 'g4', name: 'Game 4' }, { id: 'g5', name: 'Game 5' }],
+        total: 5,
+      }),
     };
-    const tagRepository = {
-      getManyTags: jest.fn().mockResolvedValue([{ id: 't1', name: 'Tag 1' }]),
-      getTagsCount: jest.fn().mockResolvedValue(4),
+    const tagGateway = {
+      getMany: jest.fn().mockResolvedValue({ page: [{ id: 't1', name: 'Tag 1' }], total: 4 }),
     };
 
     const moduleRef = await Test.createTestingModule({
       providers: [
         SearchService,
-        { provide: GAME_REPOSITORY, useValue: gameRepository },
-        { provide: TAG_REPOSITORY, useValue: tagRepository },
+        { provide: GAME_GATEWAY, useValue: gameGateway },
+        { provide: TAG_GATEWAY, useValue: tagGateway },
         {
-          provide: LOCATION_REPOSITORY,
-          useValue: { getManyLocations: jest.fn(), getLocationsCount: jest.fn().mockResolvedValue(0) },
+          provide: LOCATION_GATEWAY,
+          useValue: { getMany: jest.fn().mockResolvedValue({ page: [], total: 0 }) },
         },
         {
-          provide: HELPER_REPOSITORY,
-          useValue: { getManyHelpers: jest.fn(), getHelpersCount: jest.fn().mockResolvedValue(0) },
+          provide: HELPER_GATEWAY,
+          useValue: { getMany: jest.fn().mockResolvedValue({ page: [], total: 0 }) },
         },
         {
-          provide: SCORING_SCHEMA_REPOSITORY,
-          useValue: {
-            getManyScoringSchemas: jest.fn(),
-            getScoringSchemasCount: jest.fn().mockResolvedValue(0),
-          },
+          provide: SCORING_SCHEMA_GATEWAY,
+          useValue: { getMany: jest.fn().mockResolvedValue({ page: [], total: 0 }) },
         },
       ],
     }).compile();
@@ -128,14 +110,14 @@ describe('SearchService', () => {
       total: 9,
     });
 
-    expect(gameRepository.getManyGames).toHaveBeenCalledWith({
+    expect(gameGateway.getMany).toHaveBeenCalledWith({
       searchTerm: undefined,
       filters: undefined,
       sort: { name: 'desc' },
       includeDetail: undefined,
       pagination: { pageNumber: 0, pageSize: 2, offset: 3 },
     });
-    expect(tagRepository.getManyTags).toHaveBeenCalledWith({
+    expect(tagGateway.getMany).toHaveBeenCalledWith({
       searchTerm: undefined,
       filters: undefined,
       sort: { name: 'desc' },
@@ -150,7 +132,9 @@ describe('SearchService', () => {
       name: 'Game 1',
       description: 'Desc',
       length: 'short',
-      tagIds: [],
+      minPlayers: 2,
+      maxPlayers: 4,
+      tags: [],
       locations: [],
       locationIds: [],
       scoringSchemaIds: [],
@@ -163,16 +147,15 @@ describe('SearchService', () => {
       providers: [
         SearchService,
         {
-          provide: GAME_REPOSITORY,
+          provide: GAME_GATEWAY,
           useValue: {
-            getManyGames: jest.fn().mockResolvedValue([game]),
-            getGamesCount: jest.fn().mockResolvedValue(1),
+            getMany: jest.fn().mockResolvedValue({ page: [game], total: 1 }),
           },
         },
-        { provide: TAG_REPOSITORY, useValue: { getManyTags: jest.fn(), getTagsCount: jest.fn().mockResolvedValue(0) } },
-        { provide: LOCATION_REPOSITORY, useValue: { getManyLocations: jest.fn(), getLocationsCount: jest.fn().mockResolvedValue(0) } },
-        { provide: HELPER_REPOSITORY, useValue: { getManyHelpers: jest.fn(), getHelpersCount: jest.fn().mockResolvedValue(0) } },
-        { provide: SCORING_SCHEMA_REPOSITORY, useValue: { getManyScoringSchemas: jest.fn(), getScoringSchemasCount: jest.fn().mockResolvedValue(0) } },
+        { provide: TAG_GATEWAY, useValue: { getMany: jest.fn().mockResolvedValue({ page: [], total: 0 }) } },
+        { provide: LOCATION_GATEWAY, useValue: { getMany: jest.fn().mockResolvedValue({ page: [], total: 0 }) } },
+        { provide: HELPER_GATEWAY, useValue: { getMany: jest.fn().mockResolvedValue({ page: [], total: 0 }) } },
+        { provide: SCORING_SCHEMA_GATEWAY, useValue: { getMany: jest.fn().mockResolvedValue({ page: [], total: 0 }) } },
       ],
     }).compile();
 

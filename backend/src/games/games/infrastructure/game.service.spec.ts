@@ -105,6 +105,12 @@ describe('GameService', () => {
   });
 
   it('maps linking-table ids into response collections', async () => {
+    tagGateway.getByIds = jest.fn().mockResolvedValue([
+      { id: 'tag-1', name: 'Tag 1', description: undefined },
+    ]);
+    locationGateway.getByIds = jest.fn().mockResolvedValue([
+      { id: 'location-1', path: [{ name: 'Test Location', id: 'location-1' }] },
+    ]);
     repository.getGameById.mockResolvedValue({
       id: 'game-1',
       name: 'Terraforming Mars',
@@ -135,8 +141,10 @@ describe('GameService', () => {
       length: GameLength.LONG,
       minPlayers: 2,
       maxPlayers: 5,
-      tagIds: ['tag-1'],
-      locations: [{ locationId: 'location-1', note: 'top shelf' }],
+      tags: [{ id: 'tag-1', name: 'Tag 1', description: undefined }],
+      locations: [
+        { locationId: 'location-1', note: 'top shelf', path: [{ name: 'Test Location', id: 'location-1' }] },
+      ],
       locationIds: ['location-1'],
       scoringSchemaIds: ['schema-1'],
       helperIds: ['helper-1'],

@@ -32,12 +32,16 @@ export class LocationService implements LocationGateway {
     private readonly locationRepository: LocationRepository,
   ) {}
 
-  private mapToResponse(location: LocationDto): LocationResponse {
+  private async mapToResponse(location: LocationDto): Promise<LocationResponse> {
     return {
       id: location.id,
       name: location.name,
       description: location.description ?? undefined,
       parentId: location.parentId ?? undefined,
+      path: location.path.map((name, index) => ({
+        name,
+        id: index === 0 ? location.id : location.pathIds[index - 1],
+      })),
       createdOn: location.createdOn,
       updatedOn: location.updatedOn,
     };
@@ -157,7 +161,7 @@ export class LocationService implements LocationGateway {
         this.locationRepository.getLocationsCount(dto),
       ]);
       return {
-        page: items.map((location) => this.mapToResponse(location)),
+        page: await Promise.all(items.map((location) => this.mapToResponse(location))),
         total,
       };
     } catch (error) {
