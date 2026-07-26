@@ -1,4 +1,16 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  ArrayMinSize,
+  IsArray,
+  IsNotEmpty,
+  IsObject,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+
+export interface LocationPathResponse {
+  name: string;
+  id: string;
+}
 
 export class LocationResponse {
   @IsString()
@@ -16,6 +28,12 @@ export class LocationResponse {
   @IsString()
   @IsOptional()
   parentId?: string;
+
+  @IsObject({ each: true })
+  @IsNotEmpty()
+  @IsArray()
+  @ArrayMinSize(1)
+  path: LocationPathResponse[];
 
   @IsString()
   @IsNotEmpty()

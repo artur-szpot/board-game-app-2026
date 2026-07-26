@@ -2,25 +2,13 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 
 import { CustomInternalError } from '@common/errors/service-errors';
 import { paginationMapper } from '@common/pagination/mapper/pagination.mapper';
-import {
-  GAME_REPOSITORY,
-  GameRepository,
-} from '@db/repositories/game.repository';
-import {
-  HELPER_REPOSITORY,
-  HelperRepository,
-} from '@db/repositories/helper.repository';
-import {
-  LOCATION_REPOSITORY,
-  LocationRepository,
-} from '@db/repositories/location.repository';
-import {
-  SCORING_SCHEMA_REPOSITORY,
-  ScoringSchemaRepository,
-} from '@db/repositories/scoring-schema.repository';
-import { TAG_REPOSITORY, TagRepository } from '@db/repositories/tag.repository';
 
 import { GameDataType } from '@common/enums/GameDataType.enum';
+import { GAME_GATEWAY, GameGateway } from '../../games/infrastructure/game.gateway';
+import { HELPER_GATEWAY, HelperGateway } from '../../helpers/infrastructure/helper.gateway';
+import { LOCATION_GATEWAY, LocationGateway } from '../../locations/infrastructure/location.gateway';
+import { SCORING_SCHEMA_GATEWAY, ScoringSchemaGateway } from '../../scoring-schemas/infrastructure/scoring-schema.gateway';
+import { TAG_GATEWAY, TagGateway } from '../../tags/infrastructure/tag.gateway';
 import { SearchQueryDto } from '../dto/in/search-query.dto';
 import { SearchResponse, SearchResult } from '../dto/out/search.response';
 import { SearchGateway } from './search.gateway';
@@ -33,16 +21,16 @@ export class SearchService implements SearchGateway {
   private readonly logger = new Logger(SearchService.name);
 
   constructor(
-    @Inject(GAME_REPOSITORY)
-    private readonly gameRepository: GameRepository,
-    @Inject(TAG_REPOSITORY)
-    private readonly tagRepository: TagRepository,
-    @Inject(LOCATION_REPOSITORY)
-    private readonly locationRepository: LocationRepository,
-    @Inject(HELPER_REPOSITORY)
-    private readonly helperRepository: HelperRepository,
-    @Inject(SCORING_SCHEMA_REPOSITORY)
-    private readonly scoringSchemaRepository: ScoringSchemaRepository,
+    @Inject(GAME_GATEWAY)
+    private readonly gameGateway: GameGateway,
+    @Inject(TAG_GATEWAY)
+    private readonly tagGateway: TagGateway,
+    @Inject(LOCATION_GATEWAY)
+    private readonly locationGateway: LocationGateway,
+    @Inject(HELPER_GATEWAY)
+    private readonly helperGateway: HelperGateway,
+    @Inject(SCORING_SCHEMA_GATEWAY)
+    private readonly scoringSchemaGateway: ScoringSchemaGateway,
   ) {}
 
   private toShortResponse(
@@ -108,85 +96,95 @@ export class SearchService implements SearchGateway {
 
         switch (type) {
           case GameDataType.GAME: {
-            typeTotal = await this.gameRepository.getGamesCount(baseDto);
+            const countResponse = await this.gameGateway.getMany(baseDto);
+            typeTotal = countResponse.total;
             const slice = this.getTypeSlice(pageWindow, typeStart, typeTotal);
             total += typeTotal;
             typeStart += typeTotal;
             if (!slice || slice.pageSize === 0) {
               break;
             }
-            items = await this.gameRepository.getManyGames({
+            const response = await this.gameGateway.getMany({
               ...baseDto,
               pagination: { pageNumber: 0, pageSize: slice.pageSize, offset: slice.offset },
             });
+            items = response.page;
             items.forEach((item) =>
               results.push(this.toShortResponse(type, item, includeDetail ? item : undefined)),
             );
             break;
           }
           case GameDataType.TAG: {
-            typeTotal = await this.tagRepository.getTagsCount(baseDto);
+            const countResponse = await this.tagGateway.getMany(baseDto);
+            typeTotal = countResponse.total;
             const slice = this.getTypeSlice(pageWindow, typeStart, typeTotal);
             total += typeTotal;
             typeStart += typeTotal;
             if (!slice || slice.pageSize === 0) {
               break;
             }
-            items = await this.tagRepository.getManyTags({
+            const response = await this.tagGateway.getMany({
               ...baseDto,
               pagination: { pageNumber: 0, pageSize: slice.pageSize, offset: slice.offset },
             });
+            items = response.page;
             items.forEach((item) =>
               results.push(this.toShortResponse(type, item, includeDetail ? item : undefined)),
             );
             break;
           }
           case GameDataType.LOCATION: {
-            typeTotal = await this.locationRepository.getLocationsCount(baseDto);
+            const countResponse = await this.locationGateway.getMany(baseDto);
+            typeTotal = countResponse.total;
             const slice = this.getTypeSlice(pageWindow, typeStart, typeTotal);
             total += typeTotal;
             typeStart += typeTotal;
             if (!slice || slice.pageSize === 0) {
               break;
             }
-            items = await this.locationRepository.getManyLocations({
+            const response = await this.locationGateway.getMany({
               ...baseDto,
               pagination: { pageNumber: 0, pageSize: slice.pageSize, offset: slice.offset },
             });
+            items = response.page;
             items.forEach((item) =>
               results.push(this.toShortResponse(type, item, includeDetail ? item : undefined)),
             );
             break;
           }
           case GameDataType.HELPER: {
-            typeTotal = await this.helperRepository.getHelpersCount(baseDto);
+            const countResponse = await this.helperGateway.getMany(baseDto);
+            typeTotal = countResponse.total;
             const slice = this.getTypeSlice(pageWindow, typeStart, typeTotal);
             total += typeTotal;
             typeStart += typeTotal;
             if (!slice || slice.pageSize === 0) {
               break;
             }
-            items = await this.helperRepository.getManyHelpers({
+            const response = await this.helperGateway.getMany({
               ...baseDto,
               pagination: { pageNumber: 0, pageSize: slice.pageSize, offset: slice.offset },
             });
+            items = response.page;
             items.forEach((item) =>
               results.push(this.toShortResponse(type, item, includeDetail ? item : undefined)),
             );
             break;
           }
           case GameDataType.SCORING_SCHEMA: {
-            typeTotal = await this.scoringSchemaRepository.getScoringSchemasCount(baseDto);
+            const countResponse = await this.scoringSchemaGateway.getMany(baseDto);
+            typeTotal = countResponse.total;
             const slice = this.getTypeSlice(pageWindow, typeStart, typeTotal);
             total += typeTotal;
             typeStart += typeTotal;
             if (!slice || slice.pageSize === 0) {
               break;
             }
-            items = await this.scoringSchemaRepository.getManyScoringSchemas({
+            const response = await this.scoringSchemaGateway.getMany({
               ...baseDto,
               pagination: { pageNumber: 0, pageSize: slice.pageSize, offset: slice.offset },
             });
+            items = response.page;
             items.forEach((item) =>
               results.push(this.toShortResponse(type, item, includeDetail ? item : undefined)),
             );

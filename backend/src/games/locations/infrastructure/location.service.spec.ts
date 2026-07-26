@@ -1,10 +1,14 @@
 import { BadRequestException } from '@nestjs/common';
 
-import { CustomInternalError, CustomNotFoundError } from '@common/errors/service-errors';
-import { CreateLocationDto } from '../dto/in/create-location.dto';
-import { UpdateLocationDto } from '../dto/in/update-location.dto';
-import { LocationDto } from '../dto/in/location.dto';
+import {
+  CustomInternalError,
+  CustomNotFoundError,
+} from '@common/errors/service-errors';
 import { LocationRepository } from '@db/repositories/location.repository';
+
+import { CreateLocationDto } from '../dto/in/create-location.dto';
+import { LocationDto } from '../dto/in/location.dto';
+import { UpdateLocationDto } from '../dto/in/update-location.dto';
 import { LocationService } from './location.service';
 
 describe('LocationService', () => {
@@ -14,6 +18,8 @@ describe('LocationService', () => {
   const testLocationDto: LocationDto = {
     id: 'location-1',
     name: 'Test Location',
+    path: ['Test Location'],
+    pathIds: ['location-1'],
     createdOn: new Date().toISOString(),
     updatedOn: new Date().toISOString(),
   };
@@ -38,12 +44,15 @@ describe('LocationService', () => {
 
       const result = await service.getById(testLocationDto.id);
 
-      expect(mockRepository.getLocationById).toHaveBeenCalledWith(testLocationDto.id);
+      expect(mockRepository.getLocationById).toHaveBeenCalledWith(
+        testLocationDto.id,
+      );
       expect(result).toStrictEqual({
         id: testLocationDto.id,
         name: testLocationDto.name,
         description: undefined,
         parentId: undefined,
+        path: [{ name: 'Test Location', id: 'location-1' }],
         createdOn: testLocationDto.createdOn,
         updatedOn: testLocationDto.updatedOn,
       });
@@ -55,16 +64,22 @@ describe('LocationService', () => {
       await expect(service.getById(testLocationDto.id)).rejects.toBeInstanceOf(
         CustomNotFoundError,
       );
-      expect(mockRepository.getLocationById).toHaveBeenCalledWith(testLocationDto.id);
+      expect(mockRepository.getLocationById).toHaveBeenCalledWith(
+        testLocationDto.id,
+      );
     });
 
     it('should throw CustomInternalError for repository failures', async () => {
-      mockRepository.getLocationById.mockRejectedValueOnce(new Error('failure'));
+      mockRepository.getLocationById.mockRejectedValueOnce(
+        new Error('failure'),
+      );
 
       await expect(service.getById(testLocationDto.id)).rejects.toBeInstanceOf(
         CustomInternalError,
       );
-      expect(mockRepository.getLocationById).toHaveBeenCalledWith(testLocationDto.id);
+      expect(mockRepository.getLocationById).toHaveBeenCalledWith(
+        testLocationDto.id,
+      );
     });
   });
 
@@ -84,6 +99,7 @@ describe('LocationService', () => {
             name: testLocationDto.name,
             description: undefined,
             parentId: undefined,
+            path: [{ name: 'Test Location', id: 'location-1' }],
             createdOn: testLocationDto.createdOn,
             updatedOn: testLocationDto.updatedOn,
           },
@@ -93,10 +109,14 @@ describe('LocationService', () => {
     });
 
     it('should throw CustomInternalError for repository failures', async () => {
-      mockRepository.getManyLocations.mockRejectedValueOnce(new Error('failure'));
+      mockRepository.getManyLocations.mockRejectedValueOnce(
+        new Error('failure'),
+      );
       mockRepository.getLocationsCount.mockResolvedValueOnce(0);
 
-      await expect(service.getMany()).rejects.toBeInstanceOf(CustomInternalError);
+      await expect(service.getMany()).rejects.toBeInstanceOf(
+        CustomInternalError,
+      );
       expect(mockRepository.getManyLocations).toHaveBeenCalledWith(undefined);
       expect(mockRepository.getLocationsCount).toHaveBeenCalledTimes(1);
     });
@@ -113,13 +133,18 @@ describe('LocationService', () => {
 
       const result = await service.create(createLocationDto);
 
-      expect(mockRepository.getLocationByName).toHaveBeenCalledWith(createLocationDto.name);
-      expect(mockRepository.createLocation).toHaveBeenCalledWith(createLocationDto);
+      expect(mockRepository.getLocationByName).toHaveBeenCalledWith(
+        createLocationDto.name,
+      );
+      expect(mockRepository.createLocation).toHaveBeenCalledWith(
+        createLocationDto,
+      );
       expect(result).toStrictEqual({
         id: testLocationDto.id,
         name: testLocationDto.name,
         description: undefined,
         parentId: undefined,
+        path: [{ name: 'Test Location', id: 'location-1' }],
         createdOn: testLocationDto.createdOn,
         updatedOn: testLocationDto.updatedOn,
       });
@@ -135,7 +160,9 @@ describe('LocationService', () => {
       await expect(service.create(createLocationDto)).rejects.toBeInstanceOf(
         BadRequestException,
       );
-      expect(mockRepository.getLocationByName).toHaveBeenCalledWith(createLocationDto.name);
+      expect(mockRepository.getLocationByName).toHaveBeenCalledWith(
+        createLocationDto.name,
+      );
     });
   });
 
@@ -148,16 +175,25 @@ describe('LocationService', () => {
       const updatedLocationDto: LocationDto = {
         ...testLocationDto,
         name: updateLocationDto.name,
+        path: ['Updated Location'],
+        pathIds: ['location-1'],
       };
 
       mockRepository.getLocationById.mockResolvedValueOnce(testLocationDto);
       mockRepository.getLocationByName.mockResolvedValueOnce(null);
       mockRepository.updateLocation.mockResolvedValueOnce(updatedLocationDto);
 
-      const result = await service.update(testLocationDto.id, updateLocationDto);
+      const result = await service.update(
+        testLocationDto.id,
+        updateLocationDto,
+      );
 
-      expect(mockRepository.getLocationById).toHaveBeenCalledWith(testLocationDto.id);
-      expect(mockRepository.getLocationByName).toHaveBeenCalledWith(updateLocationDto.name);
+      expect(mockRepository.getLocationById).toHaveBeenCalledWith(
+        testLocationDto.id,
+      );
+      expect(mockRepository.getLocationByName).toHaveBeenCalledWith(
+        updateLocationDto.name,
+      );
       expect(mockRepository.updateLocation).toHaveBeenCalledWith(
         testLocationDto.id,
         updateLocationDto,
@@ -167,6 +203,7 @@ describe('LocationService', () => {
         name: updatedLocationDto.name,
         description: undefined,
         parentId: undefined,
+        path: [{ name: 'Updated Location', id: 'location-1' }],
         createdOn: updatedLocationDto.createdOn,
         updatedOn: updatedLocationDto.updatedOn,
       });
@@ -175,10 +212,12 @@ describe('LocationService', () => {
     it('should throw CustomNotFoundError when updating a missing location', async () => {
       mockRepository.getLocationById.mockResolvedValueOnce(null);
 
-      await expect(service.update(testLocationDto.id, { name: 'New Name' })).rejects.toBeInstanceOf(
-        CustomNotFoundError,
+      await expect(
+        service.update(testLocationDto.id, { name: 'New Name' }),
+      ).rejects.toBeInstanceOf(CustomNotFoundError);
+      expect(mockRepository.getLocationById).toHaveBeenCalledWith(
+        testLocationDto.id,
       );
-      expect(mockRepository.getLocationById).toHaveBeenCalledWith(testLocationDto.id);
     });
   });
 
@@ -189,13 +228,18 @@ describe('LocationService', () => {
 
       const result = await service.delete(testLocationDto.id);
 
-      expect(mockRepository.getLocationById).toHaveBeenCalledWith(testLocationDto.id);
-      expect(mockRepository.deleteLocation).toHaveBeenCalledWith(testLocationDto.id);
+      expect(mockRepository.getLocationById).toHaveBeenCalledWith(
+        testLocationDto.id,
+      );
+      expect(mockRepository.deleteLocation).toHaveBeenCalledWith(
+        testLocationDto.id,
+      );
       expect(result).toStrictEqual({
         id: testLocationDto.id,
         name: testLocationDto.name,
         description: undefined,
         parentId: undefined,
+        path: [{ name: 'Test Location', id: 'location-1' }],
         createdOn: testLocationDto.createdOn,
         updatedOn: testLocationDto.updatedOn,
       });
@@ -207,7 +251,9 @@ describe('LocationService', () => {
       await expect(service.delete(testLocationDto.id)).rejects.toBeInstanceOf(
         CustomNotFoundError,
       );
-      expect(mockRepository.getLocationById).toHaveBeenCalledWith(testLocationDto.id);
+      expect(mockRepository.getLocationById).toHaveBeenCalledWith(
+        testLocationDto.id,
+      );
     });
   });
 });

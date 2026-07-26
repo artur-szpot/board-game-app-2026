@@ -17,6 +17,8 @@ export class PostgresLocationRepository implements LocationRepository {
       name,
       description,
       parent_id AS "parentId",
+      path,
+      path_ids AS "pathIds",
       created_on AS "createdOn",
       updated_on AS "updatedOn"
    FROM locations
@@ -26,39 +28,100 @@ export class PostgresLocationRepository implements LocationRepository {
     'SELECT COUNT(*) AS total FROM locations;';
 
   private readonly CREATE_LOCATION_SQL = `
-     INSERT INTO locations (id, name, description, parent_id)
-     VALUES ($1, $2, $3, $4)
-     RETURNING id, name, description, parent_id AS "parentId", created_on AS "createdOn", updated_on AS "updatedOn";
+     INSERT INTO locations (id, name, description, parent_id, path, path_ids)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     RETURNING id, name, description, parent_id AS "parentId", path, path_ids AS "pathIds", created_on AS "createdOn", updated_on AS "updatedOn";
   `;
 
   private readonly UPDATE_LOCATION_SQL = (input: UpdateLocationDto): string => {
     const valuesToSet: string[] = [];
+    let nextPlaceholderIndex = 2;
+
     if (input.name !== undefined) {
-      valuesToSet.push('name = $2');
+      valuesToSet.push(`name = $${nextPlaceholderIndex}`);
+      nextPlaceholderIndex += 1;
     }
     if (input.description !== undefined) {
-      valuesToSet.push('description = $' + (valuesToSet.length + 2));
+      valuesToSet.push(`description = $${nextPlaceholderIndex}`);
+      nextPlaceholderIndex += 1;
     }
     if (input.parentId !== undefined) {
-      valuesToSet.push('parent_id = $' + (valuesToSet.length + 2));
+      valuesToSet.push(`parent_id = $${nextPlaceholderIndex}`);
+      nextPlaceholderIndex += 1;
     }
+
+    valuesToSet.push(`path = $${nextPlaceholderIndex}`);
+    valuesToSet.push(`path_ids = $${nextPlaceholderIndex + 1}`);
+
     return `
       UPDATE locations
       SET
          ${valuesToSet.join(', ')},
          updated_on = CURRENT_TIMESTAMP
       WHERE id = $1
-      RETURNING id, name, description, parent_id AS "parentId", created_on AS "createdOn", updated_on AS "updatedOn";
+      RETURNING id, name, description, parent_id AS "parentId", path, path_ids AS "pathIds", created_on AS "createdOn", updated_on AS "updatedOn";
     `;
   };
 
   private readonly DELETE_LOCATION_SQL = `
    DELETE FROM locations
    WHERE id = $1
-   RETURNING id, name, description, parent_id AS "parentId", created_on AS "createdOn", updated_on AS "updatedOn";
+   RETURNING id, name, description, parent_id AS "parentId", path, path_ids AS "pathIds", created_on AS "createdOn", updated_on AS "updatedOn";
   `;
 
   constructor(private readonly connector: PostgresConnector) {}
+
+  private async calculatePathData(
+    locationId: string,
+    name: string,
+    parentId: string | null | undefined,
+  ): Promise<{ path: string[]; pathIds: string[] }> {
+    if (!parentId) {
+      return { path: [name], pathIds: [] };
+    }
+
+    const parent = await this.connector.getOne<{
+      id: string;
+      name: string;
+      path: string[];
+      pathIds: string[];
+    }>(
+      `${this.SELECT_LOCATIONS_SQL} WHERE id = $1`,
+      [parentId],
+    );
+
+    if (!parent) {
+      return { path: [name], pathIds: [] };
+    }
+
+    return {
+      path: [name, ...(parent.path ?? [parent.name])],
+      pathIds: [...(parent.pathIds ?? []), parent.id],
+    };
+  }
+
+  private async recalculateDescendantPaths(locationId: string): Promise<void> {
+    const descendants = await this.connector.getMany<{
+      id: string;
+      name: string;
+      parentId: string | null;
+    }>(
+      `SELECT id, name, parent_id AS "parentId" FROM locations WHERE path_ids @> ARRAY[$1]::VARCHAR(40)[] ORDER BY array_length(path_ids, 1) ASC, id ASC`,
+      [locationId],
+    );
+
+    for (const descendant of descendants) {
+      const { path, pathIds } = await this.calculatePathData(
+        descendant.id,
+        descendant.name,
+        descendant.parentId,
+      );
+      await this.connector.getOne(
+        `UPDATE locations SET path = $2, path_ids = $3, updated_on = CURRENT_TIMESTAMP WHERE id = $1`,
+        [descendant.id, path, pathIds],
+      );
+    }
+  }
 
   private buildOrderBy(sort?: GetManyItemsDto['sort']): string {
     const sortableFields: Record<string, string> = {
@@ -143,6 +206,11 @@ export class PostgresLocationRepository implements LocationRepository {
 
   public async createLocation(input: CreateLocationDto): Promise<LocationDto> {
     const id = createId();
+    const { path, pathIds } = await this.calculatePathData(
+      id,
+      input.name,
+      input.parentId ?? null,
+    );
     const result = await this.connector.getOne<LocationDto>(
       this.CREATE_LOCATION_SQL,
       [
@@ -150,6 +218,8 @@ export class PostgresLocationRepository implements LocationRepository {
         input.name,
         input.description ?? null,
         input.parentId ?? null,
+        path,
+        pathIds,
       ],
     );
     return result;
@@ -159,6 +229,15 @@ export class PostgresLocationRepository implements LocationRepository {
     locationId: string,
     input: UpdateLocationDto,
   ): Promise<LocationDto> {
+    const currentLocation = await this.getLocationById(locationId);
+    const nextName = input.name ?? currentLocation?.name ?? '';
+    const nextParentId = input.parentId ?? currentLocation?.parentId ?? null;
+    const { path, pathIds } = await this.calculatePathData(
+      locationId,
+      nextName,
+      nextParentId,
+    );
+
     const parameters: any[] = [locationId];
     if (input.name !== undefined) {
       parameters.push(input.name);
@@ -169,16 +248,27 @@ export class PostgresLocationRepository implements LocationRepository {
     if (input.parentId !== undefined) {
       parameters.push(input.parentId);
     }
+    parameters.push(path, pathIds);
 
-    return this.connector.getOne<LocationDto>(
+    const result = await this.connector.getOne<LocationDto>(
       this.UPDATE_LOCATION_SQL(input),
       parameters,
     );
+
+    await this.recalculateDescendantPaths(locationId);
+    return result;
   }
 
   public async deleteLocation(locationId: string): Promise<LocationDto> {
-    return this.connector.getOne<LocationDto>(this.DELETE_LOCATION_SQL, [
-      locationId,
-    ]);
+    const deletedLocation = await this.connector.getOne<LocationDto>(
+      this.DELETE_LOCATION_SQL,
+      [locationId],
+    );
+
+    if (deletedLocation) {
+      await this.recalculateDescendantPaths(locationId);
+    }
+
+    return deletedLocation;
   }
 }

@@ -52,11 +52,13 @@ describe('PostgresLocationRepository', () => {
       expect.stringContaining('INSERT INTO locations'),
       expect.any(Array),
     );
-    expect((connector.getOne.mock.calls[0][1]).slice(1)).toEqual([
+    expect((connector.getOne.mock.calls[0][1]).slice(1, 4)).toEqual([
       'Test location',
       'A description',
       null,
     ]);
+    expect((connector.getOne.mock.calls[0][1])[4]).toEqual(['Test location']);
+    expect((connector.getOne.mock.calls[0][1])[5]).toEqual([]);
   });
 
   it('returns paginated locations', async () => {

@@ -20,24 +20,26 @@ SET
 	parent_id = EXCLUDED.parent_id,
 	updated_on = CURRENT_TIMESTAMP;
 
-INSERT INTO locations (id, name, description, parent_id)
+INSERT INTO locations (id, name, description, parent_id, path, path_ids)
 VALUES
-	('test-location-01', 'Test Location 01', 'Main shelf A for test games.', NULL),
-	('test-location-02', 'Test Location 02', 'Main shelf B for test games.', NULL),
-	('test-location-03', 'Test Location 03', 'Closet top section for test games.', NULL),
-	('test-location-04', 'Test Location 04', 'Closet middle section for test games.', NULL),
-	('test-location-05', 'Test Location 05', 'Closet bottom section for test games.', NULL),
-	('test-location-06', 'Test Location 06', 'Living room cabinet left side.', NULL),
-	('test-location-07', 'Test Location 07', 'Living room cabinet right side.', NULL),
-	('test-location-08', 'Test Location 08', 'Travel bag storage location.', NULL),
-	('test-location-09', 'Test Location 09', 'Guest room shelf for overflow.', NULL),
-	('test-location-10', 'Test Location 10', 'Office shelf for prototypes.', NULL)
+	('test-location-01', 'Test Location 01', 'Main shelf A for test games.', NULL, ARRAY['Test Location 01']::TEXT[], ARRAY[]::VARCHAR(40)[]),
+	('test-location-02', 'Test Location 02', 'Main shelf B for test games.', NULL, ARRAY['Test Location 02']::TEXT[], ARRAY[]::VARCHAR(40)[]),
+	('test-location-03', 'Test Location 03', 'Closet top section for test games.', NULL, ARRAY['Test Location 03']::TEXT[], ARRAY[]::VARCHAR(40)[]),
+	('test-location-04', 'Test Location 04', 'Closet middle section for test games.', NULL, ARRAY['Test Location 04']::TEXT[], ARRAY[]::VARCHAR(40)[]),
+	('test-location-05', 'Test Location 05', 'Closet bottom section for test games.', NULL, ARRAY['Test Location 05']::TEXT[], ARRAY[]::VARCHAR(40)[]),
+	('test-location-06', 'Test Location 06', 'Living room cabinet left side.', NULL, ARRAY['Test Location 06']::TEXT[], ARRAY[]::VARCHAR(40)[]),
+	('test-location-07', 'Test Location 07', 'Living room cabinet right side.', NULL, ARRAY['Test Location 07']::TEXT[], ARRAY[]::VARCHAR(40)[]),
+	('test-location-08', 'Test Location 08', 'Travel bag storage location.', NULL, ARRAY['Test Location 08']::TEXT[], ARRAY[]::VARCHAR(40)[]),
+	('test-location-09', 'Test Location 09', 'Guest room shelf for overflow.', NULL, ARRAY['Test Location 09']::TEXT[], ARRAY[]::VARCHAR(40)[]),
+	('test-location-10', 'Test Location 10', 'Office shelf for prototypes.', NULL, ARRAY['Test Location 10']::TEXT[], ARRAY[]::VARCHAR(40)[])
 ON CONFLICT (id)
 DO UPDATE
 SET
 	name = EXCLUDED.name,
 	description = EXCLUDED.description,
 	parent_id = EXCLUDED.parent_id,
+	path = EXCLUDED.path,
+	path_ids = EXCLUDED.path_ids,
 	updated_on = CURRENT_TIMESTAMP;
 
 INSERT INTO games (id, name, description, length, min_players, max_players)

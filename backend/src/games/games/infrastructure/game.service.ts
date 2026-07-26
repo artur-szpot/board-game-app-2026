@@ -77,8 +77,12 @@ export class GameService implements GameGateway {
     input: CreateGameDto | UpdateGameDto,
     id?: string,
   ) {
-    const locationIds = input.locations?.filter((location)=>!location.isGameId).map((location) => location.locationId);
-    const gameLocationIds = input.locations?.filter((location)=>location.isGameId).map((location) => location.locationId);
+    const locationIds = input.locations
+      ?.filter((location) => !location.isGameId)
+      .map((location) => location.locationId);
+    const gameLocationIds = input.locations
+      ?.filter((location) => location.isGameId)
+      .map((location) => location.locationId);
 
     const existingGame = await this.gameRepository.getGameByName(input.name);
     if (existingGame && existingGame.id !== id) {
@@ -98,11 +102,7 @@ export class GameService implements GameGateway {
         (ids) => this.locationGateway.getByIds(ids),
         'Location',
       ),
-      this.ensureIdsExist(
-        gameLocationIds,
-        (ids) => this.getByIds(ids),
-        'Game',
-      ),
+      this.ensureIdsExist(gameLocationIds, (ids) => this.getByIds(ids), 'Game'),
       this.ensureIdsExist(
         input.scoringSchemaIds,
         (ids) => this.scoringSchemaGateway.getByIds(ids),
@@ -116,6 +116,40 @@ export class GameService implements GameGateway {
     ]);
   }
 
+  private async mapGameResponse(game: GameDto): Promise<GameDto> {
+    const { tagIds: _, ...responseGame } = game as GameDto & {
+      tagIds?: string[];
+    };
+
+    const tagIds = (game as GameDto & { tagIds?: string[] }).tagIds ?? [];
+    const locationIds = (game.locations ?? []).map((location) => location.locationId);
+    const locationResponses = await this.locationGateway.getByIds(locationIds);
+    const locations = (game.locations ?? []).map((location) => {
+      const locationResponse = locationResponses.find(
+        (response) => response.id === location.locationId,
+      );
+      return {
+        ...location,
+        path: locationResponse?.path ?? [],
+      };
+    });
+
+    if (tagIds.length === 0) {
+      return { ...responseGame, locations, tags: [] };
+    }
+
+    const tags = await this.tagGateway.getByIds(tagIds);
+    return {
+      ...responseGame,
+      locations,
+      tags: tags.map((tag) => ({
+        id: tag.id,
+        name: tag.name,
+        description: tag.description,
+      })),
+    };
+  }
+
   public async getById(id: string): Promise<GameDto> {
     try {
       const game = await this.gameRepository.getGameById(id);
@@ -123,7 +157,7 @@ export class GameService implements GameGateway {
         this.logger.error(`Could not find game with ID "${id}"`);
         throw new CustomNotFoundError(`game with ID "${id}"`);
       }
-      return game;
+      return this.mapGameResponse(game);
     } catch (error) {
       if (error instanceof CustomNotFoundError) {
         throw error;
@@ -146,7 +180,10 @@ export class GameService implements GameGateway {
         this.gameRepository.getManyGames(dto),
         this.gameRepository.getGamesCount(dto),
       ]);
-      return { page: items, total };
+      const page = await Promise.all(
+        items.map((item) => this.mapGameResponse(item)),
+      );
+      return { page, total };
     } catch (error) {
       this.logger.error(`Unexpected error while retrieving games: ${error}`);
       throw new CustomInternalError('retrieving games');
@@ -156,7 +193,8 @@ export class GameService implements GameGateway {
   public async create(input: CreateGameDto): Promise<GameDto> {
     try {
       await this.validateInput(input);
-      return await this.gameRepository.createGame(input);
+      const created = await this.gameRepository.createGame(input);
+      return this.mapGameResponse(created);
     } catch (error) {
       if (error instanceof BadRequestException) {
         throw error;
@@ -171,7 +209,8 @@ export class GameService implements GameGateway {
     try {
       await this.getById(id);
       await this.validateInput(input, id);
-      return await this.gameRepository.updateGame(id, input);
+      const updated = await this.gameRepository.updateGame(id, input);
+      return this.mapGameResponse(updated);
     } catch (error) {
       if (
         error instanceof BadRequestException ||
@@ -187,7 +226,8 @@ export class GameService implements GameGateway {
   public async delete(id: string): Promise<GameDto> {
     try {
       await this.getById(id);
-      return await this.gameRepository.deleteGame(id);
+      const deleted = await this.gameRepository.deleteGame(id);
+      return this.mapGameResponse(deleted);
     } catch (error) {
       if (error instanceof CustomNotFoundError) {
         throw error;
