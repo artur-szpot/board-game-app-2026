@@ -4,27 +4,31 @@ services:
       context: backend
     env_file:
       - ./secrets/backend.env
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_INTERVAL: "200"
     ports:
       - 3001:3001
     depends_on:
       - db
-    develop:
-      watch:
-        - action: sync
-          path: ./backend/src
-          target: /app/src
-        - action: rebuild
-          path: package.json
+    volumes:
+      - ./backend:/app
+      - backend-node-modules:/app/node_modules
 
   frontend:
     build:
       context: frontend
       dockerfile: Dockerfile.dev
-      args:
-        VITE_API_URL: http://backend:3001
+    environment:
+      VITE_API_URL: http://localhost:3001
+      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_INTERVAL: "200"
     ports:
-      - 3002:5173
-    
+      - 3002:3002
+    volumes:
+      - ./frontend:/app
+      - frontend-node-modules:/app/node_modules
+
   db:
     image: postgres:17
     environment:
@@ -51,3 +55,5 @@ secrets:
 
 volumes:
   db-volume:
+  backend-node-modules:
+  frontend-node-modules:
