@@ -40,6 +40,42 @@ jobs:
       - name: Build backend
         run: npm run build
 
+  randomizer-backend:
+    name: Randomizer backend tests and build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: randomizer-backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install randomizer backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Run randomizer backend unit tests
+        run: pytest
+
+      - name: Start randomizer backend app
+        run: |
+          timeout 20s uvicorn app.main:app --host 127.0.0.1 --port 3003 > /tmp/randomizer-backend-start.log 2>&1 || exit_code=$?
+          if [ "${exit_code:-0}" -ne 0 ] && [ "${exit_code:-0}" -ne 124 ]; then
+            cat /tmp/randomizer-backend-start.log
+            exit "$exit_code"
+          fi
+          cat /tmp/randomizer-backend-start.log
+
+      - name: Build randomizer backend image
+        run: docker build -t randomizer-backend:ci .
+
   frontend:
     name: Frontend tests and build
     runs-on: ubuntu-latest

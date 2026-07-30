@@ -9,6 +9,18 @@ services:
     depends_on:
       - db
 
+  randomizer-backend:
+    build:
+      context: randomizer-backend
+    env_file:
+      - ./secrets/backend.env
+    environment:
+      PORT: 3003
+    ports:
+      - 3003:3003
+    depends_on:
+      - db
+
   frontend:
     build:
       context: frontend
