@@ -1,7 +1,6 @@
 import type { FC } from "react";
 
 import { buildChoiceMadeFromItems } from "../../store/features/frame-actions";
-import type { FrameCallbackReceiver } from "../../store/features/frameStackSlice";
 import {
   openSearchFrame,
   sameFrameResult,
@@ -11,23 +10,22 @@ import type { FormScreenResult } from "../screens/FormScreenProps";
 import type { SearchScreenProps } from "../screens/SearchScreenProps";
 import type {
   ResultMappingStrategy,
-  SelectionResult
+  SelectionResult,
 } from "../screens/selection-strategies";
-import type { FormFieldProps } from "./common";
 import { FormFieldType } from "./common";
 import { DataDisplay } from "./data-displays/DataDisplay";
+import type {
+  FormFieldSelectionHandlerProps,
+  FormFieldSelectionProps,
+} from "./selection-field-props";
 
-type FormFieldSearchProps = FormFieldProps & {
+export type FormFieldSearchProps = FormFieldSelectionProps & {
   kind: FormFieldType.SEARCH;
   params: SearchScreenProps;
-  resultMapping: ResultMappingStrategy;
-  customMapping?: (item: SelectionResult) => FormScreenResult;
 };
-export default FormFieldSearchProps;
 
-export type FormFieldSearchPropsFull = FormFieldSearchProps & {
-  selectionChangeEmitter: FrameCallbackReceiver;
-};
+export type FormFieldSearchPropsFull = FormFieldSearchProps &
+  FormFieldSelectionHandlerProps;
 
 export const formSearch = ({
   name,
@@ -55,6 +53,8 @@ export const FormSearchField: FC<FormFieldSearchPropsFull> = ({
   label,
   params,
   selectionChangeEmitter,
+  onAdditionalStringFieldChange,
+  onAdditionalBooleanFieldChange,
 }: FormFieldSearchPropsFull) => {
   const dispatch = useAppDispatch();
   const chosen = params.currentSelection ?? [];
@@ -75,7 +75,13 @@ export const FormSearchField: FC<FormFieldSearchPropsFull> = ({
         {label}
         {chosen.length > 0 &&
           chosen.map(result => (
-            <DataDisplay key={result.value} item={result} removeItem={removeItem} />
+            <DataDisplay
+              key={`${result.type}:${result.value}`}
+              item={result}
+              removeItem={removeItem}
+              onAdditionalStringFieldChange={onAdditionalStringFieldChange}
+              onAdditionalBooleanFieldChange={onAdditionalBooleanFieldChange}
+            />
           ))}
         <button
           type="button"

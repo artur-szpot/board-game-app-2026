@@ -10,6 +10,7 @@ import type { SearchScreenPropsFull } from "./SearchScreenProps";
 import type { SearchResult } from "./selection-strategies";
 import {
   isConfirmAllowed,
+  isSameSelectionResult,
   isSelectionCorrect,
   SelectionStrategyEnum,
   type SelectionResult,
@@ -117,6 +118,9 @@ export const SearchScreen: FC<SearchScreenPropsFull> = ({
           {results.map(result => (
             <li key={`${result.type}:${result.value}`}>
               <button type="button" onClick={() => onOptionClick(result)}>
+                {strategy.strategy === SelectionStrategyEnum.SELECT_MULTIPLE &&
+                  chosen.some(c => isSameSelectionResult(c, result)) &&
+                  "[CHOSEN]"}
                 {result.name} ({result.type})
               </button>
             </li>

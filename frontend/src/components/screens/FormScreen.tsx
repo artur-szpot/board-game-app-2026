@@ -2,6 +2,7 @@ import axios from "axios";
 import type { ChangeEvent, FC } from "react";
 import { useCallback, useEffect, useState } from "react";
 
+import { getFormScreenCustomMappings } from "../../store/features/formScreenCustomMappingRegistry";
 import { resultMapper } from "../../store/features/frame-actions";
 import type {
   FrameCallbackContent,
@@ -25,11 +26,56 @@ import {
   type FormScreenValues,
 } from "./FormScreenProps";
 import {
+  isSameSelectionResult,
   isSelectionCorrect,
   type SelectionResult,
+  type SelectionScreenProps,
 } from "./selection-strategies";
 
 const formScreenDraftCache = new Map<string, FormScreenValues>();
+
+const withSelectionAdditionalFields = (
+  selected: SelectionResult,
+  additionalFields: SelectionScreenProps["additionalFields"] | undefined,
+  previousSelectionValues: SelectionResult[],
+): SelectionResult => {
+  const previous = previousSelectionValues.find(item =>
+    isSameSelectionResult(item, selected),
+  );
+
+  const additionalStringFieldConfigs = Object.fromEntries(
+    (additionalFields ?? [])
+      .filter(field => field.kind === FormFieldType.TEXT)
+      .map(field => [field.name, field]),
+  );
+  const additionalBooleanFieldConfigs = Object.fromEntries(
+    (additionalFields ?? [])
+      .filter(field => field.kind === FormFieldType.CHECKBOX)
+      .map(field => [field.name, field]),
+  );
+
+  return {
+    ...selected,
+    additionalStringFieldConfigs,
+    additionalBooleanFieldConfigs,
+    additionalStringFields: Object.fromEntries(
+      Object.entries(additionalStringFieldConfigs).map(([fieldName, field]) => [
+        fieldName,
+        previous?.additionalStringFields?.[fieldName] ??
+          field.initialValue ??
+          "",
+      ]),
+    ),
+    additionalBooleanFields: Object.fromEntries(
+      Object.entries(additionalBooleanFieldConfigs).map(
+        ([fieldName, field]) => [
+          fieldName,
+          previous?.additionalBooleanFields?.[fieldName] ?? field.checked,
+        ],
+      ),
+    ),
+  };
+};
 
 const buildInitialStringValues = (fields: FormScreenField[]) =>
   Object.fromEntries(
@@ -53,17 +99,29 @@ const buildInitialSelectionValues = (fields: FormScreenField[]) =>
         field.name,
         field.params.options
           .filter(option => option.chosen)
-          .map(option => ({
-            type: field.params.dataType,
-            value: option.value,
-            name: option.label,
-          })),
+          .map(option =>
+            withSelectionAdditionalFields(
+              {
+                type: field.params.dataType,
+                value: option.value,
+                name: option.label,
+              },
+              field.params.additionalFields,
+              [],
+            ),
+          ),
       ]),
     ...fields
       .filter(field => field.kind === FormFieldType.SEARCH)
       .map((field): [string, SelectionResult[]] => [
         field.name,
-        field.params.currentSelection ?? [],
+        (field.params.currentSelection ?? []).map(selected =>
+          withSelectionAdditionalFields(
+            selected,
+            field.params.additionalFields,
+            field.params.currentSelection ?? [],
+          ),
+        ),
       ]),
   ] as [string, SelectionResult[]][]);
 
@@ -127,6 +185,68 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
       });
     };
 
+  const handleAdditionalStringFieldChange =
+    (fieldName: string, item: SelectionResult, additionalFieldName: string) =>
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const nextValue = event.target.value;
+      setSelectionValues(current => {
+        const currentFieldSelections = current[fieldName] ?? [];
+        const nextFieldSelections = currentFieldSelections.map(selection => {
+          if (!isSameSelectionResult(selection, item)) {
+            return selection;
+          }
+          return {
+            ...selection,
+            additionalStringFields: {
+              ...(selection.additionalStringFields ?? {}),
+              [additionalFieldName]: nextValue,
+            },
+          };
+        });
+        const nextSelectionValues = {
+          ...current,
+          [fieldName]: nextFieldSelections,
+        };
+        formScreenDraftCache.set(frameId, {
+          stringValues,
+          booleanValues,
+          selectionValues: nextSelectionValues,
+        });
+        return nextSelectionValues;
+      });
+    };
+
+  const handleAdditionalBooleanFieldChange =
+    (fieldName: string, item: SelectionResult, additionalFieldName: string) =>
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const nextValue = event.target.checked;
+      setSelectionValues(current => {
+        const currentFieldSelections = current[fieldName] ?? [];
+        const nextFieldSelections = currentFieldSelections.map(selection => {
+          if (!isSameSelectionResult(selection, item)) {
+            return selection;
+          }
+          return {
+            ...selection,
+            additionalBooleanFields: {
+              ...(selection.additionalBooleanFields ?? {}),
+              [additionalFieldName]: nextValue,
+            },
+          };
+        });
+        const nextSelectionValues = {
+          ...current,
+          [fieldName]: nextFieldSelections,
+        };
+        formScreenDraftCache.set(frameId, {
+          stringValues,
+          booleanValues,
+          selectionValues: nextSelectionValues,
+        });
+        return nextSelectionValues;
+      });
+    };
+
   const selectionChangeReceiver = useCallback(
     (name?: string): FrameCallbackReceiver =>
       (result: FrameCallbackContent) => {
@@ -138,11 +258,32 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
           );
         }
 
-        const chosen = mapped.payload.chosen.map(choice => ({ ...choice }));
+        const targetField = fields
+          .filter(
+            field =>
+              field.kind === FormFieldType.OPTIONS ||
+              field.kind === FormFieldType.SEARCH,
+          )
+          .find(field => field.name === resolvedName);
+        if (!targetField) {
+          throw new Error(
+            `Received selection change for unknown field: ${resolvedName}`,
+          );
+        }
+
         const cachedDraft = formScreenDraftCache.get(frameId);
         if (!cachedDraft) {
           throw new Error("No cached draft found for this frame");
         }
+        const existingForField =
+          cachedDraft.selectionValues[resolvedName] ?? [];
+        const chosen = mapped.payload.chosen.map(choice =>
+          withSelectionAdditionalFields(
+            { ...choice },
+            targetField.params.additionalFields,
+            existingForField,
+          ),
+        );
         const cachedNext = {
           ...cachedDraft,
           selectionValues: {
@@ -157,7 +298,7 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
           [resolvedName]: chosen,
         }));
       },
-    [frameId],
+    [fields, frameId],
   );
 
   const isFieldOk = (field: FormScreenField) => {
@@ -185,7 +326,11 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
   }, [frameId, dispatch, selectionChangeReceiver]);
 
   const dispatchResults = async (_values: FormScreenValues) => {
-    const result = mapFormValuesToResults(_values, fields);
+    const result = mapFormValuesToResults(
+      _values,
+      fields,
+      getFormScreenCustomMappings(frameId),
+    );
     try {
       await axios({
         method,
@@ -226,7 +371,30 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
                 <FormOptionsField
                   key={field.name}
                   {...field}
+                  currentSelection={selectionValues[field.name]}
                   selectionChangeEmitter={selectionChangeReceiver(field.name)}
+                  onAdditionalStringFieldChange={(
+                    item,
+                    additionalFieldName,
+                    event,
+                  ) =>
+                    handleAdditionalStringFieldChange(
+                      field.name,
+                      item,
+                      additionalFieldName,
+                    )(event)
+                  }
+                  onAdditionalBooleanFieldChange={(
+                    item,
+                    additionalFieldName,
+                    event,
+                  ) =>
+                    handleAdditionalBooleanFieldChange(
+                      field.name,
+                      item,
+                      additionalFieldName,
+                    )(event)
+                  }
                   params={{
                     ...field.params,
                     options: field.params.options.map(option => ({
@@ -246,6 +414,29 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
                   key={field.name}
                   {...field}
                   selectionChangeEmitter={selectionChangeReceiver(field.name)}
+                  currentSelection={selectionValues[field.name]}
+                  onAdditionalStringFieldChange={(
+                    item,
+                    additionalFieldName,
+                    event,
+                  ) =>
+                    handleAdditionalStringFieldChange(
+                      field.name,
+                      item,
+                      additionalFieldName,
+                    )(event)
+                  }
+                  onAdditionalBooleanFieldChange={(
+                    item,
+                    additionalFieldName,
+                    event,
+                  ) =>
+                    handleAdditionalBooleanFieldChange(
+                      field.name,
+                      item,
+                      additionalFieldName,
+                    )(event)
+                  }
                   params={{
                     ...field.params,
                     currentSelection: selectionValues[field.name],

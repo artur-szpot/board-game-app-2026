@@ -1,10 +1,15 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
+import { formSearch } from "../../components/forms/FormSearchField";
+import type { OptionsScreenProps } from "../../components/screens/OptionsScreenProps";
 import {
-  selectionStrategyChooseOne,
   GameDataType,
+  ResultMappingStrategy,
+  selectionStrategyChooseOne,
   selectionStrategySelectNumber,
 } from "../../components/screens/selection-strategies";
+import { makeStore } from "../store";
+import { ActionEnum } from "./frame-actions";
 import {
   clearFrameCallbacks,
   invokeFrameCallback,
@@ -19,9 +24,6 @@ import {
   resetToBottomFrame,
   sameFrameResult,
 } from "./frameStackSlice";
-import type { OptionsScreenProps } from "../../components/screens/OptionsScreenProps";
-import { ActionEnum } from "./frame-actions";
-import { makeStore } from "../store";
 
 const initialState = frameStackSlice.getInitialState();
 
@@ -269,5 +271,41 @@ describe("frameStackSlice", () => {
     });
     expect(invokedAfterCleanup).toBe(false);
     expect(receiver).not.toHaveBeenCalled();
+  });
+
+  it("should not store custom mapping functions in frame stack state", () => {
+    const store = makeStore();
+
+    store.dispatch(
+      openFormFrame({
+        params: {
+          title: "test form",
+          method: "POST",
+          action: "some/path",
+          fields: [
+            formSearch({
+              name: "locations",
+              label: "Locations",
+              resultMapping: ResultMappingStrategy.CUSTOM,
+              customMapping: item => ({ value: item.value }),
+              params: {
+                title: "Find locations",
+                dataTypes: [GameDataType.LOCATION],
+                strategy: selectionStrategySelectNumber({ min: 1 }),
+              },
+            }),
+          ],
+        },
+      }),
+    );
+
+    const topFrame = store.getState().frameStack.stack.at(-1);
+    expect(topFrame?.frameType).toBe(FrameTypeEnum.FORM);
+
+    const formParams = topFrame?.params as
+      | { fields?: Record<string, unknown>[] }
+      | undefined;
+    expect(formParams?.fields).toHaveLength(1);
+    expect(formParams?.fields?.[0]).not.toHaveProperty("customMapping");
   });
 });

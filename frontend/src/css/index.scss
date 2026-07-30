@@ -43,7 +43,10 @@ div.search-screen {
   margin: auto;
 }
 
-div.form-text, div.form-checkbox, div.form-options, div.form-search {
+div.form-text,
+div.form-checkbox,
+div.form-options,
+div.form-search {
   width: 100%;
   & > label {
     & > input {
@@ -67,17 +70,36 @@ div.data-item {
   width: 80%;
   margin: auto;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   border: 2px solid red;
   border-radius: 3px;
   padding: 3px;
 
-  & > p {
-    flex-grow: 1;
-    margin: 0;
+  div.form-text {
+    min-width: 0;
+
+    & > label {
+      display: block;
+      width: 100%;
+
+      & > input {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+    }
   }
-  
-  & > button {
-    flex-grow: 0;
+
+  div.data-item-base {
+    display: flex;
+    flex-direction: row;
+    p {
+      flex-grow: 1;
+      margin: 0;
+    }
+    button {
+      flex-grow: 0;
+    }
   }
 }

@@ -64,6 +64,12 @@ export const createGameScreen: FormScreenProps = {
         dataTypes: [GameDataType.LOCATION, GameDataType.GAME],
         strategy: selectionStrategySelectAnyNumber(),
         title: "Location(s)",
+        additionalFields: [
+          formText({
+            name: "note",
+            label: "Note",
+          }),
+        ],
       },
     }),
     // TODO: allow to create sought for data types

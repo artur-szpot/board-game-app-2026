@@ -1,30 +1,27 @@
 import type { FC } from "react";
 
 import { buildChoiceMadeFromItems } from "../../store/features/frame-actions";
-import type { FrameCallbackReceiver } from "../../store/features/frameStackSlice";
 import {
   openOptionsFrame,
   sameFrameResult,
 } from "../../store/features/frameStackSlice";
 import { useAppDispatch } from "../../store/hooks";
 import type { FormScreenResult } from "../screens/FormScreenProps";
-import {
-  mapOptionToSelectionResult,
-  type OptionsScreenProps,
-} from "../screens/OptionsScreenProps";
+import { type OptionsScreenProps } from "../screens/OptionsScreenProps";
 import type {
   ResultMappingStrategy,
   SelectionResult,
 } from "../screens/selection-strategies";
-import type { FormFieldProps } from "./common";
 import { FormFieldType } from "./common";
 import { DataDisplay } from "./data-displays/DataDisplay";
+import type {
+  FormFieldSelectionHandlerProps,
+  FormFieldSelectionProps,
+} from "./selection-field-props";
 
-export type FormFieldOptionsProps = FormFieldProps & {
+export type FormFieldOptionsProps = FormFieldSelectionProps & {
   kind: FormFieldType.OPTIONS;
   params: OptionsScreenProps;
-  resultMapping: ResultMappingStrategy;
-  customMapping?: (item: SelectionResult) => FormScreenResult;
 };
 
 export const formOptions = ({
@@ -48,25 +45,28 @@ export const formOptions = ({
   customMapping,
 });
 
-export type FormFieldOptionsPropsFull = FormFieldOptionsProps & {
-  selectionChangeEmitter: FrameCallbackReceiver;
-};
+export type FormFieldOptionsPropsFull = FormFieldOptionsProps &
+  FormFieldSelectionHandlerProps;
 
 export const FormOptionsField: FC<FormFieldOptionsPropsFull> = ({
   name,
   label,
   params,
   selectionChangeEmitter,
+  currentSelection,
+  onAdditionalStringFieldChange,
+  onAdditionalBooleanFieldChange,
 }: FormFieldOptionsPropsFull) => {
   const dispatch = useAppDispatch();
-  const chosen = params.options.filter(option => option.chosen);
+  const chosen = currentSelection;
   const removeItem = (selected: SelectionResult) =>
     dispatch(
       sameFrameResult({
         result: buildChoiceMadeFromItems(
-          chosen
-            .filter(item => item.value !== selected.value)
-            .map(mapOptionToSelectionResult(selected.type)),
+          chosen.filter(
+            item =>
+              !(item.type === selected.type && item.value === selected.value),
+          ),
           name,
         ),
       }),
@@ -77,11 +77,13 @@ export const FormOptionsField: FC<FormFieldOptionsPropsFull> = ({
       <label htmlFor={name}>
         {label}
         {chosen.length > 0 &&
-          chosen.map(option => (
+          chosen.map(selected => (
             <DataDisplay
-              key={option.value}
-              item={mapOptionToSelectionResult(params.dataType)(option)}
+              key={`${selected.type}:${selected.value}`}
+              item={selected}
               removeItem={removeItem}
+              onAdditionalStringFieldChange={onAdditionalStringFieldChange}
+              onAdditionalBooleanFieldChange={onAdditionalBooleanFieldChange}
             />
           ))}
         <button

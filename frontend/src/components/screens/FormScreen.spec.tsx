@@ -1,5 +1,6 @@
 import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import axios from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { buildChoiceMadeFromItems } from "../../store/features/frame-actions";
@@ -22,6 +23,7 @@ import {
 } from "./selection-strategies";
 
 vi.mock("axios");
+const mockedAxios = vi.mocked(axios);
 
 const mockDispatch = vi.fn();
 
@@ -66,6 +68,8 @@ const getCallbackEmitterId = (action: unknown): string | undefined => {
 describe("FormScreen", () => {
   beforeEach(() => {
     mockDispatch.mockReset();
+    mockedAxios.mockReset();
+    mockedAxios.mockResolvedValue({} as never);
   });
 
   it("collects field values and closes with the filled form payload", async () => {
@@ -187,5 +191,95 @@ describe("FormScreen", () => {
 
     expect(screen.getByLabelText("Title")).toHaveValue("Azul");
     expect(screen.getByLabelText("Published")).toBeChecked();
+  });
+
+  it("renders and maps additional fields for selected items", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <FormScreen
+        frameId="form-with-selection-fields"
+        title="Create game"
+        method="POST"
+        action="some/url"
+        fields={[
+          formText({ name: "title", label: "Title", required: true }),
+          formSearch({
+            name: "locations",
+            label: "Location(s)",
+            resultMapping: ResultMappingStrategy.CUSTOM,
+            customMapping: item => ({
+              value: item.value,
+              notes: item.additionalStringFields?.notes,
+              isPrimary: item.additionalBooleanFields?.isPrimary,
+            }),
+            params: {
+              title: "Find locations",
+              dataTypes: [GameDataType.LOCATION],
+              strategy: selectionStrategySelectNumber({ exact: 1 }),
+              additionalFields: [
+                formText({
+                  name: "notes",
+                  label: "Notes",
+                  initialValue: "seed",
+                }),
+                formCheckbox({
+                  name: "isPrimary",
+                  label: "Primary",
+                  checked: false,
+                }),
+              ],
+            },
+          }),
+        ]}
+      />,
+    );
+
+    await user.type(screen.getByLabelText("Title"), "Brass");
+    await user.click(
+      screen.getByRole("button", { name: "Search for options" }),
+    );
+
+    const dispatchedActions = mockDispatch.mock.calls.map(
+      ([action]) => action as unknown,
+    );
+    const searchAction = dispatchedActions.find(isSearchAction);
+    expect(searchAction).toBeDefined();
+
+    act(() => {
+      const searchToken = getCallbackEmitterId(searchAction);
+      if (!searchToken) {
+        throw new Error("Missing callback token on dispatched frame action");
+      }
+      invokeFrameCallback(
+        searchToken,
+        buildChoiceMadeFromItems([
+          { type: GameDataType.LOCATION, value: "loc-1", name: "Shelf" },
+        ]),
+      );
+    });
+
+    const notesInput = screen.getByLabelText("Notes");
+    expect(notesInput).toHaveValue("seed");
+    await user.clear(notesInput);
+    await user.type(notesInput, "near window");
+    await user.click(screen.getByLabelText("Primary"));
+
+    await user.click(screen.getByRole("button", { name: "Confirm" }));
+
+    const requestConfig: unknown = mockedAxios.mock.calls[0]?.[0];
+
+    expect(requestConfig).toMatchObject({
+      method: "POST",
+      data: {
+        locations: [
+          {
+            value: "loc-1",
+            notes: "near window",
+            isPrimary: true,
+          },
+        ],
+      },
+    });
   });
 });

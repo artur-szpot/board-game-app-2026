@@ -1,7 +1,7 @@
 import { FormFieldType } from "../forms/common";
 import type { FormFieldCheckboxProps } from "../forms/FormCheckboxField";
 import type { FormFieldOptionsProps } from "../forms/FormOptionsField";
-import type FormFieldSearchProps from "../forms/FormSearchField";
+import type { FormFieldSearchProps } from "../forms/FormSearchField";
 import type { FormFieldTextProps } from "../forms/FormTextField";
 import type { SelectionResult } from "./selection-strategies";
 import { ResultMappingStrategy } from "./selection-strategies";
@@ -14,6 +14,11 @@ export type FormScreenValues = {
 
 export type FormScreenResult = string | boolean | object;
 
+export type FormFieldCustomMappings = Record<
+  string,
+  (item: SelectionResult) => FormScreenResult
+>;
+
 export type FormScreenResults = Record<
   string,
   FormScreenResult | FormScreenResult[]
@@ -22,6 +27,7 @@ export type FormScreenResults = Record<
 export const mapFormValuesToResults = (
   values: FormScreenValues,
   fields: FormScreenField[],
+  customMappings?: FormFieldCustomMappings,
 ): FormScreenResults => {
   const mapped: FormScreenResults = {};
   Object.entries(values.stringValues).forEach(
@@ -45,12 +51,15 @@ export const mapFormValuesToResults = (
     }
     switch (field.resultMapping) {
       case ResultMappingStrategy.CUSTOM:
-        if (!field.customMapping) {
-          throw new Error(
-            "Expected custom mapping logic, but it was not present",
-          );
+        {
+          const customMapping = customMappings?.[name] ?? field.customMapping;
+          if (!customMapping) {
+            throw new Error(
+              "Expected custom mapping logic, but it was not present",
+            );
+          }
+          mapped[name] = values.map(customMapping);
         }
-        mapped[name] = values.map(field.customMapping);
         break;
       case ResultMappingStrategy.VALUES_ONLY:
         mapped[name] = values.map(value => value.value);
@@ -94,4 +103,31 @@ export type FormScreenProps = {
 
 export type FormScreenPropsFull = FormScreenProps & {
   frameId: string;
+};
+
+export const getCustomMappingFromField = (
+  field: FormScreenField,
+): ((item: SelectionResult) => FormScreenResult) | undefined => {
+  if (
+    (field.kind === FormFieldType.SEARCH ||
+      field.kind === FormFieldType.OPTIONS) &&
+    field.resultMapping === ResultMappingStrategy.CUSTOM
+  ) {
+    return field.customMapping;
+  }
+  return undefined;
+};
+
+export const withCustomMappingRemoved = (
+  field: FormScreenField,
+): FormScreenField => {
+  if (
+    field.kind !== FormFieldType.SEARCH &&
+    field.kind !== FormFieldType.OPTIONS
+  ) {
+    return field;
+  }
+
+  const { customMapping, ...serializableField } = field;
+  return serializableField;
 };

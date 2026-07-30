@@ -1,3 +1,15 @@
+import type { FormFieldCheckboxProps } from "../forms/FormCheckboxField";
+import type { FormFieldTextProps } from "../forms/FormTextField";
+
+export type SelectionAdditionalFields = {
+  // These carry the configuration for the extra fields
+  additionalStringFieldConfigs?: Record<string, FormFieldTextProps>;
+  additionalBooleanFieldConfigs?: Record<string, FormFieldCheckboxProps>;
+  // These carry the actual values assigned
+  additionalStringFields?: Record<string, string>;
+  additionalBooleanFields?: Record<string, boolean>;
+};
+
 export enum SelectionStrategyEnum {
   CHOOSE_ONE,
   SELECT_MULTIPLE,
@@ -94,7 +106,12 @@ export type SelectionResult = {
   type: GameDataType;
   value: string;
   name: string;
-};
+} & SelectionAdditionalFields;
+
+export const isSameSelectionResult = (
+  left: SelectionResult,
+  right: SelectionResult,
+) => left.type === right.type && left.value === right.value;
 
 export type SearchResult = {
   type: GameDataType;
@@ -109,3 +126,10 @@ export enum ResultMappingStrategy {
   VALUES_AND_TYPES = "VALUES_AND_TYPES",
   SINGLE_VALUE_AND_TYPE = "SINGLE_VALUE_AND_TYPE",
 }
+
+export type SelectionScreenProps = {
+  title: string;
+  strategy: SelectionStrategy;
+  correctnessStrategy?: SelectionStrategy;
+  additionalFields?: (FormFieldTextProps | FormFieldCheckboxProps)[];
+};
