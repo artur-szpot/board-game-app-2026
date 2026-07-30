@@ -1,7 +1,7 @@
 services:
-  backend:
+  game-backend:
     build:
-      context: backend
+      context: game-backend
     env_file:
       - ./secrets/backend.env
     environment:
@@ -12,8 +12,8 @@ services:
     depends_on:
       - db
     volumes:
-      - ./backend:/app
-      - backend-node-modules:/app/node_modules
+      - ./game-backend:/app
+      - game-backend-node-modules:/app/node_modules
 
   frontend:
     build:
@@ -55,5 +55,5 @@ secrets:
 
 volumes:
   db-volume:
-  backend-node-modules:
+  game-backend-node-modules:
   frontend-node-modules:
