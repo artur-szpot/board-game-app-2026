@@ -68,10 +68,7 @@ export const OptionsScreen: FC<OptionsScreenPropsFull> = ({
         <div>
           {options.map(option => (
             <div key={option.value} className="options-screen-option">
-              <button
-                type="button"
-                onClick={() => onOptionClick(option)}
-              >
+              <button type="button" onClick={() => onOptionClick(option)}>
                 {strategy.strategy === SelectionStrategyEnum.SELECT_MULTIPLE &&
                   chosen.some(c => c.value === option.value) &&
                   "[CHOSEN]"}

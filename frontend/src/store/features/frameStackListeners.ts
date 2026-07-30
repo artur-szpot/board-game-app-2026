@@ -1,17 +1,18 @@
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit";
 
 import type { RootState } from "../store";
+import { clearFormScreenCustomMappings } from "./formScreenCustomMappingRegistry";
 import {
-  addCallbackReceiverToTopFrame,
-  closeFrame,
-  resetToBottomFrame,
-  resetToBottomFrameWithReceiver,
-  sameFrameResult,
-} from "./frameStackSlice";
-import {
-  invokeFrameCallback,
-  unregisterFrameCallback,
+    invokeFrameCallback,
+    unregisterFrameCallback,
 } from "./frameCallbackRegistry";
+import {
+    addCallbackReceiverToTopFrame,
+    closeFrame,
+    resetToBottomFrame,
+    resetToBottomFrameWithReceiver,
+    sameFrameResult,
+} from "./frameStackSlice";
 
 type CallbackTokenKey = "callbackEmitterId" | "callbackReceiverId";
 
@@ -57,6 +58,18 @@ const unregisterRemovedFrameCallbacks = (
     .flatMap(frame => callbackTokensOf(frame))
     .filter(token => !activeTokens.has(token))
     .forEach(unregisterFrameCallback);
+
+  const activeFrameIds = new Set(
+    nextStack
+      .map(frame => getFrameId(frame))
+      .filter((frameId): frameId is string => frameId !== undefined),
+  );
+
+  previousStack
+    .map(frame => getFrameId(frame))
+    .filter((frameId): frameId is string => frameId !== undefined)
+    .filter(frameId => !activeFrameIds.has(frameId))
+    .forEach(clearFormScreenCustomMappings);
 };
 
 export const frameStackListenerMiddleware = createListenerMiddleware();
@@ -64,8 +77,8 @@ export const frameStackListenerMiddleware = createListenerMiddleware();
 frameStackListenerMiddleware.startListening({
   actionCreator: closeFrame,
   effect: (action, listenerApi) => {
-    const previousStack = (listenerApi.getOriginalState() as RootState).frameStack
-      .stack;
+    const previousStack = (listenerApi.getOriginalState() as RootState)
+      .frameStack.stack;
     const nextStack = (listenerApi.getState() as RootState).frameStack.stack;
 
     const frameToClose = previousStack.at(-1);
@@ -91,7 +104,9 @@ frameStackListenerMiddleware.startListening({
 frameStackListenerMiddleware.startListening({
   actionCreator: sameFrameResult,
   effect: (action, listenerApi) => {
-    const topFrame = (listenerApi.getState() as RootState).frameStack.stack.at(-1);
+    const topFrame = (listenerApi.getState() as RootState).frameStack.stack.at(
+      -1,
+    );
     if (!topFrame) {
       return;
     }
@@ -114,8 +129,8 @@ frameStackListenerMiddleware.startListening({
     addCallbackReceiverToTopFrame,
   ),
   effect: (_action, listenerApi) => {
-    const previousStack = (listenerApi.getOriginalState() as RootState).frameStack
-      .stack;
+    const previousStack = (listenerApi.getOriginalState() as RootState)
+      .frameStack.stack;
     const nextStack = (listenerApi.getState() as RootState).frameStack.stack;
 
     unregisterRemovedFrameCallbacks(previousStack, nextStack);

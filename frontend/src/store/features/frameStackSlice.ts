@@ -13,11 +13,12 @@ import type {
   SearchScreenPropsFull,
 } from "../../components/screens/SearchScreenProps";
 import { createAppSlice } from "../createAppSlice";
+import { registerFormScreenCustomMappings } from "./formScreenCustomMappingRegistry";
+import type { ActionEnum } from "./frame-actions";
 import {
   registerFrameCallback,
   type FrameCallbackToken,
 } from "./frameCallbackRegistry";
-import type { ActionEnum } from "./frame-actions";
 
 export type FrameCallbackContent = {
   action: ActionEnum;
@@ -57,6 +58,10 @@ type FrameStackReducerDto<T> = {
   params: T;
   callbackEmitterId?: FrameCallbackToken;
   callbackReceiverId?: FrameCallbackToken;
+};
+
+type FormFrameStackReducerDto = FrameStackReducerDto<FormScreenProps> & {
+  id: string;
 };
 
 export type FrameStackState = {
@@ -178,27 +183,41 @@ export const frameStackSlice = createAppSlice({
       },
     ),
     openFormFrame: create.preparedReducer(
-      (payload: FrameStackDto<FormScreenProps>) => ({
-        payload: {
-          params: payload.params,
-          callbackReceiverId: payload.callbackReceiver
-            ? registerFrameCallback(payload.callbackReceiver)
-            : undefined,
-          callbackEmitterId: payload.callbackEmitter
-            ? registerFrameCallback(payload.callbackEmitter)
-            : undefined,
-        },
-      }),
+      (payload: FrameStackDto<FormScreenProps>) => {
+        const id = crypto.randomUUID();
+        const serializedFields = registerFormScreenCustomMappings(
+          id,
+          payload.params.fields,
+        );
+
+        return {
+          payload: {
+            id,
+            params: {
+              ...payload.params,
+              fields: serializedFields,
+            },
+            callbackReceiverId: payload.callbackReceiver
+              ? registerFrameCallback(payload.callbackReceiver)
+              : undefined,
+            callbackEmitterId: payload.callbackEmitter
+              ? registerFrameCallback(payload.callbackEmitter)
+              : undefined,
+          },
+        };
+      },
       (
         state: FrameStackState,
-        action: PayloadAction<FrameStackReducerDto<FormScreenProps>>,
+        action: PayloadAction<FormFrameStackReducerDto>,
       ) => {
-        const id = crypto.randomUUID();
         state.stack.push(
           createFrame(
-            id,
+            action.payload.id,
             FrameTypeEnum.FORM,
-            { ...action.payload.params, frameId: id },
+            {
+              ...action.payload.params,
+              frameId: action.payload.id,
+            },
             action.payload.callbackReceiverId,
             action.payload.callbackEmitterId,
           ),
@@ -261,10 +280,7 @@ export const frameStackSlice = createAppSlice({
       (receiver: FrameCallbackReceiver) => ({
         payload: registerFrameCallback(receiver),
       }),
-      (
-        state: FrameStackState,
-        action: PayloadAction<FrameCallbackToken>,
-      ) => {
+      (state: FrameStackState, action: PayloadAction<FrameCallbackToken>) => {
         state.stack = [state.stack[0]];
         state.stack[0].callbackReceiverId = action.payload;
       },
@@ -273,10 +289,7 @@ export const frameStackSlice = createAppSlice({
       (receiver: FrameCallbackReceiver) => ({
         payload: registerFrameCallback(receiver),
       }),
-      (
-        state: FrameStackState,
-        action: PayloadAction<FrameCallbackToken>,
-      ) => {
+      (state: FrameStackState, action: PayloadAction<FrameCallbackToken>) => {
         const topFrame = state.stack.at(-1);
         if (topFrame === undefined) {
           throw new Error("No frames in the stack");
