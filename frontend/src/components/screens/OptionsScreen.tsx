@@ -1,3 +1,13 @@
+import {
+    Chip,
+    List,
+    ListItem,
+    ListItemButton,
+    ListItemIcon,
+    ListItemText,
+    Stack,
+    Typography,
+} from "@mui/material";
 import { useState, type FC } from "react";
 
 import { buildChoiceMadeFromItems } from "../../store/features/frame-actions";
@@ -5,19 +15,20 @@ import { closeFrame } from "../../store/features/frameStackSlice";
 import { useAppDispatch } from "../../store/hooks";
 import { MainActions } from "../MainActions";
 import {
-  mapOptionToSelectionResult,
-  type OptionProps,
-  type OptionsScreenPropsFull,
+    mapOptionToSelectionResult,
+    type OptionProps,
+    type OptionsScreenPropsFull,
 } from "./OptionsScreenProps";
 import type {
-  SelectionResult,
-  SelectionStrategy,
+    SelectionResult,
+    SelectionStrategy,
 } from "./selection-strategies";
 import {
-  isConfirmAllowed,
-  isSelectionCorrect,
-  SelectionStrategyEnum,
+    isConfirmAllowed,
+    isSelectionCorrect,
+    SelectionStrategyEnum,
 } from "./selection-strategies";
+import { typeIcon } from "./type-icon";
 
 // "[CHOSEN]" //TODO: make this an icon
 export const OptionsScreen: FC<OptionsScreenPropsFull> = ({
@@ -63,26 +74,57 @@ export const OptionsScreen: FC<OptionsScreenPropsFull> = ({
 
   return (
     <div className="options-screen">
-      <section aria-label={`options screen`}>
-        <h2>{title}</h2>
-        <div>
-          {options.map(option => (
-            <div key={option.value} className="options-screen-option">
-              <button type="button" onClick={() => onOptionClick(option)}>
-                {strategy.strategy === SelectionStrategyEnum.SELECT_MULTIPLE &&
-                  chosen.some(c => c.value === option.value) &&
-                  "[CHOSEN]"}
-                {option.label}
-              </button>
-            </div>
-          ))}
-        </div>
-        <MainActions
-          allowConfirm={isConfirmAllowed(strategy)}
-          confirmEnabled={isSelectionCorrect(strategy, chosen.length)}
-          confirmCallback={() => dispatchResults(chosen)}
-          frameId={frameId}
-        />
+      <section aria-label="options screen">
+        <Stack spacing={2}>
+          <Typography component="h2" variant="h5">
+            {title}
+          </Typography>
+          <List>
+            {options.map(option => (
+              <ListItem key={option.value} disablePadding>
+                <ListItemButton
+                  onClick={() => onOptionClick(option)}
+                  aria-label={`${
+                    strategy.strategy ===
+                      SelectionStrategyEnum.SELECT_MULTIPLE &&
+                    chosen.some(c => c.value === option.value)
+                      ? "[CHOSEN]"
+                      : ""
+                  }${option.label}`}
+                >
+                  {strategy.strategy ===
+                    SelectionStrategyEnum.SELECT_MULTIPLE &&
+                    chosen.some(c => c.value === option.value) && (
+                      <Chip
+                        label="CHOSEN"
+                        color="secondary"
+                        size="small"
+                        sx={{ mr: 1 }}
+                      />
+                    )}
+                  <ListItemIcon sx={{ minWidth: 30, color: "inherit" }}>
+                    {typeIcon(dataType)}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={`${
+                      strategy.strategy ===
+                        SelectionStrategyEnum.SELECT_MULTIPLE &&
+                      chosen.some(c => c.value === option.value)
+                        ? "[CHOSEN]"
+                        : ""
+                    }${option.label}`}
+                  />
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
+          <MainActions
+            allowConfirm={isConfirmAllowed(strategy)}
+            confirmEnabled={isSelectionCorrect(strategy, chosen.length)}
+            confirmCallback={() => dispatchResults(chosen)}
+            frameId={frameId}
+          />
+        </Stack>
       </section>
     </div>
   );

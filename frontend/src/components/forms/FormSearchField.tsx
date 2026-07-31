@@ -1,22 +1,23 @@
+import { Button, Stack, Typography } from "@mui/material";
 import type { FC } from "react";
 
 import { buildChoiceMadeFromItems } from "../../store/features/frame-actions";
 import {
-  openSearchFrame,
-  sameFrameResult,
+    openSearchFrame,
+    sameFrameResult,
 } from "../../store/features/frameStackSlice";
 import { useAppDispatch } from "../../store/hooks";
 import type { FormScreenResult } from "../screens/FormScreenProps";
 import type { SearchScreenProps } from "../screens/SearchScreenProps";
 import type {
-  ResultMappingStrategy,
-  SelectionResult,
+    ResultMappingStrategy,
+    SelectionResult,
 } from "../screens/selection-strategies";
 import { FormFieldType } from "./common";
 import { DataDisplay } from "./data-displays/DataDisplay";
 import type {
-  FormFieldSelectionHandlerProps,
-  FormFieldSelectionProps,
+    FormFieldSelectionHandlerProps,
+    FormFieldSelectionProps,
 } from "./selection-field-props";
 
 export type FormFieldSearchProps = FormFieldSelectionProps & {
@@ -71,8 +72,10 @@ export const FormSearchField: FC<FormFieldSearchPropsFull> = ({
 
   return (
     <div className="form-search">
-      <label htmlFor={`${name}-find`}>
-        {label}
+      <Stack spacing={1.25}>
+        <Typography component="p" className="form-field-label">
+          {label}
+        </Typography>
         {chosen.length > 0 &&
           chosen.map(result => (
             <DataDisplay
@@ -83,7 +86,9 @@ export const FormSearchField: FC<FormFieldSearchPropsFull> = ({
               onAdditionalBooleanFieldChange={onAdditionalBooleanFieldChange}
             />
           ))}
-        <button
+        <Button
+          fullWidth
+          variant="contained"
           type="button"
           onClick={() =>
             dispatch(
@@ -95,21 +100,22 @@ export const FormSearchField: FC<FormFieldSearchPropsFull> = ({
           }
         >
           {chosen.length ? "Change" : "Search for options"}
-        </button>
-      </label>
+        </Button>
+      </Stack>
       {chosen.length > 0 && (
-        <label htmlFor={`${name}-clear`}>
-          <button
-            type="button"
-            onClick={() =>
-              dispatch(
-                sameFrameResult({ result: buildChoiceMadeFromItems([], name) }),
-              )
-            }
-          >
-            {"Clear"}
-          </button>
-        </label>
+        <Button
+          fullWidth
+          variant="text"
+          color="inherit"
+          type="button"
+          onClick={() =>
+            dispatch(
+              sameFrameResult({ result: buildChoiceMadeFromItems([], name) }),
+            )
+          }
+        >
+          {"Clear"}
+        </Button>
       )}
     </div>
   );

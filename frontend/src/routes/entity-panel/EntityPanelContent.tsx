@@ -1,13 +1,13 @@
 /* eslint-disable no-case-declarations */
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import LabelImportantIcon from "@mui/icons-material/LabelImportant";
 import PersonIcon from "@mui/icons-material/Person";
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import { Chip } from "@mui/material";
+import { Alert, Box, Chip, Paper, Stack, Typography } from "@mui/material";
 
 import { GameDataType } from "../../components/screens/selection-strategies";
 import type { GameResponseDto } from "../../dto/collection-items.dto";
-import type { EntityPanelTab } from "./entity-panel-types";
 import { AdminDataType } from "../admin-panel/admin-data-type.enum";
+import type { EntityPanelTab } from "./entity-panel-types";
 
 type EntityPanelContentProps<Category extends string, Item> = {
   tab?: EntityPanelTab<Category>;
@@ -77,24 +77,30 @@ const renderItem = (item: unknown, category: string) => {
   };
 
   return (
-    <div className="entity-panel-item">
-      <h3>{name}</h3>
+    <Paper className="entity-panel-item" elevation={2}>
+      <Typography component="h3" variant="h6">
+        {name}
+      </Typography>
       {description !== undefined && description.length > 0 && (
-        <p>{description}</p>
+        <Typography component="p" variant="body2">
+          {description}
+        </Typography>
       )}
-      <div className="entity-panel-badges">
-        {badges.map((badge, index) => (
-          <Chip
-            key={`${badge.type}-${badge.value}-${index.toString()}`}
-            icon={badgeIcon(badge.type)}
-            label={badge.value}
-            size="small"
-            variant="outlined"
-            title={badge.tooltip}
-          />
-        ))}
-      </div>
-    </div>
+      {badges.length > 0 && (
+        <Box className="entity-panel-badges">
+          {badges.map((badge, index) => (
+            <Chip
+              key={`${badge.type}-${badge.value}-${index.toString()}`}
+              icon={badgeIcon(badge.type)}
+              label={badge.value}
+              size="small"
+              variant="outlined"
+              title={badge.tooltip}
+            />
+          ))}
+        </Box>
+      )}
+    </Paper>
   );
 };
 
@@ -105,30 +111,30 @@ export const EntityPanelContent = <Category extends string, Item>({
   error,
 }: EntityPanelContentProps<Category, Item>) => {
   if (!tab) {
-    return <div>404</div>;
+    return <Alert severity="error">404</Alert>;
   }
 
   const typeLabel = (tab.label ?? tab.category).toLowerCase();
 
   if (loading) {
-    return <div>Loading {typeLabel}...</div>;
+    return <Typography>Loading {typeLabel}...</Typography>;
   }
 
   if (error) {
-    return <div>{error}</div>;
+    return <Alert severity="error">{error}</Alert>;
   }
 
   if (items.length === 0) {
-    return <div>No {typeLabel} found.</div>;
+    return <Alert severity="info">No {typeLabel} found.</Alert>;
   }
 
   return (
-    <div className="entity-panel-items">
-      <ul>
-        {items.map((item, index) => (
-          <li key={index}>{renderItem(item, tab.category)}</li>
-        ))}
-      </ul>
-    </div>
+    <Stack className="entity-panel-items" component="ul" spacing={1.5}>
+      {items.map((item, index) => (
+        <Box key={index} component="li">
+          {renderItem(item, tab.category)}
+        </Box>
+      ))}
+    </Stack>
   );
 };

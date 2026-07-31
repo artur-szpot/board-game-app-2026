@@ -1,38 +1,44 @@
 import AddIcon from "@mui/icons-material/Add";
 import ClearIcon from "@mui/icons-material/Clear";
 import {
-  Box,
-  Button,
-  IconButton,
-  InputAdornment,
-  TextField,
+    Box,
+    Button,
+    ButtonGroup,
+    IconButton,
+    InputAdornment,
+    Paper,
+    Tab,
+    Tabs,
+    TextField,
+    Typography,
 } from "@mui/material";
 import Pagination from "@mui/material/Pagination";
 import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 
+import { FrameStackScreenWrapper } from "../../components/frames/FrameStackScreenWrapper";
 import { selectAccessToken } from "../../store/features/currentUserSlice";
 import {
-  FrameTypeEnum,
-  openFormFrame,
-  resetToBottomFrame,
-  selectTopFrame,
+    FrameTypeEnum,
+    openFormFrame,
+    resetToBottomFrame,
+    selectTopFrame,
 } from "../../store/features/frameStackSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { FrameStackScreenWrapper } from "../../components/frames/FrameStackScreenWrapper";
 
 import { EntityPanelContent } from "./EntityPanelContent";
 import type {
-  EntityPanelProps,
-  EntityPanelTab,
-  SearchResponse,
+    EntityPanelProps,
+    EntityPanelTab,
+    SearchResponse,
 } from "./entity-panel-types";
 import { DEFAULT_PAGE_SIZE } from "./entity-panel-types";
 
 import "./entity-panel.scss";
 
 const INPUT_STABILITY_IN_MS = 500;
+const PAGE_SIZE_OPTIONS = [3, 10, 50] as const;
 
 const toTitleCase = (value: string) => {
   return value
@@ -68,6 +74,7 @@ export const EntityPanel = <
   const dispatch = useAppDispatch();
   const accessToken = useAppSelector(selectAccessToken);
   const topFrame = useAppSelector(selectTopFrame);
+  const [currentPageSize, setCurrentPageSize] = useState(pageSize);
   const [page, setPage] = useState(0);
   const [items, setItems] = useState<Item[]>([]);
   const [total, setTotal] = useState<number>(0);
@@ -119,7 +126,7 @@ export const EntityPanel = <
                 includeDetail,
                 pagination: {
                   pageNumber: page,
-                  pageSize,
+                  pageSize: currentPageSize,
                 },
               },
               {
@@ -157,7 +164,7 @@ export const EntityPanel = <
   }, [
     activeTab,
     page,
-    pageSize,
+    currentPageSize,
     searchTerm,
     accessToken,
     fetchErrorMessage,
@@ -171,20 +178,9 @@ export const EntityPanel = <
     setPage(0);
   }, [searchTerm]);
 
-  const panelLink = (category: Category) => {
-    const active = content === category;
-    const tab = labelledTabs.find(candidate => candidate.category === category);
-    const routeSegment = tab?.routeSegment ?? category;
-    return (
-      <Link
-        key={category}
-        to={active ? "" : `${basePath}/${routeSegment}`}
-        className={active ? "active" : ""}
-      >
-        {tab?.label ?? category}
-      </Link>
-    );
-  };
+  const selectedTabValue = labelledTabs.some(tab => tab.category === content)
+    ? content
+    : false;
 
   const onAddClick = () => {
     if (!activeTab?.createScreen) {
@@ -198,75 +194,133 @@ export const EntityPanel = <
     setSearchTerm("");
   };
 
-  const totalPages = Math.ceil(total / pageSize);
+  const onPageSizeChange = (nextPageSize: number) => {
+    if (nextPageSize === currentPageSize) {
+      return;
+    }
+
+    const currentTopItemIndex = page * currentPageSize;
+    const nextPage = Math.floor(currentTopItemIndex / nextPageSize);
+    setCurrentPageSize(nextPageSize);
+    setPage(nextPage);
+  };
+
+  const totalPages = Math.ceil(total / currentPageSize);
   const showPagination =
     !loading && !error && Boolean(activeTab) && totalPages > 0;
-  const pageStartItem = total === 0 ? 0 : page * pageSize + 1;
-  const pageEndItem = total === 0 ? 0 : Math.min(total, (page + 1) * pageSize);
+  const pageStartItem = total === 0 ? 0 : page * currentPageSize + 1;
+  const pageEndItem =
+    total === 0 ? 0 : Math.min(total, (page + 1) * currentPageSize);
 
   return (
     <FrameStackScreenWrapper>
-      <div className="entity-panel-nav">
-        <h3>{title}</h3>
-        {labelledTabs.map(tab => panelLink(tab.category))}
-      </div>
-      <div className="entity-panel-content">
-        <Box className="entity-panel-controls">
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={onAddClick}
-            disabled={!activeTab?.createScreen}
+      <Paper className="entity-panel-shell" elevation={5}>
+        <Box className="entity-panel-header">
+          <Typography component="h2" variant="h5">
+            {title}
+          </Typography>
+          <Tabs
+            className="entity-panel-tabs"
+            value={selectedTabValue}
+            variant="scrollable"
+            allowScrollButtonsMobile
           >
-            Add
-          </Button>
-          <TextField
-            className="entity-panel-search"
-            size="small"
-            placeholder="Find..."
-            value={searchTerm}
-            onChange={event => setSearchTerm(event.target.value)}
-            slotProps={{
-              input: {
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      aria-label="Clear search"
-                      onClick={onClearSearch}
-                      edge="end"
-                      size="small"
-                      disabled={searchTerm.length === 0}
-                    >
-                      <ClearIcon fontSize="small" />
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              },
-            }}
-          />
+            {labelledTabs.map(tab => {
+              const routeSegment = tab.routeSegment ?? tab.category;
+              return (
+                <Tab
+                  key={tab.category}
+                  value={tab.category}
+                  label={tab.label ?? tab.category}
+                  component={Link}
+                  to={`${basePath}/${routeSegment}`}
+                />
+              );
+            })}
+          </Tabs>
         </Box>
-        <EntityPanelContent
-          tab={activeTab}
-          items={items}
-          loading={loading}
-          error={error}
-        />
-        {showPagination && (
-          <>
-            <div className="entity-panel-pagination-summary">
-              Showing items {pageStartItem} to {pageEndItem} of {total}
-            </div>
-            <Pagination
-              className="entity-panel-pagination"
-              count={totalPages}
-              page={page + 1}
-              onChange={(_event, nextPage) => setPage(nextPage - 1)}
-              shape="rounded"
-              disabled={totalPages <= 1}
+        <Box className="entity-panel-content">
+          <Box className="entity-panel-controls">
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={onAddClick}
+              disabled={!activeTab?.createScreen}
+            >
+              Add
+            </Button>
+            <TextField
+              className="entity-panel-search"
+              size="small"
+              label="Find"
+              value={searchTerm}
+              onChange={event => setSearchTerm(event.target.value)}
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="Clear search"
+                        onClick={onClearSearch}
+                        edge="end"
+                        size="small"
+                        disabled={searchTerm.length === 0}
+                      >
+                        <ClearIcon fontSize="small" />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                },
+              }}
             />
-          </>
-        )}
-      </div>
+          </Box>
+          <EntityPanelContent
+            tab={activeTab}
+            items={items}
+            loading={loading}
+            error={error}
+          />
+          {showPagination && (
+            <Box className="entity-panel-pagination-row">
+              <Typography
+                className="entity-panel-pagination-summary"
+                variant="body2"
+              >
+                Showing items {pageStartItem} to {pageEndItem} of {total}
+              </Typography>
+              <Pagination
+                className="entity-panel-pagination"
+                count={totalPages}
+                page={page + 1}
+                onChange={(_event, nextPage) => setPage(nextPage - 1)}
+                shape="rounded"
+                disabled={totalPages <= 1}
+              />
+              <Box className="entity-panel-page-size-controls">
+                <Typography variant="body2">Items per page</Typography>
+                <ButtonGroup
+                  size="small"
+                  variant="outlined"
+                  aria-label="Items per page"
+                >
+                  {PAGE_SIZE_OPTIONS.map(option => (
+                    <Button
+                      key={option}
+                      type="button"
+                      variant={
+                        option === currentPageSize ? "contained" : "outlined"
+                      }
+                      onClick={() => onPageSizeChange(option)}
+                    >
+                      {option}
+                    </Button>
+                  ))}
+                </ButtonGroup>
+              </Box>
+            </Box>
+          )}
+        </Box>
+      </Paper>
     </FrameStackScreenWrapper>
   );
 };

@@ -1,35 +1,52 @@
-import type React from "react"
-import { Link } from "react-router"
+import { AppBar, Box, Button, Toolbar } from "@mui/material";
+import type React from "react";
+import { Link as RouterLink } from "react-router";
 
 import {
-  selectAccessToken,
-  selectPermissions,
-} from "../../store/features/currentUserSlice"
-import { useAppSelector } from "../../store/hooks"
+    selectAccessToken,
+    selectPermissions,
+} from "../../store/features/currentUserSlice";
+import { useAppSelector } from "../../store/hooks";
 
-import "./bars.scss"
+import "./bars.scss";
 
 export const Navbar: React.FC = () => {
-  const accessToken = useAppSelector(selectAccessToken)
-  const permissions = useAppSelector(selectPermissions)
+  const accessToken = useAppSelector(selectAccessToken);
+  const permissions = useAppSelector(selectPermissions);
 
   return (
-    <div className="bar navbar">
-      <div className="logo">
-        <Link to="/">
-          <img src="/logo.png" alt={"Logo placeholder"} />
-        </Link>
-      </div>
-      {accessToken ? (
-        <>
-          {permissions?.some(
-            permission => permission.permissionType === "ADMIN_PANEL",
-          ) && <Link to={"/admin/users"}>Admin panel</Link>}
-          <Link to={"/signout"}>Sign out</Link>
-        </>
-      ) : (
-        <Link to={"/signin"}>Sign in</Link>
-      )}
-    </div>
-  )
-}
+    <AppBar position="static" color="primary" className="navbar">
+      <Toolbar>
+        <Box className="logo">
+          <RouterLink to="/">
+            <img src="/logo.png" alt="Logo placeholder" />
+          </RouterLink>
+        </Box>
+        <Box className="nav-actions">
+          {accessToken ? (
+            <>
+              {permissions?.some(
+                permission => permission.permissionType === "ADMIN_PANEL",
+              ) && (
+                <Button
+                  component={RouterLink}
+                  to="/admin/users"
+                  color="inherit"
+                >
+                  Admin panel
+                </Button>
+              )}
+              <Button component={RouterLink} to="/signout" color="inherit">
+                Sign out
+              </Button>
+            </>
+          ) : (
+            <Button component={RouterLink} to="/signin" color="inherit">
+              Sign in
+            </Button>
+          )}
+        </Box>
+      </Toolbar>
+    </AppBar>
+  );
+};
