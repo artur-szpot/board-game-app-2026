@@ -1,8 +1,8 @@
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
-import { GAME_GATEWAY } from './infrastructure/game.gateway';
 import { GameController } from './game.controller';
+import { GAME_GATEWAY } from './infrastructure/game.gateway';
 
 describe('GameController', () => {
   let app: INestApplication;
@@ -22,10 +22,13 @@ describe('GameController', () => {
     }).compile();
 
     app = moduleRef.createNestApplication();
+    app.useGlobalPipes(
+      new ValidationPipe({ transform: true, whitelist: true }),
+    );
     await app.init();
     await app.listen(0);
 
-    const address = (app.getHttpServer()).address();
+    const address = app.getHttpServer().address();
     const port = address?.port || 0;
     baseUrl = `http://127.0.0.1:${port}`;
   });
@@ -43,7 +46,9 @@ describe('GameController', () => {
       id: 'game-1',
       name: 'Catan',
       description: 'Trade and build',
-      length: 'medium',
+      length: 'MEDIUM',
+      minPlayers: 3,
+      maxPlayers: 4,
       createdOn: new Date(),
       updatedOn: new Date(),
     });
@@ -51,17 +56,76 @@ describe('GameController', () => {
     const response = await fetch(`${baseUrl}/game-api/games`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'Catan', description: 'Trade and build', length: 'medium' }),
+      body: JSON.stringify({
+        name: 'Catan',
+        description: 'Trade and build',
+        length: 'MEDIUM',
+        minPlayers: 3,
+        maxPlayers: 4,
+      }),
     });
 
     expect(response.status).toBe(201);
     const payload = await response.json();
-    expect(payload).toEqual(expect.objectContaining({ id: 'game-1', name: 'Catan' }));
+    expect(payload).toEqual(
+      expect.objectContaining({ id: 'game-1', name: 'Catan' }),
+    );
     expect(gateway.create).toHaveBeenCalledWith({
       name: 'Catan',
       description: 'Trade and build',
-      length: 'medium',
+      length: 'MEDIUM',
+      minPlayers: 3,
+      maxPlayers: 4,
     });
+  });
+
+  it('rejects a game create request without minPlayers', async () => {
+    const response = await fetch(`${baseUrl}/game-api/games`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Catan',
+        description: 'Trade and build',
+        length: 'MEDIUM',
+        maxPlayers: 4,
+      }),
+    });
+
+    expect(response.status).toBe(400);
+    expect(gateway.create).not.toHaveBeenCalled();
+  });
+
+  it('rejects a game create request without maxPlayers', async () => {
+    const response = await fetch(`${baseUrl}/game-api/games`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Catan',
+        description: 'Trade and build',
+        length: 'MEDIUM',
+        minPlayers: 3,
+      }),
+    });
+
+    expect(response.status).toBe(400);
+    expect(gateway.create).not.toHaveBeenCalled();
+  });
+
+  it('rejects a game create request when maxPlayers is below minPlayers', async () => {
+    const response = await fetch(`${baseUrl}/game-api/games`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Catan',
+        description: 'Trade and build',
+        length: 'MEDIUM',
+        minPlayers: 4,
+        maxPlayers: 3,
+      }),
+    });
+
+    expect(response.status).toBe(400);
+    expect(gateway.create).not.toHaveBeenCalled();
   });
 
   it('retrieves a game by id endpoint', async () => {
@@ -69,7 +133,9 @@ describe('GameController', () => {
       id: 'game-1',
       name: 'Catan',
       description: 'Trade and build',
-      length: 'medium',
+      length: 'MEDIUM',
+      minPlayers: 3,
+      maxPlayers: 4,
       createdOn: new Date(),
       updatedOn: new Date(),
     });
@@ -78,7 +144,9 @@ describe('GameController', () => {
 
     expect(response.status).toBe(200);
     const payload = await response.json();
-    expect(payload).toEqual(expect.objectContaining({ id: 'game-1', name: 'Catan' }));
+    expect(payload).toEqual(
+      expect.objectContaining({ id: 'game-1', name: 'Catan' }),
+    );
     expect(gateway.getById).toHaveBeenCalledWith('game-1');
   });
 });

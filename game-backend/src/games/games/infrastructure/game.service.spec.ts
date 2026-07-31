@@ -104,20 +104,93 @@ describe('GameService', () => {
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
+  it('rejects non-positive player counts on create', async () => {
+    const service = new GameService(
+      repository,
+      tagGateway,
+      locationGateway,
+      scoringSchemaGateway,
+      helperGateway,
+    );
+
+    await expect(
+      service.create({
+        name: 'Invalid',
+        length: GameLength.SHORT,
+        minPlayers: 0,
+        maxPlayers: 4,
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(repository.createGame).not.toHaveBeenCalled();
+  });
+
+  it('rejects maxPlayers lower than minPlayers on create', async () => {
+    const service = new GameService(
+      repository,
+      tagGateway,
+      locationGateway,
+      scoringSchemaGateway,
+      helperGateway,
+    );
+
+    await expect(
+      service.create({
+        name: 'Invalid',
+        length: GameLength.SHORT,
+        minPlayers: 4,
+        maxPlayers: 3,
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(repository.createGame).not.toHaveBeenCalled();
+  });
+
+  it('rejects maxPlayers lower than the existing minPlayers on update', async () => {
+    repository.getGameById.mockResolvedValue({
+      id: 'game-1',
+      name: 'Terraforming Mars',
+      description: null,
+      length: GameLength.LONG,
+      minPlayers: 2,
+      maxPlayers: 5,
+      tagIds: [],
+      locations: [],
+      scoringSchemaIds: [],
+      helperIds: [],
+      createdOn: new Date('2026-01-01T00:00:00.000Z'),
+      updatedOn: new Date('2026-01-02T00:00:00.000Z'),
+    });
+
+    const service = new GameService(
+      repository,
+      tagGateway,
+      locationGateway,
+      scoringSchemaGateway,
+      helperGateway,
+    );
+
+    await expect(
+      service.update('game-1', {
+        maxPlayers: 1,
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(repository.updateGame).not.toHaveBeenCalled();
+  });
+
   it('maps linking-table ids into response collections', async () => {
     tagGateway.getByIds = jest
       .fn()
       .mockResolvedValue([
         { id: 'tag-1', name: 'Tag 1', description: undefined },
       ]);
-    locationGateway.getByIds = jest
-      .fn()
-      .mockResolvedValue([
-        {
-          id: 'location-1',
-          path: [{ name: 'Test Location', id: 'location-1' }],
-        },
-      ]);
+    locationGateway.getByIds = jest.fn().mockResolvedValue([
+      {
+        id: 'location-1',
+        path: [{ name: 'Test Location', id: 'location-1' }],
+      },
+    ]);
     repository.getGameById.mockResolvedValue({
       id: 'game-1',
       name: 'Terraforming Mars',
