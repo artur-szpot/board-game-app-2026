@@ -1,3 +1,4 @@
+import { Paper, Stack, Typography } from "@mui/material";
 import axios from "axios";
 import type { ChangeEvent, FC } from "react";
 import { useCallback, useEffect, useState } from "react";
@@ -5,12 +6,12 @@ import { useCallback, useEffect, useState } from "react";
 import { getFormScreenCustomMappings } from "../../store/features/formScreenCustomMappingRegistry";
 import { resultMapper } from "../../store/features/frame-actions";
 import type {
-  FrameCallbackContent,
-  FrameCallbackReceiver,
+    FrameCallbackContent,
+    FrameCallbackReceiver,
 } from "../../store/features/frameStackSlice";
 import {
-  addCallbackReceiverToTopFrame,
-  closeFrame,
+    addCallbackReceiverToTopFrame,
+    closeFrame,
 } from "../../store/features/frameStackSlice";
 import { useAppDispatch } from "../../store/hooks";
 import { FormFieldType } from "../forms/common";
@@ -20,16 +21,16 @@ import { FormSearchField } from "../forms/FormSearchField";
 import { FormTextField } from "../forms/FormTextField";
 import { MainActions } from "../MainActions";
 import {
-  mapFormValuesToResults,
-  type FormScreenField,
-  type FormScreenPropsFull,
-  type FormScreenValues,
+    mapFormValuesToResults,
+    type FormScreenField,
+    type FormScreenPropsFull,
+    type FormScreenValues,
 } from "./FormScreenProps";
 import {
-  isSameSelectionResult,
-  isSelectionCorrect,
-  type SelectionResult,
-  type SelectionScreenProps,
+    isSameSelectionResult,
+    isSelectionCorrect,
+    type SelectionResult,
+    type SelectionScreenProps,
 } from "./selection-strategies";
 
 const formScreenDraftCache = new Map<string, FormScreenValues>();
@@ -353,118 +354,128 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
 
   return (
     <div className="form-screen">
-      <section aria-label={`form screen`}>
-        <h2>{title}</h2>
-        {Object.values(fields).map(field => {
-          switch (field.kind) {
-            case FormFieldType.TEXT:
-              return (
-                <FormTextField
-                  key={field.name}
-                  {...field}
-                  value={stringValues[field.name]}
-                  onChange={handleStringChange(field.name)}
-                />
-              );
-            case FormFieldType.OPTIONS:
-              return (
-                <FormOptionsField
-                  key={field.name}
-                  {...field}
-                  currentSelection={selectionValues[field.name]}
-                  selectionChangeEmitter={selectionChangeReceiver(field.name)}
-                  onAdditionalStringFieldChange={(
-                    item,
-                    additionalFieldName,
-                    event,
-                  ) =>
-                    handleAdditionalStringFieldChange(
-                      field.name,
-                      item,
-                      additionalFieldName,
-                    )(event)
-                  }
-                  onAdditionalBooleanFieldChange={(
-                    item,
-                    additionalFieldName,
-                    event,
-                  ) =>
-                    handleAdditionalBooleanFieldChange(
-                      field.name,
-                      item,
-                      additionalFieldName,
-                    )(event)
-                  }
-                  params={{
-                    ...field.params,
-                    options: field.params.options.map(option => ({
-                      ...option,
-                      chosen: selectionValues[field.name].some(
-                        sv =>
-                          sv.type === field.params.dataType &&
-                          sv.value === option.value,
-                      ),
-                    })),
-                  }}
-                />
-              );
-            case FormFieldType.SEARCH:
-              return (
-                <FormSearchField
-                  key={field.name}
-                  {...field}
-                  selectionChangeEmitter={selectionChangeReceiver(field.name)}
-                  currentSelection={selectionValues[field.name]}
-                  onAdditionalStringFieldChange={(
-                    item,
-                    additionalFieldName,
-                    event,
-                  ) =>
-                    handleAdditionalStringFieldChange(
-                      field.name,
-                      item,
-                      additionalFieldName,
-                    )(event)
-                  }
-                  onAdditionalBooleanFieldChange={(
-                    item,
-                    additionalFieldName,
-                    event,
-                  ) =>
-                    handleAdditionalBooleanFieldChange(
-                      field.name,
-                      item,
-                      additionalFieldName,
-                    )(event)
-                  }
-                  params={{
-                    ...field.params,
-                    currentSelection: selectionValues[field.name],
-                  }}
-                />
-              );
-            case FormFieldType.CHECKBOX:
-              return (
-                <FormCheckboxField
-                  key={field.name}
-                  {...field}
-                  checked={booleanValues[field.name]}
-                  onChange={handleBooleanChange(field.name)}
-                />
-              );
-          }
-        })}
-        <MainActions
-          confirmEnabled={isConfirmEnabled()}
-          confirmCallback={() => {
-            void dispatchResults({
-              stringValues,
-              booleanValues,
-              selectionValues,
-            });
-          }}
-          frameId={frameId}
-        />
+      <section aria-label="form screen" className="form-screen-section">
+        <Paper className="form-screen-card" elevation={8}>
+          <Stack spacing={2.5}>
+            <Typography component="h2" variant="h5">
+              {title}
+            </Typography>
+            {Object.values(fields).map(field => {
+              switch (field.kind) {
+                case FormFieldType.TEXT:
+                  return (
+                    <FormTextField
+                      key={field.name}
+                      {...field}
+                      value={stringValues[field.name]}
+                      onChange={handleStringChange(field.name)}
+                    />
+                  );
+                case FormFieldType.OPTIONS:
+                  return (
+                    <FormOptionsField
+                      key={field.name}
+                      {...field}
+                      currentSelection={selectionValues[field.name]}
+                      selectionChangeEmitter={selectionChangeReceiver(
+                        field.name,
+                      )}
+                      onAdditionalStringFieldChange={(
+                        item,
+                        additionalFieldName,
+                        event,
+                      ) =>
+                        handleAdditionalStringFieldChange(
+                          field.name,
+                          item,
+                          additionalFieldName,
+                        )(event)
+                      }
+                      onAdditionalBooleanFieldChange={(
+                        item,
+                        additionalFieldName,
+                        event,
+                      ) =>
+                        handleAdditionalBooleanFieldChange(
+                          field.name,
+                          item,
+                          additionalFieldName,
+                        )(event)
+                      }
+                      params={{
+                        ...field.params,
+                        options: field.params.options.map(option => ({
+                          ...option,
+                          chosen: selectionValues[field.name].some(
+                            sv =>
+                              sv.type === field.params.dataType &&
+                              sv.value === option.value,
+                          ),
+                        })),
+                      }}
+                    />
+                  );
+                case FormFieldType.SEARCH:
+                  return (
+                    <FormSearchField
+                      key={field.name}
+                      {...field}
+                      selectionChangeEmitter={selectionChangeReceiver(
+                        field.name,
+                      )}
+                      currentSelection={selectionValues[field.name]}
+                      onAdditionalStringFieldChange={(
+                        item,
+                        additionalFieldName,
+                        event,
+                      ) =>
+                        handleAdditionalStringFieldChange(
+                          field.name,
+                          item,
+                          additionalFieldName,
+                        )(event)
+                      }
+                      onAdditionalBooleanFieldChange={(
+                        item,
+                        additionalFieldName,
+                        event,
+                      ) =>
+                        handleAdditionalBooleanFieldChange(
+                          field.name,
+                          item,
+                          additionalFieldName,
+                        )(event)
+                      }
+                      params={{
+                        ...field.params,
+                        currentSelection: selectionValues[field.name],
+                      }}
+                    />
+                  );
+                case FormFieldType.CHECKBOX:
+                  return (
+                    <FormCheckboxField
+                      key={field.name}
+                      {...field}
+                      checked={booleanValues[field.name]}
+                      onChange={handleBooleanChange(field.name)}
+                    />
+                  );
+              }
+            })}
+            <MainActions
+              confirmEnabled={isConfirmEnabled()}
+              confirmCallback={() => {
+                void dispatchResults({
+                  stringValues,
+                  booleanValues,
+                  selectionValues,
+                });
+              }}
+              frameId={frameId}
+            />
+          </Stack>
+        </Paper>
       </section>
     </div>
   );

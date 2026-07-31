@@ -1,3 +1,4 @@
+import { Button, Stack } from "@mui/material";
 import { type FC } from "react";
 import { closeFrame } from "../store/features/frameStackSlice";
 import { useAppDispatch } from "../store/hooks";
@@ -10,7 +11,6 @@ export type MainActionsProps = {
   confirmCallback: () => void;
 };
 
-// TODO: make the buttons pretty
 export const MainActions: FC<MainActionsProps> = ({
   frameId,
   allowShuffle = false,
@@ -21,34 +21,36 @@ export const MainActions: FC<MainActionsProps> = ({
   const dispatch = useAppDispatch();
 
   return (
-    <div className="main-actions">
-      <button
-        key={"cancel"}
+    <Stack className="main-actions" direction="row" spacing={1.25}>
+      <Button
+        variant="outlined"
+        color="inherit"
         type="button"
         onClick={() => dispatch(closeFrame({ id: frameId }))}
       >
         Cancel
-      </button>
+      </Button>
       {allowShuffle && (
-        <button
-          key={"shuffle"}
+        <Button
+          variant="outlined"
+          color="inherit"
           type="button"
           // TODO: create the shuffle action
           onClick={() => null}
         >
           Shuffle
-        </button>
+        </Button>
       )}
       {allowConfirm && (
-        <button
-          key={"confirm"}
+        <Button
+          variant="contained"
           type="button"
           disabled={!confirmEnabled}
           onClick={confirmCallback}
         >
           Confirm
-        </button>
+        </Button>
       )}
-    </div>
+    </Stack>
   );
 };

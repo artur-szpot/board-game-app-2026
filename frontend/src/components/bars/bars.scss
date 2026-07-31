@@ -1,46 +1,64 @@
-@use "color-scheme";
-
-div.bar {
+.navbar {
   width: 100%;
-  background-color: color-scheme.$background-bars;
-  display: flex;
-  flex-grow: 0;
-  color: color-scheme.$text-bars;
 
-  a {
-    color: color-scheme.$text-bars;
-    align-self: center;
-    svg:hover {
-      color: color-scheme.$icon-shadow-bars;
-    }
+  .MuiToolbar-root {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 64px;
   }
-}
 
-div.navbar {
-  div.logo {
+  .logo {
+    flex: 1 1 auto;
+    min-width: 0;
+
+    a {
+      display: inline-flex;
+      align-items: center;
+      line-height: 0;
+    }
+
     img {
-      height: 50px;
+      display: block;
+      max-height: 44px;
+      max-width: 160px;
       width: auto;
+      object-fit: contain;
     }
-    flex-grow: 1;
   }
 
-  a {
-    margin: 0 1em;
+  .nav-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+
+    .MuiButton-root {
+      min-width: 0;
+      white-space: nowrap;
+      padding-inline: 0.6rem;
+    }
   }
 }
 
-div.footer {
-  box-sizing: border-box;
-  padding: 0 0.8em;
+@media (max-width: 700px) {
+  .navbar {
+    .logo img {
+      max-height: 38px;
+      max-width: 132px;
+    }
 
-  p {
-    flex-grow: 1;
-  }
+    .nav-actions {
+      gap: 0.15rem;
 
-  a {
-    &:not(:last-child) {
-      margin: 0 1em;
+      .MuiButton-root {
+        padding-inline: 0.45rem;
+      }
     }
   }
+}
+
+footer.footer {
+  width: 100%;
+  box-sizing: border-box;
 }

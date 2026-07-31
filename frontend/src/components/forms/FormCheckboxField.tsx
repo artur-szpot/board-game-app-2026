@@ -1,3 +1,4 @@
+import { Checkbox, FormControlLabel } from "@mui/material";
 import type { ChangeEvent, FC } from "react";
 
 import { FormFieldType, type FormFieldProps } from "./common";
@@ -33,15 +34,11 @@ export const FormCheckboxField: FC<FormFieldCheckboxPropsFull> = ({
   onChange,
 }: FormFieldCheckboxPropsFull) => (
   <div className="form-checkbox">
-    <label htmlFor={name}>
-      {label}
-      <input
-        id={name}
-        name={name}
-        type="checkbox"
-        checked={checked}
-        onChange={onChange}
-      />
-    </label>
+    <FormControlLabel
+      control={
+        <Checkbox id={name} name={name} checked={checked} onChange={onChange} />
+      }
+      label={label}
+    />
   </div>
 );

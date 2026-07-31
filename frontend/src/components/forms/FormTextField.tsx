@@ -1,3 +1,4 @@
+import { TextField } from "@mui/material";
 import type { ChangeEvent, FC } from "react";
 
 import type { FormFieldProps } from "./common";
@@ -67,20 +68,23 @@ export const FormTextField: FC<FormFieldTextPropsFull> = ({
   value,
 }: FormFieldTextPropsFull) => (
   <div className="form-text">
-    <label htmlFor={name}>
-      {label}
-      <input
-        id={name}
-        name={name}
-        type={
-          resultMapping === FormTextResultMappingStrategy.NUMBER
-            ? "number"
-            : "text"
-        }
-        value={value}
-        required={required}
-        onChange={onChange}
-      />
-    </label>
+    <TextField
+      fullWidth
+      id={name}
+      name={name}
+      label={label}
+      type={
+        resultMapping === FormTextResultMappingStrategy.NUMBER
+          ? "number"
+          : "text"
+      }
+      value={value}
+      onChange={onChange}
+      slotProps={{
+        htmlInput: {
+          required,
+        },
+      }}
+    />
   </div>
 );

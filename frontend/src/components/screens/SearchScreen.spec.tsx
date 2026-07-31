@@ -7,9 +7,9 @@ import { buildChoiceMadeFromItems } from "../../store/features/frame-actions";
 import { closeFrame } from "../../store/features/frameStackSlice";
 import { SearchScreen } from "./SearchScreen";
 import {
-  GameDataType,
-  selectionStrategyChooseOne,
-  selectionStrategySelectNumber,
+    GameDataType,
+    selectionStrategyChooseOne,
+    selectionStrategySelectNumber,
 } from "./selection-strategies";
 
 const mockDispatch = vi.fn();
@@ -69,14 +69,12 @@ describe("SearchScreen", () => {
       },
     );
 
-    expect(
-      screen.getByRole("button", { name: "Brass (game)" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Brass" })).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Confirm" }),
     ).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Brass (game)" }));
+    fireEvent.click(screen.getByRole("button", { name: "Brass" }));
 
     expect(mockDispatch).toHaveBeenCalledWith(
       closeFrame({
@@ -121,10 +119,10 @@ describe("SearchScreen", () => {
     });
 
     expect(
-      screen.getByRole("button", { name: "Tie Break (helper)" }),
+      screen.getByRole("button", { name: "Tie Break" }),
     ).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Tie Break (helper)" }));
+    fireEvent.click(screen.getByRole("button", { name: "Tie Break" }));
 
     expect(confirmButton).toBeEnabled();
 

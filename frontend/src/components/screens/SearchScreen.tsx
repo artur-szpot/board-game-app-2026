@@ -1,3 +1,14 @@
+import {
+    Chip,
+    List,
+    ListItem,
+    ListItemButton,
+    ListItemIcon,
+    ListItemText,
+    Stack,
+    TextField,
+    Typography,
+} from "@mui/material";
 import axios from "axios";
 import type { ChangeEvent, FC } from "react";
 import { useEffect, useState } from "react";
@@ -9,13 +20,14 @@ import { MainActions } from "../MainActions";
 import type { SearchScreenPropsFull } from "./SearchScreenProps";
 import type { SearchResult } from "./selection-strategies";
 import {
-  isConfirmAllowed,
-  isSameSelectionResult,
-  isSelectionCorrect,
-  SelectionStrategyEnum,
-  type SelectionResult,
-  type SelectionStrategy,
+    isConfirmAllowed,
+    isSameSelectionResult,
+    isSelectionCorrect,
+    SelectionStrategyEnum,
+    type SelectionResult,
+    type SelectionStrategy,
 } from "./selection-strategies";
+import { typeIcon } from "./type-icon";
 
 const INPUT_STABILITY_IN_MS = 500;
 
@@ -106,32 +118,73 @@ export const SearchScreen: FC<SearchScreenPropsFull> = ({
   // TODO: add a loader for when API call is being made
   return (
     <div className="search-screen">
-      <section aria-label={`search screen`}>
-        <h2>{title}</h2>
-        <input
-          aria-label={`Search term`}
-          value={searchTerm}
-          onChange={handleChange}
-        />
-        <ul>
-          {results.length === 0 && <p>No matching results found</p>}
-          {results.map(result => (
-            <li key={`${result.type}:${result.value}`}>
-              <button type="button" onClick={() => onOptionClick(result)}>
-                {strategy.strategy === SelectionStrategyEnum.SELECT_MULTIPLE &&
-                  chosen.some(c => isSameSelectionResult(c, result)) &&
-                  "[CHOSEN]"}
-                {result.name} ({result.type})
-              </button>
-            </li>
-          ))}
-        </ul>
-        <MainActions
-          allowConfirm={isConfirmAllowed(strategy)}
-          confirmEnabled={isSelectionCorrect(strategy, chosen.length)}
-          confirmCallback={() => dispatchResults(chosen)}
-          frameId={frameId}
-        />
+      <section aria-label="search screen">
+        <Stack spacing={2}>
+          <Typography component="h2" variant="h5">
+            {title}
+          </Typography>
+          <TextField
+            label="Search term"
+            value={searchTerm}
+            onChange={handleChange}
+          />
+          <List>
+            {results.length === 0 && (
+              <ListItem>
+                <Typography
+                  component="p"
+                  variant="body2"
+                  color="text.secondary"
+                >
+                  No matching results found
+                </Typography>
+              </ListItem>
+            )}
+            {results.map(result => (
+              <ListItem key={`${result.type}:${result.value}`} disablePadding>
+                <ListItemButton
+                  onClick={() => onOptionClick(result)}
+                  aria-label={`${
+                    strategy.strategy ===
+                      SelectionStrategyEnum.SELECT_MULTIPLE &&
+                    chosen.some(c => isSameSelectionResult(c, result))
+                      ? "[CHOSEN]"
+                      : ""
+                  }${result.name}`}
+                >
+                  {strategy.strategy ===
+                    SelectionStrategyEnum.SELECT_MULTIPLE &&
+                    chosen.some(c => isSameSelectionResult(c, result)) && (
+                      <Chip
+                        label="CHOSEN"
+                        color="secondary"
+                        size="small"
+                        sx={{ mr: 1 }}
+                      />
+                    )}
+                  <ListItemIcon sx={{ minWidth: 30, color: "inherit" }}>
+                    {typeIcon(result.type)}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={`${
+                      strategy.strategy ===
+                        SelectionStrategyEnum.SELECT_MULTIPLE &&
+                      chosen.some(c => isSameSelectionResult(c, result))
+                        ? "[CHOSEN]"
+                        : ""
+                    }${result.name}`}
+                  />
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
+          <MainActions
+            allowConfirm={isConfirmAllowed(strategy)}
+            confirmEnabled={isSelectionCorrect(strategy, chosen.length)}
+            confirmCallback={() => dispatchResults(chosen)}
+            frameId={frameId}
+          />
+        </Stack>
       </section>
     </div>
   );
