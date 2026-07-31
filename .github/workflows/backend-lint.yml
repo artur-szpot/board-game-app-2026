@@ -1,24 +1,24 @@
-name: PR CI / Backend lint
+name: PR CI / Game backend lint
 
 on:
   pull_request:
     paths:
-      - 'backend/**'
-      - '.github/workflows/backend-lint.yml'
+      - "game-backend/**"
+      - ".github/workflows/backend-lint.yml"
   push:
     branches:
       - main
     paths:
-      - 'backend/**'
-      - '.github/workflows/backend-lint.yml'
+      - "game-backend/**"
+      - ".github/workflows/backend-lint.yml"
 
 jobs:
   lint:
-    name: Backend lint
+    name: Game backend lint
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: backend
+        working-directory: game-backend
 
     steps:
       - name: Checkout repository
@@ -29,7 +29,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: backend/package-lock.json
+          cache-dependency-path: game-backend/package-lock.json
 
       - name: Install backend dependencies
         run: npm ci

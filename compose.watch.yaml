@@ -1,7 +1,7 @@
 services:
-  backend:
+  game-backend:
     build:
-      context: backend
+      context: game-backend
     env_file:
       - ./secrets/backend.env
     environment:
@@ -12,8 +12,23 @@ services:
     depends_on:
       - db
     volumes:
-      - ./backend:/app
-      - backend-node-modules:/app/node_modules
+      - ./game-backend:/app
+      - game-backend-node-modules:/app/node_modules
+
+  randomizer-backend:
+    build:
+      context: randomizer-backend
+    env_file:
+      - ./secrets/backend.env
+    environment:
+      PORT: 3003
+    ports:
+      - 3003:3003
+    depends_on:
+      - db
+    volumes:
+      - ./randomizer-backend:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 3003 --reload
 
   frontend:
     build:
@@ -55,5 +70,5 @@ secrets:
 
 volumes:
   db-volume:
-  backend-node-modules:
+  game-backend-node-modules:
   frontend-node-modules:
