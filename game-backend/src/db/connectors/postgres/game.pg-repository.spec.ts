@@ -1,6 +1,6 @@
 import { CustomNotFoundError } from '@common/errors/service-errors';
-import { PostgresGameRepository } from './game.pg-repository';
 import { GameLength } from '../../../games/games/dto/in/game-length.enum';
+import { PostgresGameRepository } from './game.pg-repository';
 
 describe('PostgresGameRepository', () => {
   let connector: any;
@@ -42,22 +42,22 @@ describe('PostgresGameRepository', () => {
       minPlayers: 2,
       maxPlayers: 4,
       tagIds: ['tag-1'],
-      locations: [{ locationId: 'location-1', note: 'shelf-2' }],
+      locations: [
+        { locationId: 'location-1', note: 'shelf-2', isGameId: false },
+        { locationId: 'game-2', note: 'same crate', isGameId: true },
+      ],
       locationIds: ['location-1'],
       scoringSchemaIds: ['schema-1'],
       helperIds: ['helper-1'],
       createdOn: new Date(),
       updatedOn: new Date(),
     };
-    connection.query
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [created] })
-      .mockResolvedValueOnce({ rows: [] });
+    connection.query.mockImplementation((sql: string) => {
+      if (String(sql).includes('FROM games')) {
+        return Promise.resolve({ rows: [created] });
+      }
+      return Promise.resolve({ rows: [] });
+    });
 
     await expect(
       repository.createGame({
@@ -67,7 +67,10 @@ describe('PostgresGameRepository', () => {
         minPlayers: 2,
         maxPlayers: 4,
         tagIds: ['tag-1'],
-        locations: [{ locationId: 'location-1', note: 'shelf-2' }],
+        locations: [
+          { locationId: 'location-1', note: 'shelf-2', isGameId: false },
+          { locationId: 'game-2', note: 'same crate', isGameId: true },
+        ],
         scoringSchemaIds: ['schema-1'],
         helperIds: ['helper-1'],
       }),
@@ -109,6 +112,23 @@ describe('PostgresGameRepository', () => {
     );
     expect(parsedCreateLocations).toEqual([
       { location_id: 'location-1', note: 'shelf-2' },
+    ]);
+
+    const createGameLocationsCall = connection.query.mock.calls.find(
+      (call: any[]) =>
+        String(call[0]).includes('INSERT INTO game_game_locations') &&
+        call[1]?.[0] === createdGameId,
+    );
+    const parsedCreateGameLocations = JSON.parse(
+      createGameLocationsCall?.[1]?.[1],
+    );
+
+    expect(connection.query).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO game_game_locations'),
+      [createdGameId, expect.any(String)],
+    );
+    expect(parsedCreateGameLocations).toEqual([
+      { location_id: 'game-2', note: 'same crate' },
     ]);
     expect(connection.query).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO game_scoring_schemas'),
@@ -186,7 +206,10 @@ describe('PostgresGameRepository', () => {
       minPlayers: 2,
       maxPlayers: 6,
       tagIds: ['tag-1'],
-      locations: [{ locationId: 'location-1', note: 'cabinet A' }],
+      locations: [
+        { locationId: 'location-1', note: 'cabinet A', isGameId: false },
+        { locationId: 'game-3', note: 'nested with expansion', isGameId: true },
+      ],
       locationIds: ['location-1'],
       scoringSchemaIds: ['schema-1'],
       helperIds: ['helper-1'],
@@ -194,19 +217,12 @@ describe('PostgresGameRepository', () => {
       updatedOn: new Date(),
     };
 
-    connection.query
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [updated] })
-      .mockResolvedValueOnce({ rows: [] });
+    connection.query.mockImplementation((sql: string) => {
+      if (String(sql).includes('FROM games')) {
+        return Promise.resolve({ rows: [updated] });
+      }
+      return Promise.resolve({ rows: [] });
+    });
 
     await expect(
       repository.updateGame('game-1', {
@@ -216,7 +232,14 @@ describe('PostgresGameRepository', () => {
         minPlayers: 2,
         maxPlayers: 6,
         tagIds: ['tag-1'],
-        locations: [{ locationId: 'location-1', note: 'cabinet A' }],
+        locations: [
+          { locationId: 'location-1', note: 'cabinet A', isGameId: false },
+          {
+            locationId: 'game-3',
+            note: 'nested with expansion',
+            isGameId: true,
+          },
+        ],
         scoringSchemaIds: ['schema-1'],
         helperIds: ['helper-1'],
       }),
@@ -239,6 +262,10 @@ describe('PostgresGameRepository', () => {
       expect.stringContaining('DELETE FROM game_locations'),
       ['game-1'],
     );
+    expect(connection.query).toHaveBeenCalledWith(
+      expect.stringContaining('DELETE FROM game_game_locations'),
+      ['game-1'],
+    );
 
     const updateLocationsCall = connection.query.mock.calls.find(
       (call: any[]) =>
@@ -253,6 +280,23 @@ describe('PostgresGameRepository', () => {
     );
     expect(parsedUpdateLocations).toEqual([
       { location_id: 'location-1', note: 'cabinet A' },
+    ]);
+
+    const updateGameLocationsCall = connection.query.mock.calls.find(
+      (call: any[]) =>
+        String(call[0]).includes('INSERT INTO game_game_locations') &&
+        call[1]?.[0] === 'game-1',
+    );
+    const parsedUpdateGameLocations = JSON.parse(
+      updateGameLocationsCall?.[1]?.[1],
+    );
+
+    expect(connection.query).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO game_game_locations'),
+      ['game-1', expect.any(String)],
+    );
+    expect(parsedUpdateGameLocations).toEqual([
+      { location_id: 'game-3', note: 'nested with expansion' },
     ]);
     expect(connection.query).toHaveBeenCalledWith(
       expect.stringContaining('DELETE FROM game_scoring_schemas'),

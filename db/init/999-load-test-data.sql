@@ -107,4 +107,14 @@ SET
 	note = EXCLUDED.note,
 	updated_on = CURRENT_TIMESTAMP;
 
+INSERT INTO game_game_locations (game_id, location_id, note)
+VALUES
+	('test-game-10', 'test-game-01', 'Stored in the same crate as Test Game 01.'),
+	('test-game-08', 'test-game-03', 'Kept together with Test Game 03 expansion pieces.')
+ON CONFLICT (game_id, location_id)
+DO UPDATE
+SET
+	note = EXCLUDED.note,
+	updated_on = CURRENT_TIMESTAMP;
+
 COMMIT;

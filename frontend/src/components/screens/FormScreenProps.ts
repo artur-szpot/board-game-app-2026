@@ -2,7 +2,10 @@ import { FormFieldType } from "../forms/common";
 import type { FormFieldCheckboxProps } from "../forms/FormCheckboxField";
 import type { FormFieldOptionsProps } from "../forms/FormOptionsField";
 import type { FormFieldSearchProps } from "../forms/FormSearchField";
-import type { FormFieldTextProps } from "../forms/FormTextField";
+import {
+  FormTextResultMappingStrategy,
+  type FormFieldTextProps,
+} from "../forms/FormTextField";
 import type { SelectionResult } from "./selection-strategies";
 import { ResultMappingStrategy } from "./selection-strategies";
 
@@ -12,7 +15,7 @@ export type FormScreenValues = {
   selectionValues: Record<string, SelectionResult[]>;
 };
 
-export type FormScreenResult = string | boolean | object;
+export type FormScreenResult = string | number | boolean | object;
 
 export type FormFieldCustomMappings = Record<
   string,
@@ -30,9 +33,26 @@ export const mapFormValuesToResults = (
   customMappings?: FormFieldCustomMappings,
 ): FormScreenResults => {
   const mapped: FormScreenResults = {};
-  Object.entries(values.stringValues).forEach(
-    ([name, value]) => (mapped[name] = value),
-  );
+  fields
+    .filter(
+      (field): field is FormFieldTextProps => field.kind === FormFieldType.TEXT,
+    )
+    .forEach(field => {
+      const value = values.stringValues[field.name];
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      if (value === undefined) {
+        return;
+      }
+      switch (field.resultMapping) {
+        case FormTextResultMappingStrategy.NUMBER:
+          mapped[field.name] = value.trim().length > 0 ? Number(value) : 0;
+          break;
+        case FormTextResultMappingStrategy.STRING:
+        default:
+          mapped[field.name] = value;
+          break;
+      }
+    });
   Object.entries(values.booleanValues).forEach(
     ([name, value]) => (mapped[name] = value),
   );
