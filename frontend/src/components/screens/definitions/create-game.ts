@@ -1,7 +1,10 @@
 import { GameLength } from "../../../dto/game-length.enum";
 import { formOptions } from "../../forms/FormOptionsField";
 import { formSearch } from "../../forms/FormSearchField";
-import { formText } from "../../forms/FormTextField";
+import {
+  formNumber,
+  formText
+} from "../../forms/FormTextField";
 import type { FormScreenProps } from "../FormScreenProps";
 import type { SelectionResult } from "../selection-strategies";
 import {
@@ -24,6 +27,16 @@ export const createGameScreen: FormScreenProps = {
     formText({
       name: "description",
       label: "Description",
+    }),
+    formNumber({
+      name: "minPlayers",
+      label: "Minimum players",
+      initialValue: 2,
+    }),
+    formNumber({
+      name: "maxPlayers",
+      label: "Maximum players",
+      initialValue: 4,
     }),
     formOptions({
       name: "length",
@@ -59,6 +72,9 @@ export const createGameScreen: FormScreenProps = {
       customMapping: (item: SelectionResult) => ({
         locationId: item.value,
         isGameId: item.type === GameDataType.GAME,
+        ...(item.additionalStringFields?.note && {
+          note: item.additionalStringFields.note,
+        }),
       }),
       params: {
         dataTypes: [GameDataType.LOCATION, GameDataType.GAME],

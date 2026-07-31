@@ -122,14 +122,19 @@ export class GameService implements GameGateway {
     };
 
     const tagIds = (game as GameDto & { tagIds?: string[] }).tagIds ?? [];
-    const locationIds = (game.locations ?? []).map((location) => location.locationId);
-    const locationResponses = await this.locationGateway.getByIds(locationIds);
+    const locationIds = (game.locations ?? [])
+      .filter((location) => !location.isGameId)
+      .map((location) => location.locationId);
+    const locationResponses = locationIds.length
+      ? await this.locationGateway.getByIds(locationIds)
+      : [];
     const locations = (game.locations ?? []).map((location) => {
       const locationResponse = locationResponses.find(
         (response) => response.id === location.locationId,
       );
       return {
         ...location,
+        isGameId: location.isGameId ?? false,
         path: locationResponse?.path ?? [],
       };
     });

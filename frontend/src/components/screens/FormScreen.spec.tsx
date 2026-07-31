@@ -13,7 +13,10 @@ import {
 import { formCheckbox } from "../forms/FormCheckboxField";
 import { formOptions } from "../forms/FormOptionsField";
 import { formSearch } from "../forms/FormSearchField";
-import { formText } from "../forms/FormTextField";
+import {
+  formNumber,
+  formText
+} from "../forms/FormTextField";
 import { FormScreen } from "./FormScreen";
 import type { FormScreenPropsFull } from "./FormScreenProps";
 import {
@@ -83,6 +86,11 @@ describe("FormScreen", () => {
         action="some/url"
         fields={[
           formText({ name: "title", label: "Title", required: true }),
+          formNumber({
+            name: "minPlayers",
+            label: "Minimum players",
+            required: true,
+          }),
           formCheckbox({
             name: "published",
             label: "Published",
@@ -117,6 +125,9 @@ describe("FormScreen", () => {
     expect(confirmButton).toBeDisabled();
 
     await user.type(screen.getByLabelText("Title"), "Brass");
+    const minPlayersInput = screen.getByLabelText("Minimum players");
+    expect(minPlayersInput).toHaveAttribute("type", "number");
+    await user.type(minPlayersInput, "4");
     await user.click(screen.getByLabelText("Published"));
     await user.click(screen.getByRole("button", { name: "Choose" }));
     await user.click(
@@ -158,6 +169,14 @@ describe("FormScreen", () => {
     expect(confirmButton).toBeEnabled();
 
     await user.click(confirmButton);
+
+    const requestConfig: unknown = mockedAxios.mock.calls[0]?.[0];
+    expect(requestConfig).toMatchObject({
+      data: {
+        title: "Brass",
+        minPlayers: 4,
+      },
+    });
 
     expect(mockDispatch).toHaveBeenLastCalledWith(
       closeFrame({

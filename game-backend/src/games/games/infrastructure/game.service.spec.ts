@@ -105,12 +105,19 @@ describe('GameService', () => {
   });
 
   it('maps linking-table ids into response collections', async () => {
-    tagGateway.getByIds = jest.fn().mockResolvedValue([
-      { id: 'tag-1', name: 'Tag 1', description: undefined },
-    ]);
-    locationGateway.getByIds = jest.fn().mockResolvedValue([
-      { id: 'location-1', path: [{ name: 'Test Location', id: 'location-1' }] },
-    ]);
+    tagGateway.getByIds = jest
+      .fn()
+      .mockResolvedValue([
+        { id: 'tag-1', name: 'Tag 1', description: undefined },
+      ]);
+    locationGateway.getByIds = jest
+      .fn()
+      .mockResolvedValue([
+        {
+          id: 'location-1',
+          path: [{ name: 'Test Location', id: 'location-1' }],
+        },
+      ]);
     repository.getGameById.mockResolvedValue({
       id: 'game-1',
       name: 'Terraforming Mars',
@@ -119,7 +126,10 @@ describe('GameService', () => {
       minPlayers: 2,
       maxPlayers: 5,
       tagIds: ['tag-1'],
-      locations: [{ locationId: 'location-1', note: 'top shelf' }],
+      locations: [
+        { locationId: 'location-1', note: 'top shelf', isGameId: false },
+        { locationId: 'game-2', note: 'stored with base game', isGameId: true },
+      ],
       locationIds: ['location-1'],
       scoringSchemaIds: ['schema-1'],
       helperIds: ['helper-1'],
@@ -143,7 +153,18 @@ describe('GameService', () => {
       maxPlayers: 5,
       tags: [{ id: 'tag-1', name: 'Tag 1', description: undefined }],
       locations: [
-        { locationId: 'location-1', note: 'top shelf', path: [{ name: 'Test Location', id: 'location-1' }] },
+        {
+          locationId: 'location-1',
+          note: 'top shelf',
+          isGameId: false,
+          path: [{ name: 'Test Location', id: 'location-1' }],
+        },
+        {
+          locationId: 'game-2',
+          note: 'stored with base game',
+          isGameId: true,
+          path: [],
+        },
       ],
       locationIds: ['location-1'],
       scoringSchemaIds: ['schema-1'],
@@ -151,5 +172,6 @@ describe('GameService', () => {
       createdOn: new Date('2026-01-01T00:00:00.000Z'),
       updatedOn: new Date('2026-01-02T00:00:00.000Z'),
     });
+    expect(locationGateway.getByIds).toHaveBeenCalledWith(['location-1']);
   });
 });
