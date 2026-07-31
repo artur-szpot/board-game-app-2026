@@ -14,7 +14,9 @@ const jest = {
   collectCoverageFrom: ['**/*.(t|j)s'],
   coverageDirectory: '../coverage',
   testEnvironment: 'node',
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   moduleNameMapper: {
+    '^pg$': '<rootDir>/__mocks__/pg.ts',
     '^@paralleldrive/cuid2$': '<rootDir>/__mocks__/@paralleldrive/cuid2.ts',
     ...pathsToModuleNameMapper(compilerOptions.paths, {
       prefix: '<rootDir>',
