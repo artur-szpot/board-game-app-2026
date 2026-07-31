@@ -1,14 +1,21 @@
+import { Type } from 'class-transformer';
 import {
-  ArrayMinSize,
-  IsArray,
-  IsNotEmpty,
-  IsObject,
-  IsOptional,
-  IsString,
+    ArrayMinSize,
+    IsArray,
+    IsDateString,
+    IsNotEmpty,
+    IsOptional,
+    IsString,
+    ValidateNested,
 } from 'class-validator';
 
-export interface LocationPathResponse {
+export class LocationPathResponse {
+  @IsString()
+  @IsNotEmpty()
   name: string;
+
+  @IsString()
+  @IsNotEmpty()
   id: string;
 }
 
@@ -29,17 +36,15 @@ export class LocationResponse {
   @IsOptional()
   parentId?: string;
 
-  @IsObject({ each: true })
-  @IsNotEmpty()
   @IsArray()
   @ArrayMinSize(1)
+  @Type(() => LocationPathResponse)
+  @ValidateNested({ each: true })
   path: LocationPathResponse[];
 
-  @IsString()
-  @IsNotEmpty()
+  @IsDateString()
   createdOn: string;
 
-  @IsString()
-  @IsNotEmpty()
+  @IsDateString()
   updatedOn: string;
 }

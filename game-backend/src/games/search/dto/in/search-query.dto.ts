@@ -1,17 +1,18 @@
 import { Type } from 'class-transformer';
 import {
-  ArrayMinSize,
-  IsArray,
-  IsBoolean,
-  IsEnum,
-  IsOptional,
-  IsString,
-  ValidateNested,
+    ArrayMinSize,
+    IsArray,
+    IsBoolean,
+    IsEnum,
+    IsObject,
+    IsOptional,
+    IsString,
+    ValidateNested,
 } from 'class-validator';
 
-import { PaginationDto } from '@common/pagination/dto/in/pagination.dto';
 import { SortDirection } from '@common/dto/in/get-many-items.dto';
 import { GameDataType } from '@common/enums/GameDataType.enum';
+import { PaginationDto } from '@common/pagination/dto/in/pagination.dto';
 
 export class SearchQueryDto {
   @IsArray()
@@ -29,9 +30,11 @@ export class SearchQueryDto {
   pagination?: PaginationDto;
 
   @IsOptional()
+  @IsObject()
   filters?: Record<string, string>;
 
   @IsOptional()
+  @IsObject()
   sort?: Record<string, SortDirection>;
 
   @IsOptional()

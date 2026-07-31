@@ -1,13 +1,14 @@
+import { Type } from 'class-transformer';
 import {
-  ArrayMinSize,
-  IsArray,
-  IsDateString,
-  IsEmail,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  MaxLength,
-  ValidateNested,
+    ArrayMinSize,
+    IsArray,
+    IsDateString,
+    IsEmail,
+    IsNotEmpty,
+    IsOptional,
+    IsString,
+    MaxLength,
+    ValidateNested,
 } from 'class-validator';
 
 import { RoleShortResponse } from '@auth/modules/roles/dto/out/role-short.response';
@@ -29,6 +30,7 @@ export class UserResponse {
 
   @IsArray()
   @ArrayMinSize(1)
+  @Type(() => RoleShortResponse)
   @ValidateNested({ each: true })
   roles: RoleShortResponse[];
 

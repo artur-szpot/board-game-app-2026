@@ -1,33 +1,33 @@
 import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  Logger,
+    BadRequestException,
+    Inject,
+    Injectable,
+    Logger,
 } from '@nestjs/common';
 
 import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 import {
-  CustomInternalError,
-  CustomNotFoundError,
+    CustomInternalError,
+    CustomNotFoundError,
 } from '@common/errors/service-errors';
 import { validateUpdateDtoNotEmpty } from '@common/helpers/validate-update-dto-not-empty';
 import { Paginated } from '@common/pagination/Paginated';
 import {
-  GAME_REPOSITORY,
-  GameRepository,
+    GAME_REPOSITORY,
+    GameRepository,
 } from '@db/repositories/game.repository';
 
 import {
-  HELPER_GATEWAY,
-  HelperGateway,
+    HELPER_GATEWAY,
+    HelperGateway,
 } from '../../helpers/infrastructure/helper.gateway';
 import {
-  LOCATION_GATEWAY,
-  LocationGateway,
+    LOCATION_GATEWAY,
+    LocationGateway,
 } from '../../locations/infrastructure/location.gateway';
 import {
-  SCORING_SCHEMA_GATEWAY,
-  ScoringSchemaGateway,
+    SCORING_SCHEMA_GATEWAY,
+    ScoringSchemaGateway,
 } from '../../scoring-schemas/infrastructure/scoring-schema.gateway';
 import { TAG_GATEWAY, TagGateway } from '../../tags/infrastructure/tag.gateway';
 import { CreateGameDto } from '../dto/in/create-game.dto';
@@ -76,7 +76,35 @@ export class GameService implements GameGateway {
   private async validateInput(
     input: CreateGameDto | UpdateGameDto,
     id?: string,
+    currentGame?: GameDto,
   ) {
+    const minPlayers = input.minPlayers ?? currentGame?.minPlayers;
+    const maxPlayers = input.maxPlayers ?? currentGame?.maxPlayers;
+
+    if (
+      minPlayers !== undefined &&
+      (!Number.isInteger(minPlayers) || minPlayers < 1)
+    ) {
+      throw new BadRequestException('minPlayers must be a positive integer');
+    }
+
+    if (
+      maxPlayers !== undefined &&
+      (!Number.isInteger(maxPlayers) || maxPlayers < 1)
+    ) {
+      throw new BadRequestException('maxPlayers must be a positive integer');
+    }
+
+    if (
+      minPlayers !== undefined &&
+      maxPlayers !== undefined &&
+      maxPlayers < minPlayers
+    ) {
+      throw new BadRequestException(
+        'maxPlayers must be greater than or equal to minPlayers',
+      );
+    }
+
     const locationIds = input.locations
       ?.filter((location) => !location.isGameId)
       .map((location) => location.locationId);
@@ -84,11 +112,13 @@ export class GameService implements GameGateway {
       ?.filter((location) => location.isGameId)
       .map((location) => location.locationId);
 
-    const existingGame = await this.gameRepository.getGameByName(input.name);
-    if (existingGame && existingGame.id !== id) {
-      throw new BadRequestException(
-        `Game name "${input.name}" is already in use`,
-      );
+    if (input.name !== undefined) {
+      const existingGame = await this.gameRepository.getGameByName(input.name);
+      if (existingGame && existingGame.id !== id) {
+        throw new BadRequestException(
+          `Game name "${input.name}" is already in use`,
+        );
+      }
     }
 
     await Promise.all([
@@ -212,8 +242,8 @@ export class GameService implements GameGateway {
   public async update(id: string, input: UpdateGameDto): Promise<GameDto> {
     validateUpdateDtoNotEmpty(input);
     try {
-      await this.getById(id);
-      await this.validateInput(input, id);
+      const currentGame = await this.getById(id);
+      await this.validateInput(input, id, currentGame);
       const updated = await this.gameRepository.updateGame(id, input);
       return this.mapGameResponse(updated);
     } catch (error) {

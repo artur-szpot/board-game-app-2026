@@ -1,12 +1,13 @@
 import { Type } from 'class-transformer';
 import {
-  ArrayMinSize,
-  IsArray,
-  IsBoolean,
-  IsEnum,
-  IsOptional,
-  IsString,
-  ValidateNested,
+    ArrayMinSize,
+    IsArray,
+    IsBoolean,
+    IsEnum,
+    IsObject,
+    IsOptional,
+    IsString,
+    ValidateNested,
 } from 'class-validator';
 
 import { SortDirection } from '@common/dto/in/get-many-items.dto';
@@ -30,9 +31,11 @@ export class AuthSearchQueryDto {
   pagination?: PaginationDto;
 
   @IsOptional()
+  @IsObject()
   filters?: Record<string, string>;
 
   @IsOptional()
+  @IsObject()
   sort?: Record<string, SortDirection>;
 
   @IsOptional()

@@ -1,7 +1,16 @@
+import { IsArray, IsNotEmpty, IsString } from 'class-validator';
+
 import { PermissionDefinition } from '@auth/decorators/permissions.decorator';
 
-export interface JwtDto {
+export class JwtDto {
+  @IsString()
+  @IsNotEmpty()
   id: string;
+
+  @IsString()
+  @IsNotEmpty()
   email: string;
+
+  @IsArray()
   permissions: PermissionDefinition[];
 }

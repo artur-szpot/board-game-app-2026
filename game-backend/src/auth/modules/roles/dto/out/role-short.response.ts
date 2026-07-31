@@ -1,10 +1,11 @@
+import { Type } from 'class-transformer';
 import {
-  ArrayMinSize,
-  IsArray,
-  IsNotEmpty,
-  IsString,
-  MaxLength,
-  ValidateNested,
+    ArrayMinSize,
+    IsArray,
+    IsNotEmpty,
+    IsString,
+    MaxLength,
+    ValidateNested,
 } from 'class-validator';
 
 import { PermissionShortResponse } from '@auth/modules/permissions/dto/out/permission-short.response';
@@ -21,6 +22,7 @@ export class RoleShortResponse {
 
   @IsArray()
   @ArrayMinSize(1)
+  @Type(() => PermissionShortResponse)
   @ValidateNested({ each: true })
   permissions: PermissionShortResponse[];
 }

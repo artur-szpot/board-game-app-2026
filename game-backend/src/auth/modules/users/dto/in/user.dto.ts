@@ -1,13 +1,14 @@
+import { Type } from 'class-transformer';
 import {
-  ArrayMinSize,
-  IsArray,
-  IsDateString,
-  IsEmail,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  MaxLength,
-  ValidateNested,
+    ArrayMinSize,
+    IsArray,
+    IsDateString,
+    IsEmail,
+    IsNotEmpty,
+    IsOptional,
+    IsString,
+    MaxLength,
+    ValidateNested,
 } from 'class-validator';
 
 import { RoleDto } from '@auth/modules/roles/dto/in/role.dto';
@@ -34,6 +35,7 @@ export class UserDto {
 
   @IsArray()
   @ArrayMinSize(1)
+  @Type(() => RoleDto)
   @ValidateNested({ each: true })
   roles: RoleDto[];
 
