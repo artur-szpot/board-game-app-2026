@@ -38,8 +38,15 @@ These scripts run docker compose from the repository root.
 - Prefer minimal, targeted edits.
 - Keep frontend DTO and backend payload shape aligned.
 - When backend DTOs change, validate all affected frontend API calls in the same change.
+- When backend DTOs/controllers change, regenerate and verify OpenAPI in the same change:
+  - cd game-backend && npm run openapi:generate
+  - cd game-backend && npm run openapi:check
 - Preserve existing route prefixes and naming patterns.
 - Avoid introducing new infrastructure or package managers unless required.
+
+## OpenAPI route
+
+- Swagger UI is served by game-backend at /api-docs in local dev.
 
 ## Frequent pitfalls
 

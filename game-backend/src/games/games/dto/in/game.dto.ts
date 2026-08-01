@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
     ArrayMinSize,
@@ -71,6 +72,7 @@ export class GameDto {
   @IsOptional()
   description?: string;
 
+  @ApiProperty({ enum: GameLength, enumName: 'GameLength' })
   @IsEnum(GameLength)
   @IsNotEmpty()
   length: GameLength;

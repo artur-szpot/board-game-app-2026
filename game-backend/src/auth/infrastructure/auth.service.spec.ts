@@ -1,6 +1,6 @@
 import {
-  InternalServerErrorException,
-  UnauthorizedException,
+    InternalServerErrorException,
+    UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -13,6 +13,7 @@ import { PermissionLevel } from '@auth/modules/permissions/enums/permission-leve
 import { PermissionType } from '@auth/modules/permissions/enums/permission-type.enum';
 import { LoginDto } from '../dto/in/login.dto';
 import { AuthService } from './auth.service';
+import { TokenRevocationService } from './token-revocation.service';
 
 describe('AuthService', () => {
   const mockJwtService = jest.requireMock(
@@ -24,8 +25,13 @@ describe('AuthService', () => {
   const mockRolesRepository = jest.requireMock(
     '@db/repositories/role.repository',
   ) as jest.Mocked<RoleRepository>;
+  const mockTokenRevocationService: jest.Mocked<TokenRevocationService> = {
+    revoke: jest.fn(),
+    isRevoked: jest.fn(),
+  } as unknown as jest.Mocked<TokenRevocationService>;
   const service = new AuthService(
     mockJwtService,
+    mockTokenRevocationService,
     mockUsersRepository,
     mockRolesRepository,
   );
@@ -63,6 +69,8 @@ describe('AuthService', () => {
 
   beforeEach(() => {
     mockJwtService.sign = jest.fn().mockReturnValueOnce('token');
+    mockJwtService.decode = jest.fn();
+    mockTokenRevocationService.revoke.mockReset();
   });
 
   it('should log in an existing user', async () => {
@@ -138,5 +146,19 @@ describe('AuthService', () => {
         'Unexpected error occurred while signing in',
       );
     }
+  });
+
+  it('should revoke current token when logging out', async () => {
+    mockJwtService.decode = jest.fn().mockReturnValueOnce({ exp: 123456 });
+
+    await service.logout('header.payload.signature');
+
+    expect(mockJwtService.decode).toHaveBeenCalledWith(
+      'header.payload.signature',
+    );
+    expect(mockTokenRevocationService.revoke).toHaveBeenCalledWith(
+      'header.payload.signature',
+      123456,
+    );
   });
 });

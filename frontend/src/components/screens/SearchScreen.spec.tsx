@@ -17,6 +17,7 @@ const mockDispatch = vi.fn();
 vi.mock("axios");
 vi.mock("../../store/hooks", () => ({
   useAppDispatch: () => mockDispatch,
+  useAppSelector: () => "access-token",
 }));
 
 describe("SearchScreen", () => {
@@ -66,6 +67,11 @@ describe("SearchScreen", () => {
       {
         types: [GameDataType.GAME],
         searchTerm: "Brass",
+      },
+      {
+        headers: {
+          Authorization: "Bearer access-token",
+        },
       },
     );
 

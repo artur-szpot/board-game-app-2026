@@ -1,9 +1,9 @@
 import {
-  Inject,
-  Injectable,
-  Logger,
-  UnauthorizedException,
-  BadRequestException,
+    BadRequestException,
+    Inject,
+    Injectable,
+    Logger,
+    UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -11,13 +11,13 @@ import * as bcrypt from 'bcrypt';
 import { userMapper } from '@auth/modules/users/mappers/user.mapper';
 import { CustomInternalError } from '@common/errors/service-errors';
 import {
-  USER_REPOSITORY,
-  UserRepository,
-} from '@db/repositories/user.repository';
-import {
-  ROLE_REPOSITORY,
-  RoleRepository,
+    ROLE_REPOSITORY,
+    RoleRepository,
 } from '@db/repositories/role.repository';
+import {
+    USER_REPOSITORY,
+    UserRepository,
+} from '@db/repositories/user.repository';
 
 import { JwtDto } from '../dto/in/jwt.dto';
 import { LoginDto } from '../dto/in/login.dto';
@@ -25,6 +25,7 @@ import { SignupDto } from '../dto/in/signup.dto';
 import { LoginResponse } from '../dto/out/login.response';
 import { User } from '../modules/users/domain/User';
 import { AuthGateway } from './auth.gateway';
+import { TokenRevocationService } from './token-revocation.service';
 
 @Injectable()
 export class AuthService implements AuthGateway {
@@ -32,6 +33,7 @@ export class AuthService implements AuthGateway {
 
   constructor(
     private readonly jwtService: JwtService,
+    private readonly tokenRevocationService: TokenRevocationService,
     @Inject(USER_REPOSITORY)
     private readonly userRepository: UserRepository,
     @Inject(ROLE_REPOSITORY)
@@ -137,5 +139,10 @@ export class AuthService implements AuthGateway {
       this.logger.error(`Unexpected error while signing up: ${error}`);
       throw new CustomInternalError('signing up');
     }
+  }
+
+  async logout(token: string): Promise<void> {
+    const decoded = this.jwtService.decode(token) as { exp?: number } | null;
+    this.tokenRevocationService.revoke(token, decoded?.exp);
   }
 }

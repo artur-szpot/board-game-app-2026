@@ -1,0 +1,38 @@
+name: PR CI / OpenAPI contract check
+
+on:
+  pull_request:
+    paths:
+      - "game-backend/**"
+      - ".github/workflows/openapi-check.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "game-backend/**"
+      - ".github/workflows/openapi-check.yml"
+
+jobs:
+  openapi-check:
+    name: OpenAPI contract check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: game-backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: game-backend/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+
+      - name: Verify OpenAPI spec is up to date
+        run: npm run openapi:check

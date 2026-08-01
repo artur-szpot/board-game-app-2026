@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
     ArrayMinSize,
@@ -23,6 +24,7 @@ export class AuthSearchResult {
   @IsNotEmpty()
   name: string;
 
+  @ApiProperty({ enum: AdminDataType, enumName: 'AdminDataType' })
   @IsEnum(AdminDataType)
   type: AdminDataType;
 
@@ -32,12 +34,14 @@ export class AuthSearchResult {
 }
 
 export class AuthSearchResponse {
+  @ApiProperty({ type: () => [AuthSearchResult] })
   @IsArray()
   @ArrayMinSize(0)
   @Type(() => AuthSearchResult)
   @ValidateNested({ each: true })
   results: AuthSearchResult[];
 
+  @ApiProperty({ minimum: 0, example: 12 })
   @IsInt()
   @Min(0)
   total: number;

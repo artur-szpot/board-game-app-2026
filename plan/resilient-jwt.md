@@ -1,0 +1,1 @@
+JWT invalidation is currently in-memory per backend process. It satisfies your requirement to invalidate the user’s JWT token, but revoked tokens won’t survive process restarts or scale across multiple instances. If you want persistence/distribution, next step would be Redis-backed revocation.

@@ -29,6 +29,13 @@ Multi-service board-game application with a React frontend, a NestJS game backen
 
 OpenAPI is the intended single source of truth for API contracts. Implementation planning note is tracked in plan/document-final-api-contract.md.
 
+## OpenAPI Workflow
+
+- Docs route (local backend): http://localhost:3001/api-docs
+- Generate spec: cd game-backend && npm run openapi:generate
+- Contract check for CI: cd game-backend && npm run openapi:check
+- Preview docs locally: cd game-backend && npm run openapi:preview
+
 ## PR Checklist (DTO or Route Changes)
 
 - Backend DTO changed: verify affected frontend API call-sites in the same PR.

@@ -3,4 +3,5 @@ import { LoginResponse } from '../dto/out/login.response';
 
 export interface AuthGateway {
   login(dto: LoginDto): Promise<LoginResponse>;
+  logout(token: string): Promise<void>;
 }
