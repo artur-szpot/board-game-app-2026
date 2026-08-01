@@ -35,6 +35,19 @@ Use this file to capture operational context, decisions, and any remaining unkno
 - game-api prefixes are stable and should not be renamed.
 - randomizer-backend is intentionally lightweight and isolated.
 
+## Frontend Frame Stack Notes
+
+- Root behavior: Entity panels render inside FrameStackScreenWrapper. The top frame controls what is visible; SELF shows the original route screen, while OPTIONS/SEARCH/FORM replace it.
+- State shape: frame stack Redux state stores serializable frame metadata only (frameType, params, callback token IDs). Real callback functions are kept outside Redux in frameCallbackRegistry.
+- Bottom frame invariant: stack always has bottom SELF frame; only the top frame can be closed; bottom frame cannot be closed.
+- Callback routing on close: closeFrame with a result sends that result to frame.callbackEmitter first, then falls back to the new top frame.callbackReceiver.
+- Same-frame events: sameFrameResult emits to top frame callbackEmitter first, then callbackReceiver. This is used for in-place updates (for example selection edits/clear) without closing the frame.
+- Lifecycle and cleanup: callback invocation and callback token cleanup happen in frameStackListeners middleware, not in reducers. Do not move callback execution into reducers.
+- Reset behavior: resetToBottomFrame removes all nested frames and unregisters callbacks/custom mappings tied to removed frame IDs.
+- Form custom mappings: form field customMapping functions are intentionally stripped before form frame params are stored in Redux and are kept in formScreenCustomMappingRegistry keyed by frameId.
+- Form nested selections: FormScreen registers a receiver on the top frame and opens nested options/search frames with callbackEmitter so nested results can update parent form state.
+- Critical pitfall: do not default callbackEmitter to a no-op. sameFrameResult checks emitter first; a default emitter can swallow updates meant for callbackReceiver.
+
 ## Maintenance Rules
 
 - Add short bullet answers only.

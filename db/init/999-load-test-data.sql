@@ -22,7 +22,7 @@ SET
 
 INSERT INTO locations (id, name, description, parent_id, path, path_ids)
 VALUES
-	('test-location-01', 'Test Location 01', 'Main shelf A for test games.', NULL, ARRAY['Test Location 01']::TEXT[], ARRAY[]::VARCHAR(40)[]),
+	('test-location-01', 'Test Location 01', 'Main shelf A for test games.', NULL, ARRAY['Test Location 02', 'Test Location 01']::TEXT[], ARRAY['test-location-02']::VARCHAR(40)[]),
 	('test-location-02', 'Test Location 02', 'Main shelf B for test games.', NULL, ARRAY['Test Location 02']::TEXT[], ARRAY[]::VARCHAR(40)[]),
 	('test-location-03', 'Test Location 03', 'Closet top section for test games.', NULL, ARRAY['Test Location 03']::TEXT[], ARRAY[]::VARCHAR(40)[]),
 	('test-location-04', 'Test Location 04', 'Closet middle section for test games.', NULL, ARRAY['Test Location 04']::TEXT[], ARRAY[]::VARCHAR(40)[]),

@@ -6,11 +6,13 @@ import {
     selectAccessToken,
     selectPermissions,
 } from "../../store/features/currentUserSlice";
-import { useAppSelector } from "../../store/hooks";
+import { resetToBottomFrame } from "../../store/features/frameStackSlice";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 
 import "./bars.scss";
 
 export const Navbar: React.FC = () => {
+  const dispatch = useAppDispatch();
   const accessToken = useAppSelector(selectAccessToken);
   const permissions = useAppSelector(selectPermissions);
 
@@ -18,7 +20,7 @@ export const Navbar: React.FC = () => {
     <AppBar position="static" color="primary" className="navbar">
       <Toolbar>
         <Box className="logo">
-          <RouterLink to="/">
+          <RouterLink to="/" onClick={() => dispatch(resetToBottomFrame())}>
             <img src="/logo.png" alt="Logo placeholder" />
           </RouterLink>
         </Box>

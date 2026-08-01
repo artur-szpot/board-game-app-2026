@@ -3,26 +3,27 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { formSearch } from "../../components/forms/FormSearchField";
 import type { OptionsScreenProps } from "../../components/screens/OptionsScreenProps";
 import {
-  GameDataType,
-  ResultMappingStrategy,
-  selectionStrategyChooseOne,
-  selectionStrategySelectNumber,
+    GameDataType,
+    ResultMappingStrategy,
+    selectionStrategyChooseOne,
+    selectionStrategySelectNumber,
 } from "../../components/screens/selection-strategies";
 import { makeStore } from "../store";
 import { ActionEnum } from "./frame-actions";
 import {
-  clearFrameCallbacks,
-  invokeFrameCallback,
+    clearFrameCallbacks,
+    invokeFrameCallback,
 } from "./frameCallbackRegistry";
 import {
-  closeFrame,
-  frameStackSlice,
-  FrameTypeEnum,
-  openFormFrame,
-  openOptionsFrame,
-  openSearchFrame,
-  resetToBottomFrame,
-  sameFrameResult,
+    closeFrame,
+    frameStackSlice,
+    FrameTypeEnum,
+    openFormFrame,
+    openGameDetailsFrame,
+    openOptionsFrame,
+    openSearchFrame,
+    resetToBottomFrame,
+    sameFrameResult,
 } from "./frameStackSlice";
 
 const initialState = frameStackSlice.getInitialState();
@@ -91,6 +92,23 @@ describe("frameStackSlice", () => {
     expect(nextState.stack[1]).toMatchObject({
       frameType: FrameTypeEnum.SEARCH,
       params: { title: "test", dataTypes: [GameDataType.GAME] },
+      callbackReceiverId: undefined,
+    });
+  });
+
+  it("should open a game details frame", () => {
+    const nextState = frameStackSlice.reducer(
+      initialState,
+      openGameDetailsFrame({ params: { gameId: "game-1" } }),
+    );
+
+    expect(nextState.stack).toHaveLength(2);
+    expect(nextState.stack[1]).toMatchObject({
+      frameType: FrameTypeEnum.GAME_DETAILS,
+      params: {
+        gameId: "game-1",
+        openedAsFrame: true,
+      },
       callbackReceiverId: undefined,
     });
   });

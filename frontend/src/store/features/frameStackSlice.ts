@@ -4,6 +4,7 @@ import type {
   FormScreenProps,
   FormScreenPropsFull,
 } from "../../components/screens/FormScreenProps";
+import type { GameDetailsScreenProps } from "../../components/screens/GameDetailsScreenProps";
 import type {
   OptionsScreenProps,
   OptionsScreenPropsFull,
@@ -30,6 +31,7 @@ export enum FrameTypeEnum {
   OPTIONS = "OPTIONS",
   SEARCH = "SEARCH",
   FORM = "FORM",
+  GAME_DETAILS = "GAME_DETAILS",
 }
 
 export type FrameCallbackReceiver = (result: FrameCallbackContent) => void;
@@ -45,6 +47,7 @@ export type FrameStackItem = {
     | OptionsScreenPropsFull
     | SearchScreenPropsFull
     | FormScreenPropsFull
+    | GameDetailsScreenProps
     | undefined;
 };
 
@@ -224,6 +227,38 @@ export const frameStackSlice = createAppSlice({
         );
       },
     ),
+    openGameDetailsFrame: create.preparedReducer(
+      (payload: FrameStackDto<GameDetailsScreenProps>) => ({
+        payload: {
+          params: payload.params,
+          callbackReceiverId: payload.callbackReceiver
+            ? registerFrameCallback(payload.callbackReceiver)
+            : undefined,
+          callbackEmitterId: payload.callbackEmitter
+            ? registerFrameCallback(payload.callbackEmitter)
+            : undefined,
+        },
+      }),
+      (
+        state: FrameStackState,
+        action: PayloadAction<FrameStackReducerDto<GameDetailsScreenProps>>,
+      ) => {
+        const id = crypto.randomUUID();
+        state.stack.push(
+          createFrame(
+            id,
+            FrameTypeEnum.GAME_DETAILS,
+            {
+              ...action.payload.params,
+              openedAsFrame: true,
+              frameId: id,
+            },
+            action.payload.callbackReceiverId,
+            action.payload.callbackEmitterId,
+          ),
+        );
+      },
+    ),
     closeFrame: create.reducer(
       (
         state,
@@ -304,6 +339,7 @@ export const {
   openOptionsFrame,
   openSearchFrame,
   openFormFrame,
+  openGameDetailsFrame,
   closeFrame,
   sameFrameResult,
   resetToBottomFrame,

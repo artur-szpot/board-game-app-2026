@@ -1,28 +1,33 @@
 /* eslint-disable no-case-declarations */
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import LabelImportantIcon from "@mui/icons-material/LabelImportant";
-import PersonIcon from "@mui/icons-material/Person";
-import { Alert, Box, Chip, Paper, Stack, Typography } from "@mui/material";
+import {
+  Alert,
+  Box,
+  ButtonBase,
+  Paper,
+  Stack,
+  Typography,
+} from "@mui/material";
 
+import type { GameBadgeProps } from "../../components/screens/GameBadge";
+import { BadgeTypeEnum, GameBadge } from "../../components/screens/GameBadge";
 import { GameDataType } from "../../components/screens/selection-strategies";
 import type { GameResponseDto } from "../../dto/collection-items.dto";
 import { AdminDataType } from "../admin-panel/admin-data-type.enum";
 import type { EntityPanelTab } from "./entity-panel-types";
 
 type EntityPanelContentProps<Category extends string, Item> = {
-  tab?: EntityPanelTab<Category>;
+  tab?: EntityPanelTab<Category, Item>;
   items: Item[];
   loading: boolean;
   error?: string;
+  onViewItem?: (item: Item) => void;
 };
 
-enum BadgeTypeEnum {
-  PLAYER_COUNT = "PLAYER_COUNT",
-  GAME_LENGTH = "GAME_LENGTH",
-  TAG = "TAG",
-}
-
-const renderItem = (item: unknown, category: string) => {
+const renderItem = <Item,>(
+  item: Item,
+  category: string,
+  onViewItem?: (item: Item) => void,
+) => {
   const record = (item ?? {}) as Record<string, unknown>;
   let name =
     typeof record.name === "string" && record.name.length > 0
@@ -30,7 +35,8 @@ const renderItem = (item: unknown, category: string) => {
       : "NO NAME FOUND";
   let description =
     typeof record.description === "string" ? record.description : undefined;
-  const badges: { type: BadgeTypeEnum; value: string; tooltip?: string }[] = [];
+  let locationPath: string | undefined;
+  const badges: GameBadgeProps[] = [];
 
   switch (category) {
     case GameDataType.GAME as string:
@@ -63,39 +69,58 @@ const renderItem = (item: unknown, category: string) => {
       name = record.username as string;
       description = record.email as string;
       break;
-  }
+    case GameDataType.LOCATION as string:
+      const pathParts = Array.isArray(record.path)
+        ? record.path
+            .slice(0, -1)
+            .map(pathItem => {
+              if (typeof pathItem !== "object" || pathItem === null) {
+                return "";
+              }
 
-  const badgeIcon = (badgeType: BadgeTypeEnum) => {
-    switch (badgeType) {
-      case BadgeTypeEnum.GAME_LENGTH:
-        return <AccessTimeIcon color="success" />;
-      case BadgeTypeEnum.PLAYER_COUNT:
-        return <PersonIcon />;
-      default:
-        return <LabelImportantIcon />;
-    }
-  };
+              const pathRecord = pathItem as { name?: unknown };
+              return typeof pathRecord.name === "string" ? pathRecord.name : "";
+            })
+            .filter(pathPart => pathPart.length > 0)
+        : [];
+      locationPath = pathParts.join(" » ");
+      break;
+  }
 
   return (
     <Paper className="entity-panel-item" elevation={2}>
-      <Typography component="h3" variant="h6">
-        {name}
-      </Typography>
+      {onViewItem ? (
+        <ButtonBase
+          className="entity-panel-item-title-action"
+          onClick={() => onViewItem(item)}
+        >
+          <Typography component="h3" variant="h6">
+            {name}
+          </Typography>
+        </ButtonBase>
+      ) : (
+        <Typography component="h3" variant="h6">
+          {name}
+        </Typography>
+      )}
       {description !== undefined && description.length > 0 && (
         <Typography component="p" variant="body2">
           {description}
         </Typography>
       )}
+      {category === "location" &&
+        locationPath !== undefined &&
+        locationPath.length > 0 && (
+          <Typography color="text.secondary" component="p" variant="body2">
+            {locationPath}
+          </Typography>
+        )}
       {badges.length > 0 && (
         <Box className="entity-panel-badges">
           {badges.map((badge, index) => (
-            <Chip
+            <GameBadge
               key={`${badge.type}-${badge.value}-${index.toString()}`}
-              icon={badgeIcon(badge.type)}
-              label={badge.value}
-              size="small"
-              variant="outlined"
-              title={badge.tooltip}
+              {...badge}
             />
           ))}
         </Box>
@@ -109,6 +134,7 @@ export const EntityPanelContent = <Category extends string, Item>({
   items,
   loading,
   error,
+  onViewItem,
 }: EntityPanelContentProps<Category, Item>) => {
   if (!tab) {
     return <Alert severity="error">404</Alert>;
@@ -132,7 +158,7 @@ export const EntityPanelContent = <Category extends string, Item>({
     <Stack className="entity-panel-items" component="ul" spacing={1.5}>
       {items.map((item, index) => (
         <Box key={index} component="li">
-          {renderItem(item, tab.category)}
+          {renderItem(item, tab.category, onViewItem)}
         </Box>
       ))}
     </Stack>

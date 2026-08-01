@@ -1,10 +1,11 @@
 import { Button, Stack } from "@mui/material";
 import { type FC } from "react";
+
+import type { FrameProps } from "../store/features/frame-actions";
 import { closeFrame } from "../store/features/frameStackSlice";
 import { useAppDispatch } from "../store/hooks";
 
-export type MainActionsProps = {
-  frameId: string;
+export type MainActionsProps = FrameProps & {
   allowShuffle?: boolean;
   allowConfirm?: boolean;
   confirmEnabled: boolean;

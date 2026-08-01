@@ -1,3 +1,4 @@
+import type { FrameProps } from "../../store/features/frame-actions";
 import type {
   GameDataType,
   SelectionResult,
@@ -10,6 +11,4 @@ export type SearchScreenProps = SelectionScreenProps & {
   currentSelection?: SelectionResult[];
 };
 
-export type SearchScreenPropsFull = SearchScreenProps & {
-  frameId: string;
-};
+export type SearchScreenPropsFull = SearchScreenProps & FrameProps;

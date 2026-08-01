@@ -1,3 +1,4 @@
+import type { FrameProps } from "../../store/features/frame-actions";
 import type {
   GameDataType,
   SelectionScreenProps,
@@ -23,6 +24,4 @@ export type OptionsScreenProps = SelectionScreenProps & {
   options: OptionProps[];
 };
 
-export type OptionsScreenPropsFull = OptionsScreenProps & {
-  frameId: string;
-};
+export type OptionsScreenPropsFull = OptionsScreenProps & FrameProps;

@@ -1,16 +1,16 @@
 import AddIcon from "@mui/icons-material/Add";
 import ClearIcon from "@mui/icons-material/Clear";
 import {
-    Box,
-    Button,
-    ButtonGroup,
-    IconButton,
-    InputAdornment,
-    Paper,
-    Tab,
-    Tabs,
-    TextField,
-    Typography,
+  Box,
+  Button,
+  ButtonGroup,
+  IconButton,
+  InputAdornment,
+  Paper,
+  Tab,
+  Tabs,
+  TextField,
+  Typography,
 } from "@mui/material";
 import Pagination from "@mui/material/Pagination";
 import axios from "axios";
@@ -20,18 +20,18 @@ import { Link } from "react-router";
 import { FrameStackScreenWrapper } from "../../components/frames/FrameStackScreenWrapper";
 import { selectAccessToken } from "../../store/features/currentUserSlice";
 import {
-    FrameTypeEnum,
-    openFormFrame,
-    resetToBottomFrame,
-    selectTopFrame,
+  FrameTypeEnum,
+  openFormFrame,
+  resetToBottomFrame,
+  selectTopFrame,
 } from "../../store/features/frameStackSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 
 import { EntityPanelContent } from "./EntityPanelContent";
 import type {
-    EntityPanelProps,
-    EntityPanelTab,
-    SearchResponse,
+  EntityPanelProps,
+  EntityPanelTab,
+  SearchResponse,
 } from "./entity-panel-types";
 import { DEFAULT_PAGE_SIZE } from "./entity-panel-types";
 
@@ -48,8 +48,8 @@ const toTitleCase = (value: string) => {
 };
 
 const withDefaultLabels = <Category extends string>(
-  tabs: EntityPanelTab<Category>[],
-): EntityPanelTab<Category>[] => {
+  tabs: EntityPanelTab<Category, unknown>[],
+): EntityPanelTab<Category, unknown>[] => {
   return tabs.map(tab => ({
     ...tab,
     label: tab.label ?? toTitleCase(tab.category),
@@ -82,8 +82,11 @@ export const EntityPanel = <
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
 
-  const labelledTabs = useMemo(() => withDefaultLabels(tabs), [tabs]);
-  const activeTab = labelledTabs.find(tab => tab.category === content);
+  const labeledTabs = useMemo(
+    () => withDefaultLabels(tabs as EntityPanelTab<Category, unknown>[]),
+    [tabs],
+  ) as EntityPanelTab<Category, Item>[];
+  const activeTab = labeledTabs.find(tab => tab.category === content);
   const isTopFrameSelf = topFrame?.frameType === FrameTypeEnum.SELF;
 
   useEffect(() => {
@@ -178,7 +181,7 @@ export const EntityPanel = <
     setPage(0);
   }, [searchTerm]);
 
-  const selectedTabValue = labelledTabs.some(tab => tab.category === content)
+  const selectedTabValue = labeledTabs.some(tab => tab.category === content)
     ? content
     : false;
 
@@ -193,6 +196,12 @@ export const EntityPanel = <
   const onClearSearch = () => {
     setSearchTerm("");
   };
+
+  const viewScreen = activeTab?.viewScreen;
+  const onViewItem =
+    viewScreen === undefined
+      ? undefined
+      : (item: Item) => dispatch(viewScreen(item));
 
   const onPageSizeChange = (nextPageSize: number) => {
     if (nextPageSize === currentPageSize) {
@@ -225,7 +234,7 @@ export const EntityPanel = <
             variant="scrollable"
             allowScrollButtonsMobile
           >
-            {labelledTabs.map(tab => {
+            {labeledTabs.map(tab => {
               const routeSegment = tab.routeSegment ?? tab.category;
               return (
                 <Tab
@@ -279,6 +288,7 @@ export const EntityPanel = <
             items={items}
             loading={loading}
             error={error}
+            onViewItem={onViewItem}
           />
           {showPagination && (
             <Box className="entity-panel-pagination-row">

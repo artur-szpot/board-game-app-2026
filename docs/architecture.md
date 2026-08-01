@@ -57,6 +57,33 @@
   - auth routes: /signin, /signup, /signout
   - admin routes under /admin
   - collection routes under /collection
+  - game details route under /collection/games/:id
+
+### Frontend frame stack subsystem
+
+- Purpose: route-local frame navigation for modal-like flows (form/options/search) without leaving the current page route.
+- Renderer: FrameStackScreenWrapper switches on top frame type. SELF renders original route content; OPTIONS/SEARCH/FORM render the corresponding frame screen.
+- Storage model:
+  - Redux frameStack slice stores only serializable frame data and callback token IDs.
+  - Callback functions are stored in frameCallbackRegistry and referenced by token.
+  - Form field customMapping functions are stored in formScreenCustomMappingRegistry keyed by frameId, not in Redux state.
+- Core actions:
+  - openOptionsFrame/openSearchFrame/openFormFrame push new top frame.
+  - openGameDetailsFrame pushes a game details frame that can be opened from route or frame contexts.
+  - closeFrame pops only the current top frame and can carry a typed result payload.
+  - sameFrameResult emits typed result payload on the current frame without stack changes.
+  - resetToBottomFrame collapses stack to SELF.
+- Callback resolution rules:
+  - closeFrame result: invoke closing frame callbackEmitter if present, otherwise new top frame callbackReceiver.
+  - sameFrameResult: invoke top frame callbackEmitter if present, otherwise top frame callbackReceiver.
+- Lifecycle management:
+  - frameStackListeners middleware performs callback invocation and unregisters callback tokens for removed frames.
+  - The same middleware clears form custom mapping registry entries for removed frame IDs.
+  - Reducers remain pure and do not invoke callbacks directly.
+- Behavioral invariants:
+  - Bottom SELF frame always exists.
+  - Non-top frames cannot be closed.
+  - Bottom frame cannot be closed.
 
 ## Data and persistence
 
