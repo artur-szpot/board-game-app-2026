@@ -1,16 +1,17 @@
-import { BrowserRouter, Route, Routes } from "react-router"
+import { BrowserRouter, Route, Routes } from "react-router";
 
-import { Footer } from "./components/bars/Footer"
-import { Navbar } from "./components/bars/Navbar"
-import { GameDataType } from "./components/screens/selection-strategies"
-import { AdminDataType } from "./routes/admin-panel/admin-data-type.enum"
-import { AdminPanel } from "./routes/admin-panel/AdminPanel"
-import { CollectionPanel } from "./routes/collection-panel/CollectionPanel"
-import { Signin } from "./routes/auth/Signin"
-import { Signup } from "./routes/auth/Signup"
-import { Signout } from "./routes/auth/Signout"
+import { Footer } from "./components/bars/Footer";
+import { Navbar } from "./components/bars/Navbar";
+import { GameDataType } from "./components/screens/selection-strategies";
+import { AdminDataType } from "./routes/admin-panel/admin-data-type.enum";
+import { AdminPanel } from "./routes/admin-panel/AdminPanel";
+import { Signin } from "./routes/auth/Signin";
+import { Signout } from "./routes/auth/Signout";
+import { Signup } from "./routes/auth/Signup";
+import { CollectionPanel } from "./routes/collection-panel/CollectionPanel";
+import { GameDetails } from "./routes/game-details/GameDetails";
 
-import "./css/index.scss"
+import "./css/index.scss";
 
 export const App = () => {
   return (
@@ -30,8 +31,14 @@ export const App = () => {
               path="permissions"
               element={<AdminPanel content={AdminDataType.PERMISSION} />}
             />
-            <Route path="roles" element={<AdminPanel content={AdminDataType.ROLE} />} />
-            <Route path="users" element={<AdminPanel content={AdminDataType.USER} />} />
+            <Route
+              path="roles"
+              element={<AdminPanel content={AdminDataType.ROLE} />}
+            />
+            <Route
+              path="users"
+              element={<AdminPanel content={AdminDataType.USER} />}
+            />
             <Route path="*" element={<AdminPanel />} />
           </Route>
           <Route path="/collection">
@@ -39,6 +46,7 @@ export const App = () => {
               path="games"
               element={<CollectionPanel content={GameDataType.GAME} />}
             />
+            <Route path="games/:id" element={<GameDetails />} />
             <Route
               path="tags"
               element={<CollectionPanel content={GameDataType.TAG} />}
@@ -53,7 +61,9 @@ export const App = () => {
             />
             <Route
               path="scoring-schemas"
-              element={<CollectionPanel content={GameDataType.SCORING_SCHEMA} />}
+              element={
+                <CollectionPanel content={GameDataType.SCORING_SCHEMA} />
+              }
             />
             <Route path="*" element={<CollectionPanel />} />
           </Route>
@@ -62,5 +72,5 @@ export const App = () => {
       </div>
       <Footer />
     </BrowserRouter>
-  )
-}
+  );
+};

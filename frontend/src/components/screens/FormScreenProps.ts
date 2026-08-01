@@ -1,3 +1,4 @@
+import type { FrameProps } from "../../store/features/frame-actions";
 import { FormFieldType } from "../forms/common";
 import type { FormFieldCheckboxProps } from "../forms/FormCheckboxField";
 import type { FormFieldOptionsProps } from "../forms/FormOptionsField";
@@ -121,9 +122,7 @@ export type FormScreenProps = {
   method: "POST" | "PATCH";
 };
 
-export type FormScreenPropsFull = FormScreenProps & {
-  frameId: string;
-};
+export type FormScreenPropsFull = FormScreenProps & FrameProps;
 
 export const getCustomMappingFromField = (
   field: FormScreenField,

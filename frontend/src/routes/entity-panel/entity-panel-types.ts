@@ -1,10 +1,13 @@
+import type { UnknownAction } from "@reduxjs/toolkit";
+
 import type { FormScreenProps } from "../../components/screens/FormScreenProps";
 
-export type EntityPanelTab<Category extends string> = {
+export type EntityPanelTab<Category extends string, Item> = {
   category: Category;
   label?: string;
   routeSegment?: string;
   createScreen?: FormScreenProps;
+  viewScreen?: (item: Item) => UnknownAction;
 };
 
 type SearchResultWithDetail<Type extends string, Detail> = {
@@ -34,11 +37,13 @@ export type EntityPanelProps<
   Item,
   DetailByType extends Record<Category, unknown>,
 > = {
-  getItemsFromResponse?: (data: SearchResponse<Category, DetailByType>) => Item[];
+  getItemsFromResponse?: (
+    data: SearchResponse<Category, DetailByType>,
+  ) => Item[];
   title: string;
   basePath: string;
   searchEndpoint: string;
-  tabs: EntityPanelTab<Category>[];
+  tabs: EntityPanelTab<Category, Item>[];
   content?: Category;
   pageSize?: number;
   includeDetail?: boolean;

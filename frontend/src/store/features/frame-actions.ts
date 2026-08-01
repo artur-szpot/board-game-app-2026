@@ -24,7 +24,7 @@ export type FormFilledResult = {
 
 export const buildChoiceMadeFromItems = (
   items: SelectionResult[],
-  name?: string
+  name?: string,
 ): ChoiceMadeResult => ({
   action: ActionEnum.CHOICE_MADE,
   payload: {
@@ -57,4 +57,8 @@ export const resultMapper = {
     }
     return result as unknown as FormFilledResult;
   },
+};
+
+export type FrameProps = {
+  frameId: string;
 };

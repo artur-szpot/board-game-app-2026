@@ -4,21 +4,26 @@ import { createGameScreen } from "../../components/screens/definitions/create-ga
 import { createLocationScreen } from "../../components/screens/definitions/create-location";
 import { createTagScreen } from "../../components/screens/definitions/create-tag";
 import { GameDataType } from "../../components/screens/selection-strategies";
+import { openGameDetailsFrame } from "../../store/features/frameStackSlice";
 import type { EntityPanelTab } from "../entity-panel/entity-panel-types";
 import { EntityPanel } from "../entity-panel/EntityPanel";
 import type {
-  CollectionPanelCategory,
-  CollectionPanelDetailsByType,
-  CollectionPanelItem,
-  CollectionPanelProps,
+    CollectionPanelCategory,
+    CollectionPanelDetailsByType,
+    CollectionPanelItem,
+    CollectionPanelProps,
 } from "./collection-types";
 
-const COLLECTION_TABS: EntityPanelTab<CollectionPanelCategory>[] = [
+const COLLECTION_TABS: EntityPanelTab<
+  CollectionPanelCategory,
+  CollectionPanelItem
+>[] = [
   {
     category: GameDataType.GAME,
     routeSegment: "games",
     label: "Games",
     createScreen: createGameScreen,
+    viewScreen: item => openGameDetailsFrame({ params: { gameId: item.id } }),
   },
   {
     category: GameDataType.TAG,
@@ -44,12 +49,10 @@ const COLLECTION_TABS: EntityPanelTab<CollectionPanelCategory>[] = [
   },
 ];
 
-const mapCollectionItemsFromResponse = (
-  data: {
-    results: { detail?: CollectionPanelDetailsByType[CollectionPanelCategory] }[];
-  },
-): CollectionPanelItem[] => {
-  return data.results.flatMap((result) =>
+const mapCollectionItemsFromResponse = (data: {
+  results: { detail?: CollectionPanelDetailsByType[CollectionPanelCategory] }[];
+}): CollectionPanelItem[] => {
+  return data.results.flatMap(result =>
     result.detail ? [result.detail as CollectionPanelItem] : [],
   );
 };
