@@ -41,18 +41,34 @@ export class PostgresConnector {
     return new PostgresConnection(this.logger, connection);
   }
 
+  public async healthCheck(): Promise<boolean> {
+    try {
+      const connection = await this.getConnection();
+      await connection.query('SELECT 1');
+      connection.release();
+      return true;
+    } catch (error) {
+      this.logger.warn('Database health check failed', error);
+      return false;
+    }
+  }
+
   public searchSQL = (args?: DbSearchDto): string => {
     const { where, orderBy, pagination } = args ?? {};
     const { offset, pageNumber, pageSize } = pagination ?? {};
-    const resolvedOffset = offset ?? (pageNumber !== undefined && pageSize !== undefined
-      ? pageNumber * pageSize
-      : undefined);
+    const resolvedOffset =
+      offset ??
+      (pageNumber !== undefined && pageSize !== undefined
+        ? pageNumber * pageSize
+        : undefined);
     return `
        ${where ? `WHERE ${where}` : ''}
        ${orderBy ? `ORDER BY ${orderBy}` : ''}
-       ${pageSize !== undefined && resolvedOffset !== undefined
-         ? `LIMIT ${pageSize} OFFSET ${resolvedOffset}`
-         : ''}
+       ${
+         pageSize !== undefined && resolvedOffset !== undefined
+           ? `LIMIT ${pageSize} OFFSET ${resolvedOffset}`
+           : ''
+       }
     `;
   };
 

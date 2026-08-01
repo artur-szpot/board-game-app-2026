@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 
 import { PostgresConnector } from './connectors/postgres/PostgresConnector';
 import { PostgresGameScoreRepository } from './connectors/postgres/game-score.pg-repository';
+import { PostgresGameRepository } from './connectors/postgres/game.pg-repository';
 import { PostgresHelperRepository } from './connectors/postgres/helper.pg-repository';
 import { PostgresLocationRepository } from './connectors/postgres/location.pg-repository';
 import { PostgresPermissionRepository } from './connectors/postgres/permission.pg-repository';
@@ -10,6 +11,7 @@ import { PostgresScoringSchemaRepository } from './connectors/postgres/scoring-s
 import { PostgresTagRepository } from './connectors/postgres/tag.pg-repository';
 import { PostgresUserRepository } from './connectors/postgres/user.pg-repository';
 import { GAME_SCORE_REPOSITORY } from './repositories/game-score.repository';
+import { GAME_REPOSITORY } from './repositories/game.repository';
 import { HELPER_REPOSITORY } from './repositories/helper.repository';
 import { LOCATION_REPOSITORY } from './repositories/location.repository';
 import { PERMISSION_REPOSITORY } from './repositories/permission.repository';
@@ -17,8 +19,6 @@ import { ROLE_REPOSITORY } from './repositories/role.repository';
 import { SCORING_SCHEMA_REPOSITORY } from './repositories/scoring-schema.repository';
 import { TAG_REPOSITORY } from './repositories/tag.repository';
 import { USER_REPOSITORY } from './repositories/user.repository';
-import { GAME_REPOSITORY } from './repositories/game.repository';
-import { PostgresGameRepository } from './connectors/postgres/game.pg-repository';
 
 const userProvider = {
   provide: USER_REPOSITORY,
@@ -71,6 +71,7 @@ const gameProvider = {
     gameProvider,
   ],
   exports: [
+    PostgresConnector,
     userProvider,
     roleProvider,
     permissionProvider,

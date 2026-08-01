@@ -7,11 +7,12 @@ import { DbModule } from '@db/db.module';
 import config from './config/config';
 import { GameScoreModule } from './games/game-scores/game-score.module';
 import { GameModule } from './games/games/game.module';
-import { SearchModule } from './games/search/search.module';
 import { HelperModule } from './games/helpers/helper.module';
 import { LocationModule } from './games/locations/location.module';
 import { ScoringSchemaModule } from './games/scoring-schemas/scoring-schema.module';
+import { SearchModule } from './games/search/search.module';
 import { TagModule } from './games/tags/tag.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { TagModule } from './games/tags/tag.module';
     HelperModule,
     GameModule,
     SearchModule,
+    HealthModule,
   ],
 })
 export class AppModule {}
