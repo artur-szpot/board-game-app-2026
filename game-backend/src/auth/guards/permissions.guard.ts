@@ -25,18 +25,21 @@ export class PermisionsGuard implements CanActivate {
       user: { permissions },
     }: { user: JwtDto } = context.switchToHttp().getRequest();
 
-    requiredPermissions.forEach(([permissionType, requiredPermissionLevel]) => {
-      const userPermissionLevel = permissions.find(
-        (permission) => permission[0] === permissionType,
-      )?.[1];
-      if (
-        PermissionPrecedence.indexOf(userPermissionLevel) <
-        PermissionPrecedence.indexOf(requiredPermissionLevel)
-      ) {
+    const hasMissingPermission = requiredPermissions.some(
+      ([permissionType, requiredPermissionLevel]) => {
+        const userPermissionLevel = permissions.find(
+          (permission) => permission[0] === permissionType,
+        )?.[1];
+        if (
+          PermissionPrecedence.indexOf(userPermissionLevel) <
+          PermissionPrecedence.indexOf(requiredPermissionLevel)
+        ) {
+          return true;
+        }
         return false;
-      }
-    });
+      },
+    );
 
-    return true;
+    return !hasMissingPermission;
   }
 }

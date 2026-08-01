@@ -179,6 +179,131 @@ describe('GameService', () => {
     expect(repository.updateGame).not.toHaveBeenCalled();
   });
 
+  it('rejects create when game-as-location ID does not exist with an informative 400', async () => {
+    repository.getGameById.mockImplementation(async (id: string) => {
+      if (id === 'missing-game') {
+        return null;
+      }
+      return null;
+    });
+
+    const service = new GameService(
+      repository,
+      tagGateway,
+      locationGateway,
+      scoringSchemaGateway,
+      helperGateway,
+    );
+
+    await expect(
+      service.create({
+        name: 'Base + Expansion',
+        length: GameLength.MEDIUM,
+        minPlayers: 2,
+        maxPlayers: 4,
+        locations: [{ locationId: 'missing-game', isGameId: true }],
+      }),
+    ).rejects.toThrow('Game with ID "missing-game" not found');
+
+    expect(repository.createGame).not.toHaveBeenCalled();
+  });
+
+  it('rejects update when game references itself as a location', async () => {
+    repository.getGameById.mockImplementation(async (id: string) => {
+      if (id === 'game-1') {
+        return {
+          id: 'game-1',
+          name: 'Root Game',
+          description: null,
+          length: GameLength.MEDIUM,
+          minPlayers: 2,
+          maxPlayers: 4,
+          tagIds: [],
+          locations: [],
+          scoringSchemaIds: [],
+          helperIds: [],
+          createdOn: new Date('2026-01-01T00:00:00.000Z'),
+          updatedOn: new Date('2026-01-02T00:00:00.000Z'),
+        };
+      }
+      return null;
+    });
+
+    const service = new GameService(
+      repository,
+      tagGateway,
+      locationGateway,
+      scoringSchemaGateway,
+      helperGateway,
+    );
+
+    await expect(
+      service.update('game-1', {
+        locations: [{ locationId: 'game-1', isGameId: true }],
+      }),
+    ).rejects.toThrow('Game cannot reference itself as a location');
+
+    expect(repository.updateGame).not.toHaveBeenCalled();
+  });
+
+  it('rejects update when game-as-location link would create a cycle', async () => {
+    repository.getGameById.mockImplementation(async (id: string) => {
+      if (id === 'game-1') {
+        return {
+          id: 'game-1',
+          name: 'Root Game',
+          description: null,
+          length: GameLength.MEDIUM,
+          minPlayers: 2,
+          maxPlayers: 4,
+          tagIds: [],
+          locations: [],
+          scoringSchemaIds: [],
+          helperIds: [],
+          createdOn: new Date('2026-01-01T00:00:00.000Z'),
+          updatedOn: new Date('2026-01-02T00:00:00.000Z'),
+        };
+      }
+
+      if (id === 'game-2') {
+        return {
+          id: 'game-2',
+          name: 'Child Game',
+          description: null,
+          length: GameLength.SHORT,
+          minPlayers: 1,
+          maxPlayers: 2,
+          tagIds: [],
+          locations: [{ locationId: 'game-1', isGameId: true }],
+          scoringSchemaIds: [],
+          helperIds: [],
+          createdOn: new Date('2026-01-01T00:00:00.000Z'),
+          updatedOn: new Date('2026-01-02T00:00:00.000Z'),
+        };
+      }
+
+      return null;
+    });
+
+    const service = new GameService(
+      repository,
+      tagGateway,
+      locationGateway,
+      scoringSchemaGateway,
+      helperGateway,
+    );
+
+    await expect(
+      service.update('game-1', {
+        locations: [{ locationId: 'game-2', isGameId: true }],
+      }),
+    ).rejects.toThrow(
+      'Game location relationship would create a cycle via game ID "game-2"',
+    );
+
+    expect(repository.updateGame).not.toHaveBeenCalled();
+  });
+
   it('maps linking-table ids into response collections', async () => {
     tagGateway.getByIds = jest
       .fn()

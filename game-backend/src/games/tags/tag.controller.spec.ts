@@ -1,6 +1,8 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
+import { JwtAuthGuard } from '@auth/guards/jwt.guard';
+import { PermisionsGuard } from '@auth/guards/permissions.guard';
 import { TAG_GATEWAY } from './infrastructure/tag.gateway';
 import { TagController } from './tag.controller';
 
@@ -19,14 +21,21 @@ describe('TagController', () => {
     const moduleRef = await Test.createTestingModule({
       controllers: [TagController],
       providers: [{ provide: TAG_GATEWAY, useValue: gateway }],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(PermisionsGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     app = moduleRef.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ transform: true, whitelist: true }),
+    );
     await app.init();
     await app.listen(0);
 
-    const address = (app.getHttpServer()).address();
+    const address = app.getHttpServer().address();
     const port = address?.port || 0;
     baseUrl = `http://127.0.0.1:${port}`;
   });
@@ -56,8 +65,13 @@ describe('TagController', () => {
 
     expect(response.status).toBe(201);
     const payload = await response.json();
-    expect(payload).toEqual(expect.objectContaining({ id: 'tag-1', name: 'Strategy' }));
-    expect(gateway.create).toHaveBeenCalledWith({ name: 'Strategy', parentId: null });
+    expect(payload).toEqual(
+      expect.objectContaining({ id: 'tag-1', name: 'Strategy' }),
+    );
+    expect(gateway.create).toHaveBeenCalledWith({
+      name: 'Strategy',
+      parentId: null,
+    });
   });
 
   it('retrieves a tag by id endpoint', async () => {
@@ -73,7 +87,9 @@ describe('TagController', () => {
 
     expect(response.status).toBe(200);
     const payload = await response.json();
-    expect(payload).toEqual(expect.objectContaining({ id: 'tag-1', name: 'Strategy' }));
+    expect(payload).toEqual(
+      expect.objectContaining({ id: 'tag-1', name: 'Strategy' }),
+    );
     expect(gateway.getById).toHaveBeenCalledWith('tag-1');
   });
 });

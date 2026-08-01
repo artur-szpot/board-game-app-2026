@@ -1,8 +1,10 @@
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
-import { GAME_SCORE_GATEWAY } from './game-score.gateway';
+import { JwtAuthGuard } from '@auth/guards/jwt.guard';
+import { PermisionsGuard } from '@auth/guards/permissions.guard';
 import { GameScoreController } from './game-score.controller';
+import { GAME_SCORE_GATEWAY } from './game-score.gateway';
 
 describe('GameScoreController', () => {
   let app: INestApplication;
@@ -19,7 +21,12 @@ describe('GameScoreController', () => {
     const moduleRef = await Test.createTestingModule({
       controllers: [GameScoreController],
       providers: [{ provide: GAME_SCORE_GATEWAY, useValue: gateway }],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(PermisionsGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     app = moduleRef.createNestApplication();
     await app.init();

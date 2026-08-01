@@ -1,6 +1,8 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
+import { JwtAuthGuard } from '@auth/guards/jwt.guard';
+import { PermisionsGuard } from '@auth/guards/permissions.guard';
 import { GameController } from './game.controller';
 import { GAME_GATEWAY } from './infrastructure/game.gateway';
 
@@ -19,7 +21,12 @@ describe('GameController', () => {
     const moduleRef = await Test.createTestingModule({
       controllers: [GameController],
       providers: [{ provide: GAME_GATEWAY, useValue: gateway }],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(PermisionsGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     app = moduleRef.createNestApplication();
     app.useGlobalPipes(

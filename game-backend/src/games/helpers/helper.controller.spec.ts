@@ -1,8 +1,10 @@
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
-import { HELPER_GATEWAY } from './infrastructure/helper.gateway';
+import { JwtAuthGuard } from '@auth/guards/jwt.guard';
+import { PermisionsGuard } from '@auth/guards/permissions.guard';
 import { HelperController } from './helper.controller';
+import { HELPER_GATEWAY } from './infrastructure/helper.gateway';
 
 describe('HelperController', () => {
   let app: INestApplication;
@@ -19,13 +21,18 @@ describe('HelperController', () => {
     const moduleRef = await Test.createTestingModule({
       controllers: [HelperController],
       providers: [{ provide: HELPER_GATEWAY, useValue: gateway }],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(PermisionsGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     app = moduleRef.createNestApplication();
     await app.init();
     await app.listen(0);
 
-    const address = (app.getHttpServer()).address();
+    const address = app.getHttpServer().address();
     const port = address?.port || 0;
     baseUrl = `http://127.0.0.1:${port}`;
   });
@@ -55,8 +62,13 @@ describe('HelperController', () => {
 
     expect(response.status).toBe(201);
     const payload = await response.json();
-    expect(payload).toEqual(expect.objectContaining({ id: 'helper-1', name: 'Auto Score' }));
-    expect(gateway.create).toHaveBeenCalledWith({ name: 'Auto Score', logic: { rules: [] } });
+    expect(payload).toEqual(
+      expect.objectContaining({ id: 'helper-1', name: 'Auto Score' }),
+    );
+    expect(gateway.create).toHaveBeenCalledWith({
+      name: 'Auto Score',
+      logic: { rules: [] },
+    });
   });
 
   it('retrieves a helper by id endpoint', async () => {
@@ -72,7 +84,9 @@ describe('HelperController', () => {
 
     expect(response.status).toBe(200);
     const payload = await response.json();
-    expect(payload).toEqual(expect.objectContaining({ id: 'helper-1', name: 'Auto Score' }));
+    expect(payload).toEqual(
+      expect.objectContaining({ id: 'helper-1', name: 'Auto Score' }),
+    );
     expect(gateway.getById).toHaveBeenCalledWith('helper-1');
   });
 });

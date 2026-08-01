@@ -1,4 +1,15 @@
 services:
+  db-cycle-tests:
+    build:
+      context: game-backend
+    env_file:
+      - ./secrets/backend.env
+    depends_on:
+      db:
+        condition: service_healthy
+    command: npm run test:db:cycles
+    restart: "no"
+
   game-backend:
     build:
       context: game-backend
@@ -10,7 +21,10 @@ services:
     ports:
       - 3001:3001
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+      db-cycle-tests:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3001/health || exit 1"]
       interval: 30m
@@ -31,7 +45,10 @@ services:
     ports:
       - 3003:3003
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+      db-cycle-tests:
+        condition: service_completed_successfully
     healthcheck:
       test:
         ["CMD-SHELL", "wget -qO- http://127.0.0.1:3003/health/live || exit 1"]
@@ -63,6 +80,10 @@ services:
       - ./frontend:/app
       - frontend-node-modules:/app/node_modules
 
+    depends_on:
+      db-cycle-tests:
+        condition: service_completed_successfully
+
   db:
     image: postgres:17
     environment:
@@ -78,6 +99,16 @@ services:
       - postgres-password
       - postgres-superuser
       - postgres-db
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'pg_isready -U "$(cat /run/secrets/postgres-superuser)" -d "$(cat /run/secrets/postgres-db)" || exit 1',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
 
 secrets:
   postgres-password:

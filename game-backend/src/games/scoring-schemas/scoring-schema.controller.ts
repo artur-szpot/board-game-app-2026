@@ -7,17 +7,26 @@ import {
     Param,
     Patch,
     Post,
+    UseGuards,
 } from '@nestjs/common';
 import {
     ApiBadRequestResponse,
+    ApiBearerAuth,
     ApiBody,
+    ApiForbiddenResponse,
     ApiNotFoundResponse,
     ApiOkResponse,
     ApiOperation,
     ApiParam,
     ApiTags,
+    ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 
+import { RequirePermissions } from '@auth/decorators/permissions.decorator';
+import { JwtAuthGuard } from '@auth/guards/jwt.guard';
+import { PermisionsGuard } from '@auth/guards/permissions.guard';
+import { PermissionLevel } from '@auth/modules/permissions/enums/permission-level.enum';
+import { PermissionType } from '@auth/modules/permissions/enums/permission-type.enum';
 import { GetEntityByIdDto } from '@common/dto/in/get-entity-by-id.dto';
 import {
     HttpErrorResponseDto,
@@ -33,8 +42,12 @@ import {
 } from './infrastructure/scoring-schema.gateway';
 
 @ApiTags('ScoringSchemas')
+@ApiBearerAuth('access-token')
 @ApiBadRequestResponse({ type: ValidationErrorResponseDto })
+@ApiUnauthorizedResponse({ type: HttpErrorResponseDto })
+@ApiForbiddenResponse({ type: HttpErrorResponseDto })
 @Controller('game-api/scoring-schemas')
+@UseGuards(JwtAuthGuard, PermisionsGuard)
 export class ScoringSchemaController {
   constructor(
     @Inject(SCORING_SCHEMA_GATEWAY)
@@ -46,6 +59,7 @@ export class ScoringSchemaController {
   @ApiParam({ name: 'id', type: String })
   @ApiOkResponse({ type: ScoringSchemaResponse })
   @ApiNotFoundResponse({ type: HttpErrorResponseDto })
+  @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.READ])
   public async getById(
     @Param() params: GetEntityByIdDto,
   ): Promise<ScoringSchemaResponse> {
@@ -56,6 +70,7 @@ export class ScoringSchemaController {
   @ApiOperation({ summary: 'Create scoring schema' })
   @ApiBody({ type: CreateScoringSchemaDto })
   @ApiOkResponse({ type: ScoringSchemaResponse })
+  @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.FULL])
   public async create(
     @Body() body: CreateScoringSchemaDto,
   ): Promise<ScoringSchemaResponse> {
@@ -68,6 +83,7 @@ export class ScoringSchemaController {
   @ApiBody({ type: UpdateScoringSchemaDto })
   @ApiOkResponse({ type: ScoringSchemaResponse })
   @ApiNotFoundResponse({ type: HttpErrorResponseDto })
+  @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.FULL])
   public async update(
     @Param() params: GetEntityByIdDto,
     @Body() body: UpdateScoringSchemaDto,
@@ -80,6 +96,7 @@ export class ScoringSchemaController {
   @ApiParam({ name: 'id', type: String })
   @ApiOkResponse({ type: ScoringSchemaResponse })
   @ApiNotFoundResponse({ type: HttpErrorResponseDto })
+  @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.FULL])
   public async delete(
     @Param() params: GetEntityByIdDto,
   ): Promise<ScoringSchemaResponse> {

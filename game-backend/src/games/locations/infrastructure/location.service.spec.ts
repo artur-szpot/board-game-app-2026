@@ -1,8 +1,8 @@
 import { BadRequestException } from '@nestjs/common';
 
 import {
-  CustomInternalError,
-  CustomNotFoundError,
+    CustomInternalError,
+    CustomNotFoundError,
 } from '@common/errors/service-errors';
 import { LocationRepository } from '@db/repositories/location.repository';
 
@@ -218,6 +218,41 @@ describe('LocationService', () => {
       expect(mockRepository.getLocationById).toHaveBeenCalledWith(
         testLocationDto.id,
       );
+    });
+
+    it('should reject update when a location is set as its own parent', async () => {
+      mockRepository.getLocationById.mockResolvedValueOnce(testLocationDto);
+
+      await expect(
+        service.update(testLocationDto.id, { parentId: testLocationDto.id }),
+      ).rejects.toThrow('Location cannot be its own parent');
+
+      expect(mockRepository.updateLocation).not.toHaveBeenCalled();
+    });
+
+    it('should reject update when parent change would create a cycle', async () => {
+      mockRepository.getLocationById
+        .mockResolvedValueOnce(testLocationDto)
+        .mockResolvedValueOnce({
+          ...testLocationDto,
+          id: 'location-2',
+          parentId: 'location-3',
+          path: ['Location 2'],
+          pathIds: ['location-2'],
+        })
+        .mockResolvedValueOnce({
+          ...testLocationDto,
+          id: 'location-3',
+          parentId: 'location-1',
+          path: ['Location 3'],
+          pathIds: ['location-3'],
+        });
+
+      await expect(
+        service.update('location-1', { parentId: 'location-2' }),
+      ).rejects.toThrow('Location parent relationship would create a cycle');
+
+      expect(mockRepository.updateLocation).not.toHaveBeenCalled();
     });
   });
 

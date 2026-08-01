@@ -1,6 +1,8 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
+import { JwtAuthGuard } from '@auth/guards/jwt.guard';
+import { PermisionsGuard } from '@auth/guards/permissions.guard';
 import { LOCATION_GATEWAY } from './infrastructure/location.gateway';
 import { LocationController } from './location.controller';
 
@@ -19,14 +21,21 @@ describe('LocationController (e2e)', () => {
     const moduleRef = await Test.createTestingModule({
       controllers: [LocationController],
       providers: [{ provide: LOCATION_GATEWAY, useValue: gateway }],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(PermisionsGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     app = moduleRef.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ transform: true, whitelist: true }),
+    );
     await app.init();
     await app.listen(0);
 
-    const address = (app.getHttpServer()).address();
+    const address = app.getHttpServer().address();
     const port = address?.port || 0;
     baseUrl = `http://127.0.0.1:${port}`;
   });
@@ -57,7 +66,9 @@ describe('LocationController (e2e)', () => {
 
     expect(response.status).toBe(201);
     const payload = await response.json();
-    expect(payload).toEqual(expect.objectContaining({ id: 'loc-1', name: 'Forest' }));
+    expect(payload).toEqual(
+      expect.objectContaining({ id: 'loc-1', name: 'Forest' }),
+    );
     expect(gateway.create).toHaveBeenCalledWith({
       name: 'Forest',
       description: 'A place',
@@ -78,7 +89,9 @@ describe('LocationController (e2e)', () => {
 
     expect(response.status).toBe(200);
     const payload = await response.json();
-    expect(payload).toEqual(expect.objectContaining({ id: 'loc-1', name: 'Forest' }));
+    expect(payload).toEqual(
+      expect.objectContaining({ id: 'loc-1', name: 'Forest' }),
+    );
     expect(gateway.getById).toHaveBeenCalledWith('loc-1');
   });
 });

@@ -4,4 +4,18 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-docker compose -f compose.yaml up --build "$@"
+if ! docker compose -f compose.yaml up --build "$@"; then
+	cat <<'EOF'
+
+Compose startup failed.
+
+If this happened right after DB initialization, the cycle-trigger integration gate may have failed.
+Inspect it with:
+	docker compose -f compose.yaml logs db-cycle-tests
+
+If needed, rerun only that gate:
+	docker compose -f compose.yaml run --rm db-cycle-tests
+
+EOF
+	exit 1
+fi

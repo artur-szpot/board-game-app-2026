@@ -1,6 +1,8 @@
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
+import { JwtAuthGuard } from '@auth/guards/jwt.guard';
+import { PermisionsGuard } from '@auth/guards/permissions.guard';
 import { SCORING_SCHEMA_GATEWAY } from './infrastructure/scoring-schema.gateway';
 import { ScoringSchemaController } from './scoring-schema.controller';
 
@@ -19,13 +21,18 @@ describe('ScoringSchemaController', () => {
     const moduleRef = await Test.createTestingModule({
       controllers: [ScoringSchemaController],
       providers: [{ provide: SCORING_SCHEMA_GATEWAY, useValue: gateway }],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(PermisionsGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     app = moduleRef.createNestApplication();
     await app.init();
     await app.listen(0);
 
-    const address = (app.getHttpServer()).address();
+    const address = app.getHttpServer().address();
     const port = address?.port || 0;
     baseUrl = `http://127.0.0.1:${port}`;
   });
@@ -51,12 +58,18 @@ describe('ScoringSchemaController', () => {
     const response = await fetch(`${baseUrl}/game-api/scoring-schemas`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'Default', schema: { points: 1 }, description: 'A scoring schema' }),
+      body: JSON.stringify({
+        name: 'Default',
+        schema: { points: 1 },
+        description: 'A scoring schema',
+      }),
     });
 
     expect(response.status).toBe(201);
     const payload = await response.json();
-    expect(payload).toEqual(expect.objectContaining({ id: 'schema-1', name: 'Default' }));
+    expect(payload).toEqual(
+      expect.objectContaining({ id: 'schema-1', name: 'Default' }),
+    );
     expect(gateway.create).toHaveBeenCalledWith({
       name: 'Default',
       schema: { points: 1 },
@@ -74,11 +87,15 @@ describe('ScoringSchemaController', () => {
       updatedOn: new Date(),
     });
 
-    const response = await fetch(`${baseUrl}/game-api/scoring-schemas/schema-1`);
+    const response = await fetch(
+      `${baseUrl}/game-api/scoring-schemas/schema-1`,
+    );
 
     expect(response.status).toBe(200);
     const payload = await response.json();
-    expect(payload).toEqual(expect.objectContaining({ id: 'schema-1', name: 'Default' }));
+    expect(payload).toEqual(
+      expect.objectContaining({ id: 'schema-1', name: 'Default' }),
+    );
     expect(gateway.getById).toHaveBeenCalledWith('schema-1');
   });
 });
