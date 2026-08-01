@@ -1,1 +1,0 @@
-add liveliness/readiness checks

@@ -2422,6 +2422,51 @@
           }
         ]
       }
+    },
+    "/health": {
+      "get": {
+        "operationId": "HealthController_getHealth",
+        "summary": "Health endpoint for general service availability",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Service is up and responding."
+          }
+        },
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/health/live": {
+      "get": {
+        "operationId": "HealthController_getLiveHealth",
+        "summary": "Liveness probe for container health checks",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Service is alive and should not be restarted."
+          }
+        },
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "operationId": "HealthController_getReadyHealth",
+        "summary": "Readiness probe that checks whether dependencies are reachable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Service is ready to receive traffic."
+          }
+        },
+        "tags": [
+          "Health"
+        ]
+      }
     }
   },
   "info": {

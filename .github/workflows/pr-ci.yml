@@ -30,12 +30,26 @@ jobs:
 
       - name: Start backend app
         run: |
-          timeout 20s npm run start > /tmp/game-backend-start.log 2>&1 || exit_code=$?
-          if [ "${exit_code:-0}" -ne 0 ] && [ "${exit_code:-0}" -ne 124 ]; then
+          npm run start > /tmp/game-backend-start.log 2>&1 &
+          app_pid=$!
+          ready=0
+
+          for attempt in $(seq 1 20); do
+            if curl --fail --silent --show-error http://127.0.0.1:3001/health/live >/dev/null 2>&1; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+
+          if [ "$ready" -ne 1 ]; then
             cat /tmp/game-backend-start.log
-            exit "$exit_code"
+            exit 1
           fi
-          cat /tmp/game-backend-start.log
+
+          curl --fail --silent --show-error http://127.0.0.1:3001/health
+          curl --fail --silent --show-error http://127.0.0.1:3001/health/live
+          kill "$app_pid" >/dev/null 2>&1 || true
 
       - name: Build backend
         run: npm run build
@@ -66,12 +80,26 @@ jobs:
 
       - name: Start randomizer backend app
         run: |
-          timeout 20s uvicorn app.main:app --host 127.0.0.1 --port 3003 > /tmp/randomizer-backend-start.log 2>&1 || exit_code=$?
-          if [ "${exit_code:-0}" -ne 0 ] && [ "${exit_code:-0}" -ne 124 ]; then
+          uvicorn app.main:app --host 127.0.0.1 --port 3003 > /tmp/randomizer-backend-start.log 2>&1 &
+          app_pid=$!
+          ready=0
+
+          for attempt in $(seq 1 20); do
+            if curl --fail --silent --show-error http://127.0.0.1:3003/health/live >/dev/null 2>&1; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+
+          if [ "$ready" -ne 1 ]; then
             cat /tmp/randomizer-backend-start.log
-            exit "$exit_code"
+            exit 1
           fi
-          cat /tmp/randomizer-backend-start.log
+
+          curl --fail --silent --show-error http://127.0.0.1:3003/health
+          curl --fail --silent --show-error http://127.0.0.1:3003/health/live
+          kill "$app_pid" >/dev/null 2>&1 || true
 
       - name: Build randomizer backend image
         run: docker build -t randomizer-backend:ci .
