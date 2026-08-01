@@ -7,17 +7,26 @@ import {
     Param,
     Patch,
     Post,
+    UseGuards,
 } from '@nestjs/common';
 import {
     ApiBadRequestResponse,
+    ApiBearerAuth,
     ApiBody,
+    ApiForbiddenResponse,
     ApiNotFoundResponse,
     ApiOkResponse,
     ApiOperation,
     ApiParam,
     ApiTags,
+    ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 
+import { RequirePermissions } from '@auth/decorators/permissions.decorator';
+import { JwtAuthGuard } from '@auth/guards/jwt.guard';
+import { PermisionsGuard } from '@auth/guards/permissions.guard';
+import { PermissionLevel } from '@auth/modules/permissions/enums/permission-level.enum';
+import { PermissionType } from '@auth/modules/permissions/enums/permission-type.enum';
 import { GetEntityByIdDto } from '@common/dto/in/get-entity-by-id.dto';
 import {
     HttpErrorResponseDto,
@@ -33,8 +42,12 @@ import {
 } from './infrastructure/location.gateway';
 
 @ApiTags('Locations')
+@ApiBearerAuth('access-token')
 @ApiBadRequestResponse({ type: ValidationErrorResponseDto })
+@ApiUnauthorizedResponse({ type: HttpErrorResponseDto })
+@ApiForbiddenResponse({ type: HttpErrorResponseDto })
 @Controller('game-api/locations')
+@UseGuards(JwtAuthGuard, PermisionsGuard)
 export class LocationController {
   constructor(
     @Inject(LOCATION_GATEWAY)
@@ -46,6 +59,7 @@ export class LocationController {
   @ApiParam({ name: 'id', type: String })
   @ApiOkResponse({ type: LocationResponse })
   @ApiNotFoundResponse({ type: HttpErrorResponseDto })
+  @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.READ])
   public async getLocationById(
     @Param() params: GetEntityByIdDto,
   ): Promise<LocationResponse> {
@@ -56,6 +70,7 @@ export class LocationController {
   @ApiOperation({ summary: 'Create location' })
   @ApiBody({ type: CreateLocationDto })
   @ApiOkResponse({ type: LocationResponse })
+  @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.FULL])
   public async createLocation(
     @Body() body: CreateLocationDto,
   ): Promise<LocationResponse> {
@@ -68,6 +83,7 @@ export class LocationController {
   @ApiBody({ type: UpdateLocationDto })
   @ApiOkResponse({ type: LocationResponse })
   @ApiNotFoundResponse({ type: HttpErrorResponseDto })
+  @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.FULL])
   public async updateLocation(
     @Param() params: GetEntityByIdDto,
     @Body() body: UpdateLocationDto,
@@ -80,6 +96,7 @@ export class LocationController {
   @ApiParam({ name: 'id', type: String })
   @ApiOkResponse({ type: LocationResponse })
   @ApiNotFoundResponse({ type: HttpErrorResponseDto })
+  @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.FULL])
   public async deleteLocation(
     @Param() params: GetEntityByIdDto,
   ): Promise<LocationResponse> {

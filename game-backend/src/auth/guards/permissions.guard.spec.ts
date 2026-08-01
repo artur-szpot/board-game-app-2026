@@ -79,7 +79,7 @@ describe('PermissionsGuard', () => {
       }),
     });
     const result = guard.canActivate(context);
-    expect(result).toBe(true);
+    expect(result).toBe(false);
   });
 
   it('should not allow access when user has no permissions', async () => {
@@ -98,6 +98,6 @@ describe('PermissionsGuard', () => {
       }),
     });
     const result = guard.canActivate(context);
-    expect(result).toBe(true);
+    expect(result).toBe(false);
   });
 });

@@ -1,27 +1,36 @@
 import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Inject,
-  Param,
-  Patch,
-  Post,
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Inject,
+    Param,
+    Patch,
+    Post,
+    UseGuards,
 } from '@nestjs/common';
 import {
-  ApiBadRequestResponse,
-  ApiBody,
-  ApiNotFoundResponse,
-  ApiOkResponse,
-  ApiOperation,
-  ApiParam,
-  ApiTags,
+    ApiBadRequestResponse,
+    ApiBearerAuth,
+    ApiBody,
+    ApiForbiddenResponse,
+    ApiNotFoundResponse,
+    ApiOkResponse,
+    ApiOperation,
+    ApiParam,
+    ApiTags,
+    ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 
+import { RequirePermissions } from '@auth/decorators/permissions.decorator';
+import { JwtAuthGuard } from '@auth/guards/jwt.guard';
+import { PermisionsGuard } from '@auth/guards/permissions.guard';
+import { PermissionLevel } from '@auth/modules/permissions/enums/permission-level.enum';
+import { PermissionType } from '@auth/modules/permissions/enums/permission-type.enum';
 import { GetEntityByIdDto } from '@common/dto/in/get-entity-by-id.dto';
 import {
-  HttpErrorResponseDto,
-  ValidationErrorResponseDto,
+    HttpErrorResponseDto,
+    ValidationErrorResponseDto,
 } from '@common/openapi/error-response.dto';
 
 import { CreateTagDto } from './dto/in/create-tag.dto';
@@ -30,8 +39,12 @@ import { TagResponse } from './dto/out/tag.response';
 import { TAG_GATEWAY, TagGateway } from './infrastructure/tag.gateway';
 
 @ApiTags('Tags')
+@ApiBearerAuth('access-token')
 @ApiBadRequestResponse({ type: ValidationErrorResponseDto })
+@ApiUnauthorizedResponse({ type: HttpErrorResponseDto })
+@ApiForbiddenResponse({ type: HttpErrorResponseDto })
 @Controller('game-api/tags')
+@UseGuards(JwtAuthGuard, PermisionsGuard)
 export class TagController {
   constructor(
     @Inject(TAG_GATEWAY)
@@ -43,6 +56,7 @@ export class TagController {
   @ApiParam({ name: 'id', type: String })
   @ApiOkResponse({ type: TagResponse })
   @ApiNotFoundResponse({ type: HttpErrorResponseDto })
+  @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.READ])
   public async getTagById(
     @Param() params: GetEntityByIdDto,
   ): Promise<TagResponse> {
@@ -53,6 +67,7 @@ export class TagController {
   @ApiOperation({ summary: 'Create tag' })
   @ApiBody({ type: CreateTagDto })
   @ApiOkResponse({ type: TagResponse })
+  @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.FULL])
   public async createTag(@Body() body: CreateTagDto): Promise<TagResponse> {
     return this.gateway.create(body);
   }
@@ -63,6 +78,7 @@ export class TagController {
   @ApiBody({ type: UpdateTagDto })
   @ApiOkResponse({ type: TagResponse })
   @ApiNotFoundResponse({ type: HttpErrorResponseDto })
+  @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.FULL])
   public async updateTag(
     @Param() params: GetEntityByIdDto,
     @Body() body: UpdateTagDto,
@@ -75,6 +91,7 @@ export class TagController {
   @ApiParam({ name: 'id', type: String })
   @ApiOkResponse({ type: TagResponse })
   @ApiNotFoundResponse({ type: HttpErrorResponseDto })
+  @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.FULL])
   public async deleteTag(
     @Param() params: GetEntityByIdDto,
   ): Promise<TagResponse> {

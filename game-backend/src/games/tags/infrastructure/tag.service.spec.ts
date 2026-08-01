@@ -1,10 +1,13 @@
 import { BadRequestException } from '@nestjs/common';
 
-import { CustomInternalError, CustomNotFoundError } from '@common/errors/service-errors';
-import { CreateTagDto } from '../dto/in/create-tag.dto';
-import { UpdateTagDto } from '../dto/in/update-tag.dto';
-import { TagDto } from '../dto/in/tag.dto';
+import {
+    CustomInternalError,
+    CustomNotFoundError,
+} from '@common/errors/service-errors';
 import { TagRepository } from '@db/repositories/tag.repository';
+import { CreateTagDto } from '../dto/in/create-tag.dto';
+import { TagDto } from '../dto/in/tag.dto';
+import { UpdateTagDto } from '../dto/in/update-tag.dto';
 import { TagService } from './tag.service';
 
 describe('TagService', () => {
@@ -97,7 +100,9 @@ describe('TagService', () => {
       mockRepository.getManyTags.mockRejectedValueOnce(new Error('failure'));
       mockRepository.getTagsCount.mockResolvedValueOnce(0);
 
-      await expect(service.getMany()).rejects.toBeInstanceOf(CustomInternalError);
+      await expect(service.getMany()).rejects.toBeInstanceOf(
+        CustomInternalError,
+      );
       expect(mockRepository.getManyTags).toHaveBeenCalledWith(undefined);
       expect(mockRepository.getTagsCount).toHaveBeenCalledTimes(1);
     });
@@ -111,7 +116,9 @@ describe('TagService', () => {
 
       const result = await service.create(createTagDto);
 
-      expect(mockRepository.getTagByName).toHaveBeenCalledWith(createTagDto.name);
+      expect(mockRepository.getTagByName).toHaveBeenCalledWith(
+        createTagDto.name,
+      );
       expect(mockRepository.createTag).toHaveBeenCalledWith(createTagDto);
       expect(result).toStrictEqual({
         id: testTagDto.id,
@@ -130,7 +137,9 @@ describe('TagService', () => {
       await expect(service.create(createTagDto)).rejects.toBeInstanceOf(
         BadRequestException,
       );
-      expect(mockRepository.getTagByName).toHaveBeenCalledWith(createTagDto.name);
+      expect(mockRepository.getTagByName).toHaveBeenCalledWith(
+        createTagDto.name,
+      );
     });
   });
 
@@ -149,7 +158,9 @@ describe('TagService', () => {
       const result = await service.update(testTagDto.id, updateTagDto);
 
       expect(mockRepository.getTagById).toHaveBeenCalledWith(testTagDto.id);
-      expect(mockRepository.getTagByName).toHaveBeenCalledWith(updateTagDto.name);
+      expect(mockRepository.getTagByName).toHaveBeenCalledWith(
+        updateTagDto.name,
+      );
       expect(mockRepository.updateTag).toHaveBeenCalledWith(
         testTagDto.id,
         updateTagDto,
@@ -167,10 +178,41 @@ describe('TagService', () => {
     it('should throw CustomNotFoundError when updating a missing tag', async () => {
       mockRepository.getTagById.mockResolvedValueOnce(null);
 
-      await expect(service.update(testTagDto.id, { name: 'New Name' })).rejects.toBeInstanceOf(
-        CustomNotFoundError,
-      );
+      await expect(
+        service.update(testTagDto.id, { name: 'New Name' }),
+      ).rejects.toBeInstanceOf(CustomNotFoundError);
       expect(mockRepository.getTagById).toHaveBeenCalledWith(testTagDto.id);
+    });
+
+    it('should reject update when a tag is set as its own parent', async () => {
+      mockRepository.getTagById.mockResolvedValueOnce(testTagDto);
+
+      await expect(
+        service.update(testTagDto.id, { parentId: testTagDto.id }),
+      ).rejects.toThrow('Tag cannot be its own parent');
+
+      expect(mockRepository.updateTag).not.toHaveBeenCalled();
+    });
+
+    it('should reject update when parent change would create a cycle', async () => {
+      mockRepository.getTagById
+        .mockResolvedValueOnce(testTagDto)
+        .mockResolvedValueOnce({
+          ...testTagDto,
+          id: 'tag-2',
+          parentId: 'tag-3',
+        })
+        .mockResolvedValueOnce({
+          ...testTagDto,
+          id: 'tag-3',
+          parentId: 'tag-1',
+        });
+
+      await expect(
+        service.update('tag-1', { parentId: 'tag-2' }),
+      ).rejects.toThrow('Tag parent relationship would create a cycle');
+
+      expect(mockRepository.updateTag).not.toHaveBeenCalled();
     });
   });
 

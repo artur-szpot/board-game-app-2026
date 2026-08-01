@@ -73,6 +73,82 @@ export class GameService implements GameGateway {
     }
   }
 
+  private async ensureGameIdsExist(gameIds: string[] | undefined) {
+    if (!gameIds?.length) {
+      return;
+    }
+
+    const uniqueIds = [...new Set(gameIds)];
+    const games = await Promise.all(
+      uniqueIds.map((gameId) => this.gameRepository.getGameById(gameId)),
+    );
+    const missingIndex = games.findIndex((game) => !game);
+    if (missingIndex !== -1) {
+      throw new BadRequestException(
+        `Game with ID "${uniqueIds[missingIndex]}" not found`,
+      );
+    }
+  }
+
+  private async canReachGame(
+    fromGameId: string,
+    targetGameId: string,
+    visited: Set<string>,
+  ): Promise<boolean> {
+    if (fromGameId === targetGameId) {
+      return true;
+    }
+    if (visited.has(fromGameId)) {
+      return false;
+    }
+
+    visited.add(fromGameId);
+    const game = await this.gameRepository.getGameById(fromGameId);
+    if (!game) {
+      return false;
+    }
+
+    const linkedGameIds = (game.locations ?? [])
+      .filter((location) => location.isGameId)
+      .map((location) => location.locationId);
+
+    for (const linkedGameId of linkedGameIds) {
+      if (await this.canReachGame(linkedGameId, targetGameId, visited)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private async ensureNoGameLocationCycle(
+    gameId: string,
+    gameLocationIds: string[] | undefined,
+  ) {
+    if (!gameLocationIds?.length) {
+      return;
+    }
+
+    if (gameLocationIds.includes(gameId)) {
+      throw new BadRequestException(
+        'Game cannot reference itself as a location',
+      );
+    }
+
+    for (const locationGameId of [...new Set(gameLocationIds)]) {
+      const wouldCreateCycle = await this.canReachGame(
+        locationGameId,
+        gameId,
+        new Set<string>(),
+      );
+      if (wouldCreateCycle) {
+        throw new BadRequestException(
+          `Game location relationship would create a cycle via game ID "${locationGameId}"`,
+        );
+      }
+    }
+  }
+
   private async validateInput(
     input: CreateGameDto | UpdateGameDto,
     id?: string,
@@ -132,7 +208,7 @@ export class GameService implements GameGateway {
         (ids) => this.locationGateway.getByIds(ids),
         'Location',
       ),
-      this.ensureIdsExist(gameLocationIds, (ids) => this.getByIds(ids), 'Game'),
+      this.ensureGameIdsExist(gameLocationIds),
       this.ensureIdsExist(
         input.scoringSchemaIds,
         (ids) => this.scoringSchemaGateway.getByIds(ids),
@@ -144,6 +220,10 @@ export class GameService implements GameGateway {
         'Helper',
       ),
     ]);
+
+    if (id) {
+      await this.ensureNoGameLocationCycle(id, gameLocationIds);
+    }
   }
 
   private async mapGameResponse(game: GameDto): Promise<GameDto> {

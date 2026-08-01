@@ -1114,6 +1114,26 @@
               }
             }
           },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
           "404": {
             "description": "",
             "content": {
@@ -1127,6 +1147,11 @@
         },
         "tags": [
           "Locations"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
         ]
       },
       "patch": {
@@ -1174,6 +1199,26 @@
               }
             }
           },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
           "404": {
             "description": "",
             "content": {
@@ -1187,6 +1232,11 @@
         },
         "tags": [
           "Locations"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
         ]
       },
       "delete": {
@@ -1224,6 +1274,26 @@
               }
             }
           },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
           "404": {
             "description": "",
             "content": {
@@ -1237,6 +1307,11 @@
         },
         "tags": [
           "Locations"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
         ]
       }
     },
@@ -1285,10 +1360,35 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
           "Locations"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
         ]
       }
     },
@@ -1328,6 +1428,26 @@
               }
             }
           },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
           "404": {
             "description": "",
             "content": {
@@ -1341,6 +1461,11 @@
         },
         "tags": [
           "Tags"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
         ]
       },
       "patch": {
@@ -1388,6 +1513,26 @@
               }
             }
           },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
           "404": {
             "description": "",
             "content": {
@@ -1401,6 +1546,11 @@
         },
         "tags": [
           "Tags"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
         ]
       },
       "delete": {
@@ -1438,6 +1588,26 @@
               }
             }
           },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
           "404": {
             "description": "",
             "content": {
@@ -1451,6 +1621,11 @@
         },
         "tags": [
           "Tags"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
         ]
       }
     },
@@ -1499,10 +1674,35 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
           "Tags"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
         ]
       }
     },
@@ -1542,6 +1742,26 @@
               }
             }
           },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
           "404": {
             "description": "",
             "content": {
@@ -1555,6 +1775,11 @@
         },
         "tags": [
           "ScoringSchemas"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
         ]
       },
       "patch": {
@@ -1602,6 +1827,26 @@
               }
             }
           },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
           "404": {
             "description": "",
             "content": {
@@ -1615,6 +1860,11 @@
         },
         "tags": [
           "ScoringSchemas"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
         ]
       },
       "delete": {
@@ -1652,6 +1902,26 @@
               }
             }
           },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
           "404": {
             "description": "",
             "content": {
@@ -1665,6 +1935,11 @@
         },
         "tags": [
           "ScoringSchemas"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
         ]
       }
     },
@@ -1713,10 +1988,35 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
           "ScoringSchemas"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
         ]
       }
     },
@@ -1756,6 +2056,26 @@
               }
             }
           },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
           "404": {
             "description": "",
             "content": {
@@ -1769,6 +2089,11 @@
         },
         "tags": [
           "GameScores"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
         ]
       },
       "patch": {
@@ -1816,6 +2141,26 @@
               }
             }
           },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
           "404": {
             "description": "",
             "content": {
@@ -1829,6 +2174,11 @@
         },
         "tags": [
           "GameScores"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
         ]
       },
       "delete": {
@@ -1866,6 +2216,26 @@
               }
             }
           },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
           "404": {
             "description": "",
             "content": {
@@ -1879,6 +2249,11 @@
         },
         "tags": [
           "GameScores"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
         ]
       }
     },
@@ -1927,10 +2302,35 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
           "GameScores"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
         ]
       }
     },
@@ -1969,6 +2369,26 @@
               }
             }
           },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
           "404": {
             "description": "",
             "content": {
@@ -1982,6 +2402,11 @@
         },
         "tags": [
           "Helpers"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
         ]
       },
       "put": {
@@ -2028,6 +2453,26 @@
               }
             }
           },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
           "404": {
             "description": "",
             "content": {
@@ -2041,6 +2486,11 @@
         },
         "tags": [
           "Helpers"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
         ]
       },
       "delete": {
@@ -2077,6 +2527,26 @@
               }
             }
           },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
           "404": {
             "description": "",
             "content": {
@@ -2090,6 +2560,11 @@
         },
         "tags": [
           "Helpers"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
         ]
       }
     },
@@ -2138,10 +2613,35 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
           "Helpers"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
         ]
       }
     },
@@ -2180,6 +2680,26 @@
               }
             }
           },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
           "404": {
             "description": "",
             "content": {
@@ -2193,6 +2713,11 @@
         },
         "tags": [
           "Games"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
         ]
       },
       "patch": {
@@ -2239,6 +2764,26 @@
               }
             }
           },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
           "404": {
             "description": "",
             "content": {
@@ -2252,6 +2797,11 @@
         },
         "tags": [
           "Games"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
         ]
       },
       "delete": {
@@ -2288,6 +2838,26 @@
               }
             }
           },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
           "404": {
             "description": "",
             "content": {
@@ -2301,6 +2871,11 @@
         },
         "tags": [
           "Games"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
         ]
       }
     },
@@ -2349,10 +2924,35 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
           "Games"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
         ]
       }
     },
@@ -2403,6 +3003,16 @@
             }
           },
           "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
             "description": "",
             "content": {
               "application/json": {
