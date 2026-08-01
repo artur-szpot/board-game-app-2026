@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
     ArrayMinSize,
@@ -23,6 +24,7 @@ export class SearchResult {
   @IsNotEmpty()
   name: string;
 
+  @ApiProperty({ enum: GameDataType, enumName: 'GameDataType' })
   @IsEnum(GameDataType)
   type: GameDataType;
 
@@ -32,12 +34,14 @@ export class SearchResult {
 }
 
 export class SearchResponse {
+  @ApiProperty({ type: () => [SearchResult] })
   @IsArray()
   @ArrayMinSize(0)
   @Type(() => SearchResult)
   @ValidateNested({ each: true })
   results: SearchResult[];
 
+  @ApiProperty({ minimum: 0, example: 42 })
   @IsInt()
   @Min(0)
   total: number;

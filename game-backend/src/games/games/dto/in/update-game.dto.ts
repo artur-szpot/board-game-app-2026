@@ -1,3 +1,4 @@
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
     IsArray,
@@ -23,6 +24,7 @@ export class UpdateGameDto {
   @IsOptional()
   description?: string | null;
 
+  @ApiPropertyOptional({ enum: GameLength, enumName: 'GameLength' })
   @IsEnum(GameLength)
   @IsOptional()
   length?: GameLength;

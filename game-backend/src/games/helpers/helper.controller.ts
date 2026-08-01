@@ -1,18 +1,34 @@
 import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Inject,
-  Param,
-  Post,
-  Put,
+    HttpErrorResponseDto,
+    ValidationErrorResponseDto,
+} from '@common/openapi/error-response.dto';
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Inject,
+    Param,
+    Post,
+    Put,
 } from '@nestjs/common';
+import {
+    ApiBadRequestResponse,
+    ApiBody,
+    ApiNotFoundResponse,
+    ApiOkResponse,
+    ApiOperation,
+    ApiParam,
+    ApiTags,
+} from '@nestjs/swagger';
 
 import { CreateHelperDto } from './dto/in/create-helper.dto';
 import { UpdateHelperDto } from './dto/in/update-helper.dto';
-import { HelperGateway, HELPER_GATEWAY } from './infrastructure/helper.gateway';
+import { HelperResponse } from './dto/out/helper.response';
+import { HELPER_GATEWAY, HelperGateway } from './infrastructure/helper.gateway';
 
+@ApiTags('Helpers')
+@ApiBadRequestResponse({ type: ValidationErrorResponseDto })
 @Controller('game-api/helpers')
 export class HelperController {
   constructor(
@@ -21,22 +37,41 @@ export class HelperController {
   ) {}
 
   @Get(':id')
-  getById(@Param('id') id: string) {
+  @ApiOperation({ summary: 'Get helper by ID' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiOkResponse({ type: HelperResponse })
+  @ApiNotFoundResponse({ type: HttpErrorResponseDto })
+  getById(@Param('id') id: string): Promise<HelperResponse> {
     return this.helperGateway.getById(id);
   }
 
   @Post()
-  create(@Body() input: CreateHelperDto) {
+  @ApiOperation({ summary: 'Create helper' })
+  @ApiBody({ type: CreateHelperDto })
+  @ApiOkResponse({ type: HelperResponse })
+  create(@Body() input: CreateHelperDto): Promise<HelperResponse> {
     return this.helperGateway.create(input);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() input: UpdateHelperDto) {
+  @ApiOperation({ summary: 'Update helper by ID' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiBody({ type: UpdateHelperDto })
+  @ApiOkResponse({ type: HelperResponse })
+  @ApiNotFoundResponse({ type: HttpErrorResponseDto })
+  update(
+    @Param('id') id: string,
+    @Body() input: UpdateHelperDto,
+  ): Promise<HelperResponse> {
     return this.helperGateway.update(id, input);
   }
 
   @Delete(':id')
-  delete(@Param('id') id: string) {
+  @ApiOperation({ summary: 'Delete helper by ID' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiOkResponse({ type: HelperResponse })
+  @ApiNotFoundResponse({ type: HttpErrorResponseDto })
+  delete(@Param('id') id: string): Promise<HelperResponse> {
     return this.helperGateway.delete(id);
   }
 }

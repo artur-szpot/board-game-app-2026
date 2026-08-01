@@ -72,7 +72,9 @@
 
 ## Contract and release policy
 
-- API contract single source of truth target: OpenAPI (implementation tracked as a separate planning ticket).
+- API contract single source of truth: OpenAPI (Swagger UI at /api-docs, generated spec at game-backend/openapi/openapi.json).
+- Validation workflow: run game-backend openapi:generate and openapi:check for DTO/controller changes.
+- CI enforcement: .github/workflows/openapi-check.yml runs openapi:check when game-backend files change.
 - Before public release: breaking API changes are acceptable and backward compatibility is not required.
 - Change validation rule: backend DTO changes must be checked against existing frontend calls for impacted routes.
 

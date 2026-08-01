@@ -1,31 +1,32 @@
 import {
-    Chip,
-    List,
-    ListItem,
-    ListItemButton,
-    ListItemIcon,
-    ListItemText,
-    Stack,
-    TextField,
-    Typography,
+  Chip,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Stack,
+  TextField,
+  Typography,
 } from "@mui/material";
 import axios from "axios";
 import type { ChangeEvent, FC } from "react";
 import { useEffect, useState } from "react";
 
+import { selectAccessToken } from "../../store/features/currentUserSlice";
 import { buildChoiceMadeFromItems } from "../../store/features/frame-actions";
 import { closeFrame } from "../../store/features/frameStackSlice";
-import { useAppDispatch } from "../../store/hooks";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { MainActions } from "../MainActions";
 import type { SearchScreenPropsFull } from "./SearchScreenProps";
 import type { SearchResult } from "./selection-strategies";
 import {
-    isConfirmAllowed,
-    isSameSelectionResult,
-    isSelectionCorrect,
-    SelectionStrategyEnum,
-    type SelectionResult,
-    type SelectionStrategy,
+  isConfirmAllowed,
+  isSameSelectionResult,
+  isSelectionCorrect,
+  SelectionStrategyEnum,
+  type SelectionResult,
+  type SelectionStrategy,
 } from "./selection-strategies";
 import { typeIcon } from "./type-icon";
 
@@ -47,6 +48,7 @@ export const SearchScreen: FC<SearchScreenPropsFull> = ({
   const [chosen, setChosen] = useState<SelectionResult[]>(preselection ?? []);
 
   const dispatch = useAppDispatch();
+  const accessToken = useAppSelector(selectAccessToken);
   const dispatchResults = (_results: SelectionResult[]) =>
     dispatch(
       closeFrame({
@@ -59,15 +61,28 @@ export const SearchScreen: FC<SearchScreenPropsFull> = ({
     const timer = window.setTimeout(
       () => {
         const fetchResults = async () => {
+          if (!accessToken) {
+            setResults([]);
+            return;
+          }
+
           try {
             // TODO wire pagination and filters into this
             const response = await axios.post<{
               results: SearchResult[];
               total: number;
-            }>(`${import.meta.env.VITE_API_URL as string}/game-api/search`, {
-              types: dataTypes,
-              searchTerm,
-            });
+            }>(
+              `${import.meta.env.VITE_API_URL as string}/game-api/search`,
+              {
+                types: dataTypes,
+                searchTerm,
+              },
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                },
+              },
+            );
             setResults(
               response.data.results.map(result => ({
                 value: result.id,
@@ -88,7 +103,7 @@ export const SearchScreen: FC<SearchScreenPropsFull> = ({
     );
 
     return () => window.clearTimeout(timer);
-  }, [dataTypes, searchTerm]);
+  }, [accessToken, dataTypes, searchTerm]);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const nextValue = event.target.value;

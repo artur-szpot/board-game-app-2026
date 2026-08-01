@@ -9,11 +9,27 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiBody,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 
 import { RequirePermissions } from '@auth/decorators/permissions.decorator';
 import { JwtAuthGuard } from '@auth/guards/jwt.guard';
 import { PermisionsGuard } from '@auth/guards/permissions.guard';
 import { GetEntityByIdDto } from '@common/dto/in/get-entity-by-id.dto';
+import {
+  HttpErrorResponseDto,
+  ValidationErrorResponseDto,
+} from '@common/openapi/error-response.dto';
 
 import { PermissionLevel } from '../permissions/enums/permission-level.enum';
 import { PermissionType } from '../permissions/enums/permission-type.enum';
@@ -23,6 +39,11 @@ import { UpdateRoleDto } from './dto/in/update-role.dto';
 import { RoleResponse } from './dto/out/role.response';
 import { ROLE_GATEWAY, RoleGateway } from './infrastructure/role.gateway';
 
+@ApiTags('Roles')
+@ApiBearerAuth('access-token')
+@ApiBadRequestResponse({ type: ValidationErrorResponseDto })
+@ApiUnauthorizedResponse({ type: HttpErrorResponseDto })
+@ApiForbiddenResponse({ type: HttpErrorResponseDto })
 @Controller('roles')
 @UseGuards(JwtAuthGuard, PermisionsGuard)
 export class RoleController {
@@ -32,6 +53,10 @@ export class RoleController {
   ) {}
 
   @Get('/:id')
+  @ApiOperation({ summary: 'Get role by ID' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiOkResponse({ type: RoleResponse })
+  @ApiNotFoundResponse({ type: HttpErrorResponseDto })
   @RequirePermissions(
     [PermissionType.ROLES, PermissionLevel.READ],
     [PermissionType.PERMISSIONS, PermissionLevel.READ],
@@ -41,6 +66,10 @@ export class RoleController {
   }
 
   @Get('/name/:name')
+  @ApiOperation({ summary: 'Get role by name' })
+  @ApiParam({ name: 'name', type: String })
+  @ApiOkResponse({ type: RoleResponse })
+  @ApiNotFoundResponse({ type: HttpErrorResponseDto })
   @RequirePermissions(
     [PermissionType.ROLES, PermissionLevel.READ],
     [PermissionType.PERMISSIONS, PermissionLevel.READ],
@@ -52,6 +81,9 @@ export class RoleController {
   }
 
   @Post()
+  @ApiOperation({ summary: 'Create a role' })
+  @ApiBody({ type: CreateRoleDto })
+  @ApiOkResponse({ type: RoleResponse })
   @RequirePermissions(
     [PermissionType.ROLES, PermissionLevel.READ],
     [PermissionType.PERMISSIONS, PermissionLevel.READ],
@@ -62,6 +94,11 @@ export class RoleController {
   }
 
   @Patch('/:id')
+  @ApiOperation({ summary: 'Update role by ID' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiBody({ type: UpdateRoleDto })
+  @ApiOkResponse({ type: RoleResponse })
+  @ApiNotFoundResponse({ type: HttpErrorResponseDto })
   @RequirePermissions(
     [PermissionType.ROLES, PermissionLevel.FULL],
     [PermissionType.PERMISSIONS, PermissionLevel.READ],
@@ -74,6 +111,10 @@ export class RoleController {
   }
 
   @Delete('/:id')
+  @ApiOperation({ summary: 'Delete role by ID' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiOkResponse({ type: RoleResponse })
+  @ApiNotFoundResponse({ type: HttpErrorResponseDto })
   @RequirePermissions(
     [PermissionType.ROLES, PermissionLevel.FULL],
     [PermissionType.PERMISSIONS, PermissionLevel.READ],
