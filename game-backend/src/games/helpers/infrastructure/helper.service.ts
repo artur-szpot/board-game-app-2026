@@ -1,21 +1,24 @@
 import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  Logger,
+    BadRequestException,
+    Inject,
+    Injectable,
+    Logger,
 } from '@nestjs/common';
 
 import {
-  CustomInternalError,
-  CustomNotFoundError,
+    CustomInternalError,
+    CustomNotFoundError,
 } from '@common/errors/service-errors';
 import { validateUpdateDtoNotEmpty } from '@common/helpers/validate-update-dto-not-empty';
 import { Paginated } from '@common/pagination/Paginated';
 
-import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 import {
-  HELPER_REPOSITORY,
-  HelperRepository,
+    GetManyItemsDto,
+    ItemOwnershipDto,
+} from '@common/dto/in/get-many-items.dto';
+import {
+    HELPER_REPOSITORY,
+    HelperRepository,
 } from '@db/repositories/helper.repository';
 import { CreateHelperDto } from '../dto/in/create-helper.dto';
 import { HelperDto } from '../dto/in/helper.dto';
@@ -35,6 +38,8 @@ export class HelperService implements HelperGateway {
   private mapToResponse(dto: HelperDto): HelperResponse {
     return {
       id: dto.id,
+      ownerId: dto.ownerId,
+      private: dto.private,
       name: dto.name,
       logic: dto.logic,
       createdOn: dto.createdOn,
@@ -42,8 +47,11 @@ export class HelperService implements HelperGateway {
     };
   }
 
-  private async getHelper(id: string): Promise<HelperDto> {
-    const helper = await this.repository.getHelperById(id);
+  private async getHelper(
+    id: string,
+    itemOwnership?: ItemOwnershipDto,
+  ): Promise<HelperDto> {
+    const helper = await this.repository.getHelperById(id, itemOwnership);
     if (!helper) {
       this.logger.error(`Could not find helper with ID "${id}"`);
       throw new CustomNotFoundError(`helper with ID "${id}"`);
@@ -51,21 +59,33 @@ export class HelperService implements HelperGateway {
     return helper;
   }
 
-  public async getByIds(ids: string[]): Promise<HelperResponse[]> {
-    const helpers = await Promise.all(ids.map((id) => this.getById(id)));
+  public async getByIds(
+    ids: string[],
+    itemOwnership?: ItemOwnershipDto,
+  ): Promise<HelperResponse[]> {
+    const helpers = await Promise.all(
+      ids.map((id) => this.getById(id, itemOwnership)),
+    );
     return helpers;
   }
 
-  private async ensureUniqueName(name: string, existingId?: string) {
-    const existing = await this.repository.getHelperByName(name);
+  private async ensureUniqueName(
+    name: string,
+    ownerId: string,
+    existingId?: string,
+  ) {
+    const existing = await this.repository.getHelperByName(name, ownerId);
     if (existing && existing.id !== existingId) {
       throw new BadRequestException(`Helper name "${name}" is already in use`);
     }
   }
 
-  public async getById(id: string): Promise<HelperResponse> {
+  public async getById(
+    id: string,
+    itemOwnership?: ItemOwnershipDto,
+  ): Promise<HelperResponse> {
     try {
-      const helper = await this.getHelper(id);
+      const helper = await this.getHelper(id, itemOwnership);
       return this.mapToResponse(helper);
     } catch (error) {
       if (error instanceof CustomNotFoundError) {
@@ -81,11 +101,10 @@ export class HelperService implements HelperGateway {
   public async getMany(
     dto?: GetManyItemsDto,
   ): Promise<Paginated<HelperResponse>> {
-    const { pagination } = dto;
     try {
       const [items, total] = await Promise.all([
-        this.repository.getManyHelpers({ pagination }),
-        this.repository.getHelpersCount(),
+        this.repository.getManyHelpers(dto),
+        this.repository.getHelpersCount(dto),
       ]);
       return {
         page: items.map((item) => this.mapToResponse(item)),
@@ -97,10 +116,17 @@ export class HelperService implements HelperGateway {
     }
   }
 
-  public async create(input: CreateHelperDto): Promise<HelperResponse> {
+  public async create(
+    input: CreateHelperDto,
+    userId?: string,
+  ): Promise<HelperResponse> {
+    if (!userId) {
+      throw new CustomInternalError('creating the helper');
+    }
+
     try {
-      await this.ensureUniqueName(input.name);
-      const created = await this.repository.createHelper(input);
+      await this.ensureUniqueName(input.name, userId);
+      const created = await this.repository.createHelper(input, userId);
       return this.mapToResponse(created);
     } catch (error) {
       if (error instanceof BadRequestException) {
@@ -114,14 +140,28 @@ export class HelperService implements HelperGateway {
   public async update(
     id: string,
     input: UpdateHelperDto,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<HelperResponse> {
+    const userId = itemOwnership?.userId;
+    if (!userId) {
+      throw new CustomInternalError('updating the helper');
+    }
+
     validateUpdateDtoNotEmpty(input);
     try {
-      await this.getHelper(id);
+      const writeOwnership = {
+        userId,
+        hasCollectionSuperuserPermission: false,
+      };
+      await this.getHelper(id, writeOwnership);
       if (input.name) {
-        await this.ensureUniqueName(input.name, id);
+        await this.ensureUniqueName(input.name, userId, id);
       }
-      const updated = await this.repository.updateHelper(id, input);
+      const updated = await this.repository.updateHelper(
+        id,
+        input,
+        writeOwnership,
+      );
       return this.mapToResponse(updated);
     } catch (error) {
       if (
@@ -135,10 +175,22 @@ export class HelperService implements HelperGateway {
     }
   }
 
-  public async delete(id: string): Promise<HelperResponse> {
+  public async delete(
+    id: string,
+    itemOwnership?: ItemOwnershipDto,
+  ): Promise<HelperResponse> {
+    const userId = itemOwnership?.userId;
+    if (!userId) {
+      throw new CustomInternalError('deleting the helper');
+    }
+
     try {
-      await this.getHelper(id);
-      const deleted = await this.repository.deleteHelper(id);
+      const writeOwnership = {
+        userId,
+        hasCollectionSuperuserPermission: false,
+      };
+      await this.getHelper(id, writeOwnership);
+      const deleted = await this.repository.deleteHelper(id, writeOwnership);
       return this.mapToResponse(deleted);
     } catch (error) {
       if (error instanceof CustomNotFoundError) {

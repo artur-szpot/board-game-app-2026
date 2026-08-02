@@ -1,8 +1,11 @@
 import { RequirePermissions } from '@auth/decorators/permissions.decorator';
+import { JwtDto } from '@auth/dto/in/jwt.dto';
 import { JwtAuthGuard } from '@auth/guards/jwt.guard';
 import { PermisionsGuard } from '@auth/guards/permissions.guard';
+import { hasCollectionSuperuserPermission } from '@auth/helpers/has-collection-superuser-permission';
 import { PermissionLevel } from '@auth/modules/permissions/enums/permission-level.enum';
 import { PermissionType } from '@auth/modules/permissions/enums/permission-type.enum';
+import { UserId } from '@common/decorators/user-id.decorator';
 import {
     HttpErrorResponseDto,
     ValidationErrorResponseDto,
@@ -16,6 +19,7 @@ import {
     Param,
     Patch,
     Post,
+    Req,
     UseGuards,
 } from '@nestjs/common';
 import {
@@ -55,8 +59,17 @@ export class GameController {
   @ApiOkResponse({ type: GameDto })
   @ApiNotFoundResponse({ type: HttpErrorResponseDto })
   @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.READ])
-  public getById(@Param('id') id: string): Promise<GameDto> {
-    return this.gameGateway.getById(id);
+  public getById(
+    @Param('id') id: string,
+    @UserId() userId: string,
+    @Req() req: { user: JwtDto },
+  ): Promise<GameDto> {
+    return this.gameGateway.getById(id, {
+      userId,
+      hasCollectionSuperuserPermission: hasCollectionSuperuserPermission(
+        req.user.permissions,
+      ),
+    });
   }
 
   @Post()
@@ -64,8 +77,11 @@ export class GameController {
   @ApiBody({ type: CreateGameDto })
   @ApiOkResponse({ type: GameDto })
   @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.FULL])
-  public create(@Body() input: CreateGameDto): Promise<GameDto> {
-    return this.gameGateway.create(input);
+  public create(
+    @Body() input: CreateGameDto,
+    @UserId() userId: string,
+  ): Promise<GameDto> {
+    return this.gameGateway.create(input, userId);
   }
 
   @Patch(':id')
@@ -78,8 +94,12 @@ export class GameController {
   public update(
     @Param('id') id: string,
     @Body() input: UpdateGameDto,
+    @UserId() userId: string,
   ): Promise<GameDto> {
-    return this.gameGateway.update(id, input);
+    return this.gameGateway.update(id, input, {
+      userId,
+      hasCollectionSuperuserPermission: false,
+    });
   }
 
   @Delete(':id')
@@ -88,7 +108,13 @@ export class GameController {
   @ApiOkResponse({ type: GameDto })
   @ApiNotFoundResponse({ type: HttpErrorResponseDto })
   @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.FULL])
-  public delete(@Param('id') id: string): Promise<GameDto> {
-    return this.gameGateway.delete(id);
+  public delete(
+    @Param('id') id: string,
+    @UserId() userId: string,
+  ): Promise<GameDto> {
+    return this.gameGateway.delete(id, {
+      userId,
+      hasCollectionSuperuserPermission: false,
+    });
   }
 }

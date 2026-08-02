@@ -66,6 +66,13 @@ export class GameDto {
 
   @IsString()
   @IsNotEmpty()
+  ownerId: string;
+
+  @IsBoolean()
+  private: boolean;
+
+  @IsString()
+  @IsNotEmpty()
   name: string;
 
   @IsString()

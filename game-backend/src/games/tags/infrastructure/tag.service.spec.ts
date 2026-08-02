@@ -13,9 +13,15 @@ import { TagService } from './tag.service';
 describe('TagService', () => {
   let mockRepository: jest.Mocked<TagRepository>;
   let service: TagService;
+  const writeOwnership = {
+    userId: '123-abc',
+    hasCollectionSuperuserPermission: false,
+  };
 
   const testTagDto: TagDto = {
     id: 'tag-1',
+    ownerId: '123-abc',
+    private: true,
     name: 'Test Tag',
     description: 'Test tag description',
     createdOn: new Date().toISOString(),
@@ -42,9 +48,14 @@ describe('TagService', () => {
 
       const result = await service.getById(testTagDto.id);
 
-      expect(mockRepository.getTagById).toHaveBeenCalledWith(testTagDto.id);
+      expect(mockRepository.getTagById).toHaveBeenCalledWith(
+        testTagDto.id,
+        undefined,
+      );
       expect(result).toStrictEqual({
         id: testTagDto.id,
+        ownerId: testTagDto.ownerId,
+        private: testTagDto.private,
         name: testTagDto.name,
         description: testTagDto.description,
         parentId: undefined,
@@ -59,7 +70,10 @@ describe('TagService', () => {
       await expect(service.getById(testTagDto.id)).rejects.toBeInstanceOf(
         CustomNotFoundError,
       );
-      expect(mockRepository.getTagById).toHaveBeenCalledWith(testTagDto.id);
+      expect(mockRepository.getTagById).toHaveBeenCalledWith(
+        testTagDto.id,
+        undefined,
+      );
     });
 
     it('should throw CustomInternalError for unexpected repository failures', async () => {
@@ -68,7 +82,10 @@ describe('TagService', () => {
       await expect(service.getById(testTagDto.id)).rejects.toBeInstanceOf(
         CustomInternalError,
       );
-      expect(mockRepository.getTagById).toHaveBeenCalledWith(testTagDto.id);
+      expect(mockRepository.getTagById).toHaveBeenCalledWith(
+        testTagDto.id,
+        undefined,
+      );
     });
   });
 
@@ -85,6 +102,8 @@ describe('TagService', () => {
         page: [
           {
             id: testTagDto.id,
+            ownerId: testTagDto.ownerId,
+            private: testTagDto.private,
             name: testTagDto.name,
             description: testTagDto.description,
             parentId: undefined,
@@ -114,14 +133,20 @@ describe('TagService', () => {
       mockRepository.getTagByName.mockResolvedValueOnce(null);
       mockRepository.createTag.mockResolvedValueOnce(testTagDto);
 
-      const result = await service.create(createTagDto);
+      const result = await service.create(createTagDto, '123-abc');
 
       expect(mockRepository.getTagByName).toHaveBeenCalledWith(
         createTagDto.name,
+        '123-abc',
       );
-      expect(mockRepository.createTag).toHaveBeenCalledWith(createTagDto);
+      expect(mockRepository.createTag).toHaveBeenCalledWith(
+        createTagDto,
+        '123-abc',
+      );
       expect(result).toStrictEqual({
         id: testTagDto.id,
+        ownerId: testTagDto.ownerId,
+        private: testTagDto.private,
         name: testTagDto.name,
         description: testTagDto.description,
         parentId: undefined,
@@ -134,11 +159,12 @@ describe('TagService', () => {
       const createTagDto: CreateTagDto = { name: testTagDto.name };
       mockRepository.getTagByName.mockResolvedValueOnce(testTagDto);
 
-      await expect(service.create(createTagDto)).rejects.toBeInstanceOf(
-        BadRequestException,
-      );
+      await expect(
+        service.create(createTagDto, '123-abc'),
+      ).rejects.toBeInstanceOf(BadRequestException);
       expect(mockRepository.getTagByName).toHaveBeenCalledWith(
         createTagDto.name,
+        '123-abc',
       );
     });
   });
@@ -155,18 +181,29 @@ describe('TagService', () => {
       mockRepository.getTagByName.mockResolvedValueOnce(null);
       mockRepository.updateTag.mockResolvedValueOnce(updatedTagDto);
 
-      const result = await service.update(testTagDto.id, updateTagDto);
+      const result = await service.update(
+        testTagDto.id,
+        updateTagDto,
+        writeOwnership,
+      );
 
-      expect(mockRepository.getTagById).toHaveBeenCalledWith(testTagDto.id);
+      expect(mockRepository.getTagById).toHaveBeenCalledWith(
+        testTagDto.id,
+        writeOwnership,
+      );
       expect(mockRepository.getTagByName).toHaveBeenCalledWith(
         updateTagDto.name,
+        '123-abc',
       );
       expect(mockRepository.updateTag).toHaveBeenCalledWith(
         testTagDto.id,
         updateTagDto,
+        writeOwnership,
       );
       expect(result).toStrictEqual({
         id: updatedTagDto.id,
+        ownerId: updatedTagDto.ownerId,
+        private: updatedTagDto.private,
         name: updatedTagDto.name,
         description: updatedTagDto.description,
         parentId: undefined,
@@ -179,16 +216,23 @@ describe('TagService', () => {
       mockRepository.getTagById.mockResolvedValueOnce(null);
 
       await expect(
-        service.update(testTagDto.id, { name: 'New Name' }),
+        service.update(testTagDto.id, { name: 'New Name' }, writeOwnership),
       ).rejects.toBeInstanceOf(CustomNotFoundError);
-      expect(mockRepository.getTagById).toHaveBeenCalledWith(testTagDto.id);
+      expect(mockRepository.getTagById).toHaveBeenCalledWith(
+        testTagDto.id,
+        writeOwnership,
+      );
     });
 
     it('should reject update when a tag is set as its own parent', async () => {
       mockRepository.getTagById.mockResolvedValueOnce(testTagDto);
 
       await expect(
-        service.update(testTagDto.id, { parentId: testTagDto.id }),
+        service.update(
+          testTagDto.id,
+          { parentId: testTagDto.id },
+          writeOwnership,
+        ),
       ).rejects.toThrow('Tag cannot be its own parent');
 
       expect(mockRepository.updateTag).not.toHaveBeenCalled();
@@ -209,7 +253,7 @@ describe('TagService', () => {
         });
 
       await expect(
-        service.update('tag-1', { parentId: 'tag-2' }),
+        service.update('tag-1', { parentId: 'tag-2' }, writeOwnership),
       ).rejects.toThrow('Tag parent relationship would create a cycle');
 
       expect(mockRepository.updateTag).not.toHaveBeenCalled();
@@ -221,12 +265,20 @@ describe('TagService', () => {
       mockRepository.getTagById.mockResolvedValueOnce(testTagDto);
       mockRepository.deleteTag.mockResolvedValueOnce(testTagDto);
 
-      const result = await service.delete(testTagDto.id);
+      const result = await service.delete(testTagDto.id, writeOwnership);
 
-      expect(mockRepository.getTagById).toHaveBeenCalledWith(testTagDto.id);
-      expect(mockRepository.deleteTag).toHaveBeenCalledWith(testTagDto.id);
+      expect(mockRepository.getTagById).toHaveBeenCalledWith(
+        testTagDto.id,
+        writeOwnership,
+      );
+      expect(mockRepository.deleteTag).toHaveBeenCalledWith(
+        testTagDto.id,
+        writeOwnership,
+      );
       expect(result).toStrictEqual({
         id: testTagDto.id,
+        ownerId: testTagDto.ownerId,
+        private: testTagDto.private,
         name: testTagDto.name,
         description: testTagDto.description,
         parentId: undefined,
@@ -238,10 +290,13 @@ describe('TagService', () => {
     it('should throw CustomNotFoundError when deleting a missing tag', async () => {
       mockRepository.getTagById.mockResolvedValueOnce(null);
 
-      await expect(service.delete(testTagDto.id)).rejects.toBeInstanceOf(
-        CustomNotFoundError,
+      await expect(
+        service.delete(testTagDto.id, writeOwnership),
+      ).rejects.toBeInstanceOf(CustomNotFoundError);
+      expect(mockRepository.getTagById).toHaveBeenCalledWith(
+        testTagDto.id,
+        writeOwnership,
       );
-      expect(mockRepository.getTagById).toHaveBeenCalledWith(testTagDto.id);
     });
   });
 });

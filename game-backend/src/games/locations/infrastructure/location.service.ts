@@ -1,20 +1,23 @@
 import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  Logger,
+    BadRequestException,
+    Inject,
+    Injectable,
+    Logger,
 } from '@nestjs/common';
 
-import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 import {
-  CustomInternalError,
-  CustomNotFoundError,
+    GetManyItemsDto,
+    ItemOwnershipDto,
+} from '@common/dto/in/get-many-items.dto';
+import {
+    CustomInternalError,
+    CustomNotFoundError,
 } from '@common/errors/service-errors';
 import { validateUpdateDtoNotEmpty } from '@common/helpers/validate-update-dto-not-empty';
 import { Paginated } from '@common/pagination/Paginated';
 import {
-  LOCATION_REPOSITORY,
-  LocationRepository,
+    LOCATION_REPOSITORY,
+    LocationRepository,
 } from '@db/repositories/location.repository';
 
 import { CreateLocationDto } from '../dto/in/create-location.dto';
@@ -32,9 +35,13 @@ export class LocationService implements LocationGateway {
     private readonly locationRepository: LocationRepository,
   ) {}
 
-  private async mapToResponse(location: LocationDto): Promise<LocationResponse> {
+  private async mapToResponse(
+    location: LocationDto,
+  ): Promise<LocationResponse> {
     return {
       id: location.id,
+      ownerId: location.ownerId,
+      private: location.private,
       name: location.name,
       description: location.description ?? undefined,
       parentId: location.parentId ?? undefined,
@@ -47,8 +54,14 @@ export class LocationService implements LocationGateway {
     };
   }
 
-  private async getLocation(id: string): Promise<LocationDto> {
-    const location = await this.locationRepository.getLocationById(id);
+  private async getLocation(
+    id: string,
+    itemOwnership?: ItemOwnershipDto,
+  ): Promise<LocationDto> {
+    const location = await this.locationRepository.getLocationById(
+      id,
+      itemOwnership,
+    );
     if (!location) {
       this.logger.error(`Could not find location with ID "${id}"`);
       throw new CustomNotFoundError(`location with ID "${id}"`);
@@ -56,14 +69,25 @@ export class LocationService implements LocationGateway {
     return location;
   }
 
-  public async getByIds(ids: string[]): Promise<LocationResponse[]> {
-    const locations = await Promise.all(ids.map((id) => this.getById(id)));
+  public async getByIds(
+    ids: string[],
+    itemOwnership?: ItemOwnershipDto,
+  ): Promise<LocationResponse[]> {
+    const locations = await Promise.all(
+      ids.map((id) => this.getById(id, itemOwnership)),
+    );
     return locations;
   }
 
-  private async ensureUniqueName(name: string, existingLocationId?: string) {
-    const existingLocation =
-      await this.locationRepository.getLocationByName(name);
+  private async ensureUniqueName(
+    name: string,
+    ownerId: string,
+    existingLocationId?: string,
+  ) {
+    const existingLocation = await this.locationRepository.getLocationByName(
+      name,
+      ownerId,
+    );
     if (existingLocation && existingLocation.id !== existingLocationId) {
       throw new BadRequestException(
         `Location name "${name}" is already in use`,
@@ -71,9 +95,14 @@ export class LocationService implements LocationGateway {
     }
   }
 
-  private async ensureParentLocationExists(parentId: string): Promise<void> {
-    const parentLocation =
-      await this.locationRepository.getLocationById(parentId);
+  private async ensureParentLocationExists(
+    parentId: string,
+    userId: string,
+  ): Promise<void> {
+    const parentLocation = await this.locationRepository.getLocationById(
+      parentId,
+      { userId, hasCollectionSuperuserPermission: false },
+    );
 
     if (!parentLocation) {
       throw new BadRequestException(
@@ -85,13 +114,17 @@ export class LocationService implements LocationGateway {
   private async ensureValidParentLocation(
     locationId: string,
     parentId: string,
+    userId: string,
   ): Promise<void> {
     if (parentId === locationId) {
       throw new BadRequestException('Location cannot be its own parent');
     }
 
-    const parentLocation =
-      await this.locationRepository.getLocationById(parentId);
+    const writeOwnership = { userId, hasCollectionSuperuserPermission: false };
+    const parentLocation = await this.locationRepository.getLocationById(
+      parentId,
+      writeOwnership,
+    );
 
     if (!parentLocation) {
       throw new BadRequestException(
@@ -109,8 +142,10 @@ export class LocationService implements LocationGateway {
         );
       }
       visited.add(currentParentId);
-      const currentParent =
-        await this.locationRepository.getLocationById(currentParentId);
+      const currentParent = await this.locationRepository.getLocationById(
+        currentParentId,
+        writeOwnership,
+      );
       if (!currentParent) {
         break;
       }
@@ -118,28 +153,32 @@ export class LocationService implements LocationGateway {
     }
   }
 
-  private async validateCreateInput(input: CreateLocationDto) {
-    await this.ensureUniqueName(input.name);
+  private async validateCreateInput(input: CreateLocationDto, userId: string) {
+    await this.ensureUniqueName(input.name, userId);
     if (input.parentId) {
-      await this.ensureParentLocationExists(input.parentId);
+      await this.ensureParentLocationExists(input.parentId, userId);
     }
   }
 
   private async validateUpdateInput(
     locationId: string,
     input: UpdateLocationDto,
+    userId: string,
   ) {
     if (input.name) {
-      await this.ensureUniqueName(input.name, locationId);
+      await this.ensureUniqueName(input.name, userId, locationId);
     }
     if (input.parentId) {
-      await this.ensureValidParentLocation(locationId, input.parentId);
+      await this.ensureValidParentLocation(locationId, input.parentId, userId);
     }
   }
 
-  public async getById(id: string): Promise<LocationResponse> {
+  public async getById(
+    id: string,
+    itemOwnership?: ItemOwnershipDto,
+  ): Promise<LocationResponse> {
     try {
-      const location = await this.getLocation(id);
+      const location = await this.getLocation(id, itemOwnership);
       return this.mapToResponse(location);
     } catch (error) {
       if (error instanceof CustomNotFoundError) {
@@ -161,7 +200,9 @@ export class LocationService implements LocationGateway {
         this.locationRepository.getLocationsCount(dto),
       ]);
       return {
-        page: await Promise.all(items.map((location) => this.mapToResponse(location))),
+        page: await Promise.all(
+          items.map((location) => this.mapToResponse(location)),
+        ),
         total,
       };
     } catch (error) {
@@ -172,11 +213,20 @@ export class LocationService implements LocationGateway {
     }
   }
 
-  public async create(input: CreateLocationDto): Promise<LocationResponse> {
+  public async create(
+    input: CreateLocationDto,
+    userId?: string,
+  ): Promise<LocationResponse> {
+    if (!userId) {
+      throw new CustomInternalError('creating the location');
+    }
+
     try {
-      await this.validateCreateInput(input);
-      const createdLocation =
-        await this.locationRepository.createLocation(input);
+      await this.validateCreateInput(input, userId);
+      const createdLocation = await this.locationRepository.createLocation(
+        input,
+        userId,
+      );
       return this.mapToResponse(createdLocation);
     } catch (error) {
       if (error instanceof BadRequestException) {
@@ -190,14 +240,25 @@ export class LocationService implements LocationGateway {
   public async update(
     id: string,
     input: UpdateLocationDto,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<LocationResponse> {
+    const userId = itemOwnership?.userId;
+    if (!userId) {
+      throw new CustomInternalError('updating the location');
+    }
+
     validateUpdateDtoNotEmpty(input);
     try {
-      await this.getLocation(id);
-      await this.validateUpdateInput(id, input);
+      const writeOwnership = {
+        userId,
+        hasCollectionSuperuserPermission: false,
+      };
+      await this.getLocation(id, writeOwnership);
+      await this.validateUpdateInput(id, input, userId);
       const updatedLocation = await this.locationRepository.updateLocation(
         id,
         input,
+        writeOwnership,
       );
       return this.mapToResponse(updatedLocation);
     } catch (error) {
@@ -212,10 +273,25 @@ export class LocationService implements LocationGateway {
     }
   }
 
-  public async delete(id: string): Promise<LocationResponse> {
+  public async delete(
+    id: string,
+    itemOwnership?: ItemOwnershipDto,
+  ): Promise<LocationResponse> {
+    const userId = itemOwnership?.userId;
+    if (!userId) {
+      throw new CustomInternalError('deleting the location');
+    }
+
     try {
-      await this.getLocation(id);
-      const deletedLocation = await this.locationRepository.deleteLocation(id);
+      const writeOwnership = {
+        userId,
+        hasCollectionSuperuserPermission: false,
+      };
+      await this.getLocation(id, writeOwnership);
+      const deletedLocation = await this.locationRepository.deleteLocation(
+        id,
+        writeOwnership,
+      );
       return this.mapToResponse(deletedLocation);
     } catch (error) {
       if (error instanceof CustomNotFoundError) {

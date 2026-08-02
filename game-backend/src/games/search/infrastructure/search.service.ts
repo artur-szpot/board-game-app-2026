@@ -1,13 +1,29 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 
+import {
+    GetManyItemsDto,
+    ItemOwnershipDto,
+} from '@common/dto/in/get-many-items.dto';
 import { CustomInternalError } from '@common/errors/service-errors';
 import { paginationMapper } from '@common/pagination/mapper/pagination.mapper';
 
 import { GameDataType } from '@common/enums/GameDataType.enum';
-import { GAME_GATEWAY, GameGateway } from '../../games/infrastructure/game.gateway';
-import { HELPER_GATEWAY, HelperGateway } from '../../helpers/infrastructure/helper.gateway';
-import { LOCATION_GATEWAY, LocationGateway } from '../../locations/infrastructure/location.gateway';
-import { SCORING_SCHEMA_GATEWAY, ScoringSchemaGateway } from '../../scoring-schemas/infrastructure/scoring-schema.gateway';
+import {
+    GAME_GATEWAY,
+    GameGateway,
+} from '../../games/infrastructure/game.gateway';
+import {
+    HELPER_GATEWAY,
+    HelperGateway,
+} from '../../helpers/infrastructure/helper.gateway';
+import {
+    LOCATION_GATEWAY,
+    LocationGateway,
+} from '../../locations/infrastructure/location.gateway';
+import {
+    SCORING_SCHEMA_GATEWAY,
+    ScoringSchemaGateway,
+} from '../../scoring-schemas/infrastructure/scoring-schema.gateway';
 import { TAG_GATEWAY, TagGateway } from '../../tags/infrastructure/tag.gateway';
 import { SearchQueryDto } from '../dto/in/search-query.dto';
 import { SearchResponse, SearchResult } from '../dto/out/search.response';
@@ -39,7 +55,9 @@ export class SearchService implements SearchGateway {
     detail?: object,
   ): SearchResult {
     const { id, name } = entity;
-    return detail === undefined ? { type, id, name } : { type, id, name, detail };
+    return detail === undefined
+      ? { type, id, name }
+      : { type, id, name, detail };
   }
 
   private getPageWindow(query: SearchQueryDto): SearchPageWindow | undefined {
@@ -81,13 +99,22 @@ export class SearchService implements SearchGateway {
     };
   }
 
-  public async search(query: SearchQueryDto): Promise<SearchResponse> {
+  public async search(
+    query: SearchQueryDto,
+    itemOwnership?: ItemOwnershipDto,
+  ): Promise<SearchResponse> {
     const { searchTerm, filters, sort, includeDetail } = query;
     const pageWindow = this.getPageWindow(query);
     const results: SearchResponse['results'] = [];
     let total = 0;
     let typeStart = 0;
-    const baseDto = { searchTerm, filters, sort, includeDetail };
+    const baseDto: GetManyItemsDto = {
+      searchTerm,
+      filters,
+      sort,
+      includeDetail,
+      ...itemOwnership,
+    };
 
     try {
       for (const type of query.types) {
@@ -106,11 +133,21 @@ export class SearchService implements SearchGateway {
             }
             const response = await this.gameGateway.getMany({
               ...baseDto,
-              pagination: { pageNumber: 0, pageSize: slice.pageSize, offset: slice.offset },
+              pagination: {
+                pageNumber: 0,
+                pageSize: slice.pageSize,
+                offset: slice.offset,
+              },
             });
             items = response.page;
             items.forEach((item) =>
-              results.push(this.toShortResponse(type, item, includeDetail ? item : undefined)),
+              results.push(
+                this.toShortResponse(
+                  type,
+                  item,
+                  includeDetail ? item : undefined,
+                ),
+              ),
             );
             break;
           }
@@ -125,11 +162,21 @@ export class SearchService implements SearchGateway {
             }
             const response = await this.tagGateway.getMany({
               ...baseDto,
-              pagination: { pageNumber: 0, pageSize: slice.pageSize, offset: slice.offset },
+              pagination: {
+                pageNumber: 0,
+                pageSize: slice.pageSize,
+                offset: slice.offset,
+              },
             });
             items = response.page;
             items.forEach((item) =>
-              results.push(this.toShortResponse(type, item, includeDetail ? item : undefined)),
+              results.push(
+                this.toShortResponse(
+                  type,
+                  item,
+                  includeDetail ? item : undefined,
+                ),
+              ),
             );
             break;
           }
@@ -144,11 +191,21 @@ export class SearchService implements SearchGateway {
             }
             const response = await this.locationGateway.getMany({
               ...baseDto,
-              pagination: { pageNumber: 0, pageSize: slice.pageSize, offset: slice.offset },
+              pagination: {
+                pageNumber: 0,
+                pageSize: slice.pageSize,
+                offset: slice.offset,
+              },
             });
             items = response.page;
             items.forEach((item) =>
-              results.push(this.toShortResponse(type, item, includeDetail ? item : undefined)),
+              results.push(
+                this.toShortResponse(
+                  type,
+                  item,
+                  includeDetail ? item : undefined,
+                ),
+              ),
             );
             break;
           }
@@ -163,16 +220,27 @@ export class SearchService implements SearchGateway {
             }
             const response = await this.helperGateway.getMany({
               ...baseDto,
-              pagination: { pageNumber: 0, pageSize: slice.pageSize, offset: slice.offset },
+              pagination: {
+                pageNumber: 0,
+                pageSize: slice.pageSize,
+                offset: slice.offset,
+              },
             });
             items = response.page;
             items.forEach((item) =>
-              results.push(this.toShortResponse(type, item, includeDetail ? item : undefined)),
+              results.push(
+                this.toShortResponse(
+                  type,
+                  item,
+                  includeDetail ? item : undefined,
+                ),
+              ),
             );
             break;
           }
           case GameDataType.SCORING_SCHEMA: {
-            const countResponse = await this.scoringSchemaGateway.getMany(baseDto);
+            const countResponse =
+              await this.scoringSchemaGateway.getMany(baseDto);
             typeTotal = countResponse.total;
             const slice = this.getTypeSlice(pageWindow, typeStart, typeTotal);
             total += typeTotal;
@@ -182,11 +250,21 @@ export class SearchService implements SearchGateway {
             }
             const response = await this.scoringSchemaGateway.getMany({
               ...baseDto,
-              pagination: { pageNumber: 0, pageSize: slice.pageSize, offset: slice.offset },
+              pagination: {
+                pageNumber: 0,
+                pageSize: slice.pageSize,
+                offset: slice.offset,
+              },
             });
             items = response.page;
             items.forEach((item) =>
-              results.push(this.toShortResponse(type, item, includeDetail ? item : undefined)),
+              results.push(
+                this.toShortResponse(
+                  type,
+                  item,
+                  includeDetail ? item : undefined,
+                ),
+              ),
             );
             break;
           }

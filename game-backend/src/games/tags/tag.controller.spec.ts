@@ -23,7 +23,15 @@ describe('TagController', () => {
       providers: [{ provide: TAG_GATEWAY, useValue: gateway }],
     })
       .overrideGuard(JwtAuthGuard)
-      .useValue({ canActivate: () => true })
+      .useValue({
+        canActivate: (context: {
+          switchToHttp: () => { getRequest: () => Record<string, unknown> };
+        }) => {
+          const request = context.switchToHttp().getRequest();
+          request.user = { id: '123-abc', permissions: [] };
+          return true;
+        },
+      })
       .overrideGuard(PermisionsGuard)
       .useValue({ canActivate: () => true })
       .compile();
@@ -68,10 +76,13 @@ describe('TagController', () => {
     expect(payload).toEqual(
       expect.objectContaining({ id: 'tag-1', name: 'Strategy' }),
     );
-    expect(gateway.create).toHaveBeenCalledWith({
-      name: 'Strategy',
-      parentId: null,
-    });
+    expect(gateway.create).toHaveBeenCalledWith(
+      {
+        name: 'Strategy',
+        parentId: null,
+      },
+      '123-abc',
+    );
   });
 
   it('retrieves a tag by id endpoint', async () => {
@@ -90,6 +101,9 @@ describe('TagController', () => {
     expect(payload).toEqual(
       expect.objectContaining({ id: 'tag-1', name: 'Strategy' }),
     );
-    expect(gateway.getById).toHaveBeenCalledWith('tag-1');
+    expect(gateway.getById).toHaveBeenCalledWith('tag-1', {
+      userId: '123-abc',
+      hasCollectionSuperuserPermission: false,
+    });
   });
 });

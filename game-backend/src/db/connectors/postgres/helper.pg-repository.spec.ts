@@ -35,7 +35,10 @@ describe('PostgresHelperRepository', () => {
     connector.getOne.mockResolvedValue(created);
 
     await expect(
-      repository.createHelper({ name: 'Score Helper', logic: { rules: [] } }),
+      repository.createHelper(
+        { name: 'Score Helper', logic: { rules: [] } },
+        'user-1',
+      ),
     ).resolves.toEqual(created);
 
     expect(connector.getOne).toHaveBeenCalledWith(

@@ -1,4 +1,5 @@
 import {
+    IsBoolean,
     IsDateString,
     IsNotEmpty,
     IsOptional,
@@ -9,6 +10,13 @@ export class TagDto {
   @IsString()
   @IsNotEmpty()
   id: string;
+
+  @IsString()
+  @IsNotEmpty()
+  ownerId: string;
+
+  @IsBoolean()
+  private: boolean;
 
   @IsString()
   @IsNotEmpty()

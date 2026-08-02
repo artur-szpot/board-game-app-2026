@@ -34,6 +34,7 @@ Use this file to capture operational context, decisions, and any remaining unkno
 - Pagination mapping note: Material UI Pagination is one-based for display, while frontend request state and backend pageNumber are zero-based. Convert with +1/-1 at the UI boundary.
 - game-api prefixes are stable and should not be renamed.
 - randomizer-backend is intentionally lightweight and isolated.
+- Collection ownership scoping baseline: games, tags, locations, helpers, scoring schemas, and game scores are owner-scoped for non-superusers on reads; writes remain owner-bound.
 
 ## Frontend Frame Stack Notes
 

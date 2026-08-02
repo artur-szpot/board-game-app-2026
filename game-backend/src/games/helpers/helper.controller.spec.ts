@@ -1,4 +1,4 @@
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { JwtAuthGuard } from '@auth/guards/jwt.guard';
@@ -23,12 +23,23 @@ describe('HelperController', () => {
       providers: [{ provide: HELPER_GATEWAY, useValue: gateway }],
     })
       .overrideGuard(JwtAuthGuard)
-      .useValue({ canActivate: () => true })
+      .useValue({
+        canActivate: (context: {
+          switchToHttp: () => { getRequest: () => Record<string, unknown> };
+        }) => {
+          const request = context.switchToHttp().getRequest();
+          request.user = { id: '123-abc', permissions: [] };
+          return true;
+        },
+      })
       .overrideGuard(PermisionsGuard)
       .useValue({ canActivate: () => true })
       .compile();
 
     app = moduleRef.createNestApplication();
+    app.useGlobalPipes(
+      new ValidationPipe({ transform: true, whitelist: true }),
+    );
     await app.init();
     await app.listen(0);
 
@@ -48,6 +59,8 @@ describe('HelperController', () => {
   it('creates a helper endpoint', async () => {
     gateway.create.mockResolvedValue({
       id: 'helper-1',
+      ownerId: '123-abc',
+      private: true,
       name: 'Auto Score',
       logic: { rules: [] },
       createdOn: new Date(),
@@ -65,15 +78,20 @@ describe('HelperController', () => {
     expect(payload).toEqual(
       expect.objectContaining({ id: 'helper-1', name: 'Auto Score' }),
     );
-    expect(gateway.create).toHaveBeenCalledWith({
-      name: 'Auto Score',
-      logic: { rules: [] },
-    });
+    expect(gateway.create).toHaveBeenCalledWith(
+      {
+        name: 'Auto Score',
+        logic: { rules: [] },
+      },
+      '123-abc',
+    );
   });
 
   it('retrieves a helper by id endpoint', async () => {
     gateway.getById.mockResolvedValue({
       id: 'helper-1',
+      ownerId: '123-abc',
+      private: true,
       name: 'Auto Score',
       logic: { rules: [] },
       createdOn: new Date(),
@@ -87,6 +105,9 @@ describe('HelperController', () => {
     expect(payload).toEqual(
       expect.objectContaining({ id: 'helper-1', name: 'Auto Score' }),
     );
-    expect(gateway.getById).toHaveBeenCalledWith('helper-1');
+    expect(gateway.getById).toHaveBeenCalledWith('helper-1', {
+      userId: '123-abc',
+      hasCollectionSuperuserPermission: false,
+    });
   });
 });

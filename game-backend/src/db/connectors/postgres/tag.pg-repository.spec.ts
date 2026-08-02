@@ -27,6 +27,8 @@ describe('PostgresTagRepository', () => {
   it('creates a tag with a generated id', async () => {
     const created = {
       id: 'tag-1',
+      ownerId: '123-abc',
+      private: true,
       name: 'Strategy',
       description: 'Long and strategic games',
       parentId: null,
@@ -36,11 +38,14 @@ describe('PostgresTagRepository', () => {
     connector.getOne.mockResolvedValue(created);
 
     await expect(
-      repository.createTag({
-        name: 'Strategy',
-        description: 'Long and strategic games',
-        parentId: null,
-      }),
+      repository.createTag(
+        {
+          name: 'Strategy',
+          description: 'Long and strategic games',
+          parentId: null,
+        },
+        '123-abc',
+      ),
     ).resolves.toEqual(created);
 
     expect(connector.getOne).toHaveBeenCalledWith(

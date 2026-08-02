@@ -2,6 +2,7 @@ import { Type } from 'class-transformer';
 import {
     ArrayMinSize,
     IsArray,
+    IsBoolean,
     IsDateString,
     IsNotEmpty,
     IsOptional,
@@ -23,6 +24,13 @@ export class LocationResponse {
   @IsString()
   @IsNotEmpty()
   id: string;
+
+  @IsString()
+  @IsNotEmpty()
+  ownerId: string;
+
+  @IsBoolean()
+  private: boolean;
 
   @IsString()
   @IsNotEmpty()

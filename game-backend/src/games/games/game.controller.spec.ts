@@ -23,7 +23,15 @@ describe('GameController', () => {
       providers: [{ provide: GAME_GATEWAY, useValue: gateway }],
     })
       .overrideGuard(JwtAuthGuard)
-      .useValue({ canActivate: () => true })
+      .useValue({
+        canActivate: (context: {
+          switchToHttp: () => { getRequest: () => Record<string, unknown> };
+        }) => {
+          const request = context.switchToHttp().getRequest();
+          request.user = { id: '123-abc', permissions: [] };
+          return true;
+        },
+      })
       .overrideGuard(PermisionsGuard)
       .useValue({ canActivate: () => true })
       .compile();
@@ -77,13 +85,16 @@ describe('GameController', () => {
     expect(payload).toEqual(
       expect.objectContaining({ id: 'game-1', name: 'Catan' }),
     );
-    expect(gateway.create).toHaveBeenCalledWith({
-      name: 'Catan',
-      description: 'Trade and build',
-      length: 'MEDIUM',
-      minPlayers: 3,
-      maxPlayers: 4,
-    });
+    expect(gateway.create).toHaveBeenCalledWith(
+      {
+        name: 'Catan',
+        description: 'Trade and build',
+        length: 'MEDIUM',
+        minPlayers: 3,
+        maxPlayers: 4,
+      },
+      '123-abc',
+    );
   });
 
   it('rejects a game create request without minPlayers', async () => {
@@ -154,6 +165,9 @@ describe('GameController', () => {
     expect(payload).toEqual(
       expect.objectContaining({ id: 'game-1', name: 'Catan' }),
     );
-    expect(gateway.getById).toHaveBeenCalledWith('game-1');
+    expect(gateway.getById).toHaveBeenCalledWith('game-1', {
+      userId: '123-abc',
+      hasCollectionSuperuserPermission: false,
+    });
   });
 });

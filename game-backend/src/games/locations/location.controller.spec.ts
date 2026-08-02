@@ -23,7 +23,15 @@ describe('LocationController (e2e)', () => {
       providers: [{ provide: LOCATION_GATEWAY, useValue: gateway }],
     })
       .overrideGuard(JwtAuthGuard)
-      .useValue({ canActivate: () => true })
+      .useValue({
+        canActivate: (context: {
+          switchToHttp: () => { getRequest: () => Record<string, unknown> };
+        }) => {
+          const request = context.switchToHttp().getRequest();
+          request.user = { id: '123-abc', permissions: [] };
+          return true;
+        },
+      })
       .overrideGuard(PermisionsGuard)
       .useValue({ canActivate: () => true })
       .compile();
@@ -69,10 +77,13 @@ describe('LocationController (e2e)', () => {
     expect(payload).toEqual(
       expect.objectContaining({ id: 'loc-1', name: 'Forest' }),
     );
-    expect(gateway.create).toHaveBeenCalledWith({
-      name: 'Forest',
-      description: 'A place',
-    });
+    expect(gateway.create).toHaveBeenCalledWith(
+      {
+        name: 'Forest',
+        description: 'A place',
+      },
+      '123-abc',
+    );
   });
 
   it('fetches a location by id from the game-api endpoint', async () => {
@@ -92,6 +103,9 @@ describe('LocationController (e2e)', () => {
     expect(payload).toEqual(
       expect.objectContaining({ id: 'loc-1', name: 'Forest' }),
     );
-    expect(gateway.getById).toHaveBeenCalledWith('loc-1');
+    expect(gateway.getById).toHaveBeenCalledWith('loc-1', {
+      userId: '123-abc',
+      hasCollectionSuperuserPermission: false,
+    });
   });
 });

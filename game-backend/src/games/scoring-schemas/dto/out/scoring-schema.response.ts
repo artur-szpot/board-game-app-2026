@@ -1,4 +1,5 @@
 import {
+    IsBoolean,
     IsDateString,
     IsNotEmpty,
     IsObject,
@@ -10,6 +11,13 @@ export class ScoringSchemaResponse {
   @IsString()
   @IsNotEmpty()
   id: string;
+
+  @IsString()
+  @IsNotEmpty()
+  ownerId: string;
+
+  @IsBoolean()
+  private: boolean;
 
   @IsString()
   @IsNotEmpty()

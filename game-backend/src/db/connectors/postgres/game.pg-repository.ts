@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { createId } from '@paralleldrive/cuid2';
 
-import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
+import {
+  GetManyItemsDto,
+  ItemOwnershipDto,
+} from '@common/dto/in/get-many-items.dto';
 import { CustomNotFoundError } from '@common/errors/service-errors';
 
 import { CreateGameDto } from '../../../games/games/dto/in/create-game.dto';
@@ -17,6 +20,8 @@ export class PostgresGameRepository implements GameRepository {
   private readonly SELECT_GAMES_SQL = `
     SELECT
       id,
+      owner_id AS "ownerId",
+      private,
       name,
       description,
       length,
@@ -59,9 +64,9 @@ export class PostgresGameRepository implements GameRepository {
 
   private readonly CREATE_GAME_SQL = `
     INSERT INTO games (
-      id, name, description, length, min_players, max_players
+      id, owner_id, private, name, description, length, min_players, max_players
     )
-    VALUES ($1, $2, $3, $4, $5, $6)
+    VALUES ($1, $2, true, $3, $4, $5, $6, $7)
   `;
 
   private readonly CREATE_GAME_TAG_SQL = `
@@ -167,27 +172,60 @@ export class PostgresGameRepository implements GameRepository {
   }
 
   private buildSearchArgs(dto?: GetManyItemsDto) {
-    const { pagination, searchTerm, sort } = dto ?? {};
-    const args = searchTerm ? [`%${searchTerm}%`] : undefined;
-    const where = searchTerm
-      ? `(name ILIKE $1 OR COALESCE(description, '') ILIKE $1)`
-      : undefined;
+    const {
+      pagination,
+      searchTerm,
+      sort,
+      userId,
+      hasCollectionSuperuserPermission,
+    } = dto ?? {};
+    const args: string[] = [];
+    const predicates: string[] = [];
+
+    if (searchTerm) {
+      args.push(`%${searchTerm}%`);
+      predicates.push(
+        `(name ILIKE $${args.length} OR COALESCE(description, '') ILIKE $${args.length})`,
+      );
+    }
+
+    if (userId && !hasCollectionSuperuserPermission) {
+      args.push(userId);
+      predicates.push(`owner_id = $${args.length}`);
+    }
+
+    const where = predicates.length ? predicates.join(' AND ') : undefined;
     const orderBy = this.buildOrderBy(sort);
 
-    return { pagination, args, orderBy, where };
+    return { pagination, args: args.length ? args : undefined, orderBy, where };
   }
 
-  public async getGameById(gameId: string): Promise<GameDto | null> {
+  public async getGameById(
+    gameId: string,
+    itemOwnership?: ItemOwnershipDto,
+  ): Promise<GameDto | null> {
+    const { userId, hasCollectionSuperuserPermission } = itemOwnership ?? {};
+    const args: string[] = [gameId];
+    let where = 'id = $1';
+
+    if (userId && !hasCollectionSuperuserPermission) {
+      args.push(userId);
+      where += ` AND owner_id = $${args.length}`;
+    }
+
     return this.connector.getOne<GameDto>(
-      `${this.SELECT_GAMES_SQL} WHERE id = $1`,
-      [gameId],
+      `${this.SELECT_GAMES_SQL} WHERE ${where}`,
+      args,
     );
   }
 
-  public async getGameByName(name: string): Promise<GameDto | null> {
+  public async getGameByName(
+    name: string,
+    ownerId: string,
+  ): Promise<GameDto | null> {
     return this.connector.getOne<GameDto>(
-      `${this.SELECT_GAMES_SQL} WHERE name = $1`,
-      [name],
+      `${this.SELECT_GAMES_SQL} WHERE name = $1 AND owner_id = $2`,
+      [name, ownerId],
     );
   }
 
@@ -207,7 +245,10 @@ export class PostgresGameRepository implements GameRepository {
     return this.connector.getCount(query, args);
   }
 
-  public async createGame(input: CreateGameDto): Promise<GameDto> {
+  public async createGame(
+    input: CreateGameDto,
+    ownerId: string,
+  ): Promise<GameDto> {
     const id = createId();
     const connection = await this.connector.getConnection();
 
@@ -215,6 +256,7 @@ export class PostgresGameRepository implements GameRepository {
       await connection.query('BEGIN');
       await connection.query(this.CREATE_GAME_SQL, [
         id,
+        ownerId,
         input.name,
         input.description ?? null,
         input.length,
@@ -295,8 +337,9 @@ export class PostgresGameRepository implements GameRepository {
   public async updateGame(
     gameId: string,
     input: UpdateGameDto,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<GameDto> {
-    const existing = await this.getGameById(gameId);
+    const existing = await this.getGameById(gameId, itemOwnership);
     if (!existing) {
       throw new CustomNotFoundError(`game with ID "${gameId}"`);
     }
@@ -435,9 +478,18 @@ export class PostgresGameRepository implements GameRepository {
     }
   }
 
-  public async deleteGame(gameId: string): Promise<GameDto> {
+  public async deleteGame(
+    gameId: string,
+    itemOwnership?: ItemOwnershipDto,
+  ): Promise<GameDto> {
+    const existing = await this.getGameById(gameId, itemOwnership);
+
+    if (!existing) {
+      throw new CustomNotFoundError(`game with ID "${gameId}"`);
+    }
+
     const deleted = await this.connector.getOne<GameDto>(
-      `DELETE FROM games WHERE id = $1 RETURNING id, name, description, length, min_players AS "minPlayers", max_players AS "maxPlayers", created_on AS "createdOn", updated_on AS "updatedOn";`,
+      `DELETE FROM games WHERE id = $1 RETURNING id, owner_id AS "ownerId", private, name, description, length, min_players AS "minPlayers", max_players AS "maxPlayers", created_on AS "createdOn", updated_on AS "updatedOn";`,
       [gameId],
     );
 

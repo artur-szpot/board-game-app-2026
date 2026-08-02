@@ -1,14 +1,17 @@
 import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  Logger,
+    BadRequestException,
+    Inject,
+    Injectable,
+    Logger,
 } from '@nestjs/common';
 
-import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 import {
-  CustomInternalError,
-  CustomNotFoundError,
+    GetManyItemsDto,
+    ItemOwnershipDto,
+} from '@common/dto/in/get-many-items.dto';
+import {
+    CustomInternalError,
+    CustomNotFoundError,
 } from '@common/errors/service-errors';
 import { validateUpdateDtoNotEmpty } from '@common/helpers/validate-update-dto-not-empty';
 import { Paginated } from '@common/pagination/Paginated';
@@ -32,6 +35,8 @@ export class TagService implements TagGateway {
   private mapToResponse(tag: TagDto): TagResponse {
     return {
       id: tag.id,
+      ownerId: tag.ownerId,
+      private: tag.private,
       name: tag.name,
       description: tag.description ?? undefined,
       parentId: tag.parentId ?? undefined,
@@ -40,8 +45,11 @@ export class TagService implements TagGateway {
     };
   }
 
-  private async getTag(id: string): Promise<TagDto> {
-    const tag = await this.tagRepository.getTagById(id);
+  private async getTag(
+    id: string,
+    itemOwnership?: ItemOwnershipDto,
+  ): Promise<TagDto> {
+    const tag = await this.tagRepository.getTagById(id, itemOwnership);
     if (!tag) {
       this.logger.error(`Could not find tag with ID "${id}"`);
       throw new CustomNotFoundError(`tag with ID "${id}"`);
@@ -49,15 +57,25 @@ export class TagService implements TagGateway {
     return tag;
   }
 
-  private async ensureUniqueName(name: string, existingTagId?: string) {
-    const existingTag = await this.tagRepository.getTagByName(name);
+  private async ensureUniqueName(
+    name: string,
+    ownerId: string,
+    existingTagId?: string,
+  ) {
+    const existingTag = await this.tagRepository.getTagByName(name, ownerId);
     if (existingTag && existingTag.id !== existingTagId) {
       throw new BadRequestException(`Tag name "${name}" is already in use`);
     }
   }
 
-  private async ensureParentTagExists(parentId: string): Promise<void> {
-    const parentTag = await this.tagRepository.getTagById(parentId);
+  private async ensureParentTagExists(
+    parentId: string,
+    userId: string,
+  ): Promise<void> {
+    const parentTag = await this.tagRepository.getTagById(parentId, {
+      userId,
+      hasCollectionSuperuserPermission: false,
+    });
     if (!parentTag) {
       throw new BadRequestException(
         `Parent tag with ID "${parentId}" not found`,
@@ -68,12 +86,20 @@ export class TagService implements TagGateway {
   private async ensureValidParentTag(
     tagId: string,
     parentId: string,
+    userId: string,
   ): Promise<void> {
     if (tagId === parentId) {
       throw new BadRequestException('Tag cannot be its own parent');
     }
 
-    const parentTag = await this.tagRepository.getTagById(parentId);
+    const writeOwnership = {
+      userId,
+      hasCollectionSuperuserPermission: false,
+    };
+    const parentTag = await this.tagRepository.getTagById(
+      parentId,
+      writeOwnership,
+    );
     if (!parentTag) {
       throw new BadRequestException(
         `Parent tag with ID "${parentId}" not found`,
@@ -90,8 +116,10 @@ export class TagService implements TagGateway {
         );
       }
       visited.add(currentParentId);
-      const currentParent =
-        await this.tagRepository.getTagById(currentParentId);
+      const currentParent = await this.tagRepository.getTagById(
+        currentParentId,
+        writeOwnership,
+      );
       if (!currentParent) {
         break;
       }
@@ -99,25 +127,32 @@ export class TagService implements TagGateway {
     }
   }
 
-  private async validateCreateInput(input: CreateTagDto) {
-    await this.ensureUniqueName(input.name);
+  private async validateCreateInput(input: CreateTagDto, userId: string) {
+    await this.ensureUniqueName(input.name, userId);
     if (input.parentId) {
-      await this.ensureParentTagExists(input.parentId);
+      await this.ensureParentTagExists(input.parentId, userId);
     }
   }
 
-  private async validateUpdateInput(tagId: string, input: UpdateTagDto) {
+  private async validateUpdateInput(
+    tagId: string,
+    input: UpdateTagDto,
+    userId: string,
+  ) {
     if (input.name) {
-      await this.ensureUniqueName(input.name, tagId);
+      await this.ensureUniqueName(input.name, userId, tagId);
     }
     if (input.parentId) {
-      await this.ensureValidParentTag(tagId, input.parentId);
+      await this.ensureValidParentTag(tagId, input.parentId, userId);
     }
   }
 
-  public async getById(id: string): Promise<TagResponse> {
+  public async getById(
+    id: string,
+    itemOwnership?: ItemOwnershipDto,
+  ): Promise<TagResponse> {
     try {
-      const tag = await this.getTag(id);
+      const tag = await this.getTag(id, itemOwnership);
       return this.mapToResponse(tag);
     } catch (error) {
       if (error instanceof CustomNotFoundError) {
@@ -130,8 +165,13 @@ export class TagService implements TagGateway {
     }
   }
 
-  public async getByIds(ids: string[]): Promise<TagResponse[]> {
-    const tags = await Promise.all(ids.map((id) => this.getById(id)));
+  public async getByIds(
+    ids: string[],
+    itemOwnership?: ItemOwnershipDto,
+  ): Promise<TagResponse[]> {
+    const tags = await Promise.all(
+      ids.map((id) => this.getById(id, itemOwnership)),
+    );
     return tags;
   }
 
@@ -151,10 +191,17 @@ export class TagService implements TagGateway {
     }
   }
 
-  public async create(input: CreateTagDto): Promise<TagResponse> {
+  public async create(
+    input: CreateTagDto,
+    userId?: string,
+  ): Promise<TagResponse> {
+    if (!userId) {
+      throw new CustomInternalError('creating the tag');
+    }
+
     try {
-      await this.validateCreateInput(input);
-      const createdTag = await this.tagRepository.createTag(input);
+      await this.validateCreateInput(input, userId);
+      const createdTag = await this.tagRepository.createTag(input, userId);
       return this.mapToResponse(createdTag);
     } catch (error) {
       if (error instanceof BadRequestException) {
@@ -165,12 +212,29 @@ export class TagService implements TagGateway {
     }
   }
 
-  public async update(id: string, input: UpdateTagDto): Promise<TagResponse> {
+  public async update(
+    id: string,
+    input: UpdateTagDto,
+    itemOwnership?: ItemOwnershipDto,
+  ): Promise<TagResponse> {
+    const userId = itemOwnership?.userId;
+    if (!userId) {
+      throw new CustomInternalError('updating the tag');
+    }
+
     validateUpdateDtoNotEmpty(input);
     try {
-      await this.getTag(id);
-      await this.validateUpdateInput(id, input);
-      const updatedTag = await this.tagRepository.updateTag(id, input);
+      const writeOwnership = {
+        userId,
+        hasCollectionSuperuserPermission: false,
+      };
+      await this.getTag(id, writeOwnership);
+      await this.validateUpdateInput(id, input, userId);
+      const updatedTag = await this.tagRepository.updateTag(
+        id,
+        input,
+        writeOwnership,
+      );
       return this.mapToResponse(updatedTag);
     } catch (error) {
       if (
@@ -184,10 +248,22 @@ export class TagService implements TagGateway {
     }
   }
 
-  public async delete(id: string): Promise<TagResponse> {
+  public async delete(
+    id: string,
+    itemOwnership?: ItemOwnershipDto,
+  ): Promise<TagResponse> {
+    const userId = itemOwnership?.userId;
+    if (!userId) {
+      throw new CustomInternalError('deleting the tag');
+    }
+
     try {
-      await this.getTag(id);
-      const deletedTag = await this.tagRepository.deleteTag(id);
+      const writeOwnership = {
+        userId,
+        hasCollectionSuperuserPermission: false,
+      };
+      await this.getTag(id, writeOwnership);
+      const deletedTag = await this.tagRepository.deleteTag(id, writeOwnership);
       return this.mapToResponse(deletedTag);
     } catch (error) {
       if (error instanceof CustomNotFoundError) {

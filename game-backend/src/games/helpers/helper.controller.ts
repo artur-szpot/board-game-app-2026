@@ -1,8 +1,11 @@
 import { RequirePermissions } from '@auth/decorators/permissions.decorator';
+import { JwtDto } from '@auth/dto/in/jwt.dto';
 import { JwtAuthGuard } from '@auth/guards/jwt.guard';
 import { PermisionsGuard } from '@auth/guards/permissions.guard';
+import { hasCollectionSuperuserPermission } from '@auth/helpers/has-collection-superuser-permission';
 import { PermissionLevel } from '@auth/modules/permissions/enums/permission-level.enum';
 import { PermissionType } from '@auth/modules/permissions/enums/permission-type.enum';
+import { UserId } from '@common/decorators/user-id.decorator';
 import {
     HttpErrorResponseDto,
     ValidationErrorResponseDto,
@@ -16,6 +19,7 @@ import {
     Param,
     Post,
     Put,
+    Req,
     UseGuards,
 } from '@nestjs/common';
 import {
@@ -55,8 +59,17 @@ export class HelperController {
   @ApiOkResponse({ type: HelperResponse })
   @ApiNotFoundResponse({ type: HttpErrorResponseDto })
   @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.READ])
-  getById(@Param('id') id: string): Promise<HelperResponse> {
-    return this.helperGateway.getById(id);
+  getById(
+    @Param('id') id: string,
+    @UserId() userId: string,
+    @Req() req: { user: JwtDto },
+  ): Promise<HelperResponse> {
+    return this.helperGateway.getById(id, {
+      userId,
+      hasCollectionSuperuserPermission: hasCollectionSuperuserPermission(
+        req.user.permissions,
+      ),
+    });
   }
 
   @Post()
@@ -64,8 +77,11 @@ export class HelperController {
   @ApiBody({ type: CreateHelperDto })
   @ApiOkResponse({ type: HelperResponse })
   @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.FULL])
-  create(@Body() input: CreateHelperDto): Promise<HelperResponse> {
-    return this.helperGateway.create(input);
+  create(
+    @Body() input: CreateHelperDto,
+    @UserId() userId: string,
+  ): Promise<HelperResponse> {
+    return this.helperGateway.create(input, userId);
   }
 
   @Put(':id')
@@ -78,8 +94,12 @@ export class HelperController {
   update(
     @Param('id') id: string,
     @Body() input: UpdateHelperDto,
+    @UserId() userId: string,
   ): Promise<HelperResponse> {
-    return this.helperGateway.update(id, input);
+    return this.helperGateway.update(id, input, {
+      userId,
+      hasCollectionSuperuserPermission: false,
+    });
   }
 
   @Delete(':id')
@@ -88,7 +108,13 @@ export class HelperController {
   @ApiOkResponse({ type: HelperResponse })
   @ApiNotFoundResponse({ type: HttpErrorResponseDto })
   @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.FULL])
-  delete(@Param('id') id: string): Promise<HelperResponse> {
-    return this.helperGateway.delete(id);
+  delete(
+    @Param('id') id: string,
+    @UserId() userId: string,
+  ): Promise<HelperResponse> {
+    return this.helperGateway.delete(id, {
+      userId,
+      hasCollectionSuperuserPermission: false,
+    });
   }
 }

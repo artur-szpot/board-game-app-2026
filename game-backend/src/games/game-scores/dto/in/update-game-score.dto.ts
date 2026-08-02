@@ -1,4 +1,10 @@
-import { IsDateString, IsObject, IsOptional, IsString } from 'class-validator';
+import {
+    IsBoolean,
+    IsDateString,
+    IsObject,
+    IsOptional,
+    IsString,
+} from 'class-validator';
 
 export class UpdateGameScoreDto {
   @IsString()
@@ -16,4 +22,8 @@ export class UpdateGameScoreDto {
   @IsObject()
   @IsOptional()
   scores?: Record<string, unknown>;
+
+  @IsBoolean()
+  @IsOptional()
+  private?: boolean;
 }

@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { createId } from '@paralleldrive/cuid2';
 
-import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
+import {
+    GetManyItemsDto,
+    ItemOwnershipDto,
+} from '@common/dto/in/get-many-items.dto';
+import { CustomNotFoundError } from '@common/errors/service-errors';
 
 import { CreateTagDto } from '../../../games/tags/dto/in/create-tag.dto';
 import { TagDto } from '../../../games/tags/dto/in/tag.dto';
@@ -14,6 +18,8 @@ export class PostgresTagRepository implements TagRepository {
   private readonly SELECT_TAGS_SQL = `
    SELECT
       id,
+      owner_id AS "ownerId",
+      private,
       name,
       description,
       parent_id AS "parentId",
@@ -26,9 +32,9 @@ export class PostgresTagRepository implements TagRepository {
     'SELECT COUNT(*) AS total FROM tags;';
 
   private readonly CREATE_TAG_SQL = `
-      INSERT INTO tags (id, name, description, parent_id)
-      VALUES ($1, $2, $3, $4)
-      RETURNING id, name, description, parent_id AS "parentId", created_on AS "createdOn", updated_on AS "updatedOn";
+      INSERT INTO tags (id, owner_id, private, name, description, parent_id)
+      VALUES ($1, $2, true, $3, $4, $5)
+      RETURNING id, owner_id AS "ownerId", private, name, description, parent_id AS "parentId", created_on AS "createdOn", updated_on AS "updatedOn";
   `;
 
   private readonly UPDATE_TAG_SQL = (input: UpdateTagDto): string => {
@@ -42,20 +48,23 @@ export class PostgresTagRepository implements TagRepository {
     if (input.parentId !== undefined) {
       valuesToSet.push('parent_id = $' + (valuesToSet.length + 2));
     }
+    if (input.private !== undefined) {
+      valuesToSet.push('private = $' + (valuesToSet.length + 2));
+    }
     return `
       UPDATE tags
       SET
          ${valuesToSet.join(', ')},
          updated_on = CURRENT_TIMESTAMP
       WHERE id = $1
-      RETURNING id, name, description, parent_id AS "parentId", created_on AS "createdOn", updated_on AS "updatedOn";
+      RETURNING id, owner_id AS "ownerId", private, name, description, parent_id AS "parentId", created_on AS "createdOn", updated_on AS "updatedOn";
     `;
   };
 
   private readonly DELETE_TAG_SQL = `
    DELETE FROM tags
    WHERE id = $1
-    RETURNING id, name, description, parent_id AS "parentId", created_on AS "createdOn", updated_on AS "updatedOn";
+    RETURNING id, owner_id AS "ownerId", private, name, description, parent_id AS "parentId", created_on AS "createdOn", updated_on AS "updatedOn";
   `;
 
   constructor(private readonly connector: PostgresConnector) {}
@@ -71,7 +80,8 @@ export class PostgresTagRepository implements TagRepository {
     const clauses = Object.entries(sort ?? {})
       .filter(
         ([field, direction]) =>
-          sortableFields[field] && (direction === 'asc' || direction === 'desc'),
+          sortableFields[field] &&
+          (direction === 'asc' || direction === 'desc'),
       )
       .map(
         ([field, direction]) =>
@@ -82,38 +92,83 @@ export class PostgresTagRepository implements TagRepository {
   }
 
   private buildSearchArgs(dto?: GetManyItemsDto) {
-    const { pagination, searchTerm, sort } = dto ?? {};
-    const args = searchTerm ? [`%${searchTerm}%`] : undefined;
-    const where = searchTerm
-      ? `(name ILIKE $1 OR COALESCE(description, '') ILIKE $1)`
-      : undefined;
+    const {
+      pagination,
+      searchTerm,
+      sort,
+      userId,
+      hasCollectionSuperuserPermission,
+    } = dto ?? {};
+    const args: string[] = [];
+    const predicates: string[] = [];
+
+    if (searchTerm) {
+      args.push(`%${searchTerm}%`);
+      predicates.push(
+        `(name ILIKE $${args.length} OR COALESCE(description, '') ILIKE $${args.length})`,
+      );
+    }
+
+    if (userId && !hasCollectionSuperuserPermission) {
+      args.push(userId);
+      predicates.push(`owner_id = $${args.length}`);
+    }
+
+    const where = predicates.length ? predicates.join(' AND ') : undefined;
     const orderBy = this.buildOrderBy(sort);
 
-    return { pagination, args, orderBy, where };
+    return { pagination, args: args.length ? args : undefined, orderBy, where };
   }
 
-  public async getTagById(tagId: string): Promise<TagDto | null> {
+  public async getTagById(
+    tagId: string,
+    itemOwnership?: ItemOwnershipDto,
+  ): Promise<TagDto | null> {
+    const { userId, hasCollectionSuperuserPermission } = itemOwnership ?? {};
+    const args: string[] = [tagId];
+    let where = 'id = $1';
+
+    if (userId && !hasCollectionSuperuserPermission) {
+      args.push(userId);
+      where += ` AND owner_id = $${args.length}`;
+    }
+
     return this.connector.getOne<TagDto>(
-      `${this.SELECT_TAGS_SQL} WHERE id = $1`,
-      [tagId],
+      `${this.SELECT_TAGS_SQL} WHERE ${where}`,
+      args,
     );
   }
 
-  public async getTagsByIds(tagIds: string[]): Promise<TagDto[]> {
+  public async getTagsByIds(
+    tagIds: string[],
+    itemOwnership?: ItemOwnershipDto,
+  ): Promise<TagDto[]> {
+    const { userId, hasCollectionSuperuserPermission } = itemOwnership ?? {};
     if (tagIds.length === 0) {
       return [];
     }
 
+    const args: (string[] | string)[] = [tagIds];
+    let where = 'id IN $1';
+
+    if (userId && !hasCollectionSuperuserPermission) {
+      args.push(userId);
+      where += ` AND owner_id = $${args.length}`;
+    }
+
     return this.connector.getMany<TagDto>(
-      `${this.SELECT_TAGS_SQL} WHERE id IN $1`,
-      [tagIds],
+      `${this.SELECT_TAGS_SQL} WHERE ${where}`,
+      args,
     );
   }
 
-  public async getTagByName(name: string): Promise<TagDto | null> {
+  public async getTagByName(
+    name: string,
+    ownerId: string,
+  ): Promise<TagDto | null> {
     return this.connector.getOne<TagDto>(
-      `${this.SELECT_TAGS_SQL} WHERE name = $1`,
-      [name],
+      `${this.SELECT_TAGS_SQL} WHERE name = $1 AND owner_id = $2`,
+      [name, ownerId],
     );
   }
 
@@ -137,10 +192,14 @@ export class PostgresTagRepository implements TagRepository {
     return this.connector.getCount(query, args);
   }
 
-  public async createTag(input: CreateTagDto): Promise<TagDto> {
+  public async createTag(
+    input: CreateTagDto,
+    ownerId: string,
+  ): Promise<TagDto> {
     const id = createId();
     const result = await this.connector.getOne<TagDto>(this.CREATE_TAG_SQL, [
       id,
+      ownerId,
       input.name,
       input.description ?? null,
       input.parentId ?? null,
@@ -148,7 +207,17 @@ export class PostgresTagRepository implements TagRepository {
     return result;
   }
 
-  public async updateTag(tagId: string, input: UpdateTagDto): Promise<TagDto> {
+  public async updateTag(
+    tagId: string,
+    input: UpdateTagDto,
+    itemOwnership?: ItemOwnershipDto,
+  ): Promise<TagDto> {
+    const existing = await this.getTagById(tagId, itemOwnership);
+
+    if (!existing) {
+      throw new CustomNotFoundError(`tag with ID "${tagId}"`);
+    }
+
     const parameters: any[] = [tagId];
     if (input.name !== undefined) {
       parameters.push(input.name);
@@ -159,6 +228,9 @@ export class PostgresTagRepository implements TagRepository {
     if (input.parentId !== undefined) {
       parameters.push(input.parentId);
     }
+    if (input.private !== undefined) {
+      parameters.push(input.private);
+    }
 
     return this.connector.getOne<TagDto>(
       this.UPDATE_TAG_SQL(input),
@@ -166,7 +238,16 @@ export class PostgresTagRepository implements TagRepository {
     );
   }
 
-  public async deleteTag(tagId: string): Promise<TagDto> {
+  public async deleteTag(
+    tagId: string,
+    itemOwnership?: ItemOwnershipDto,
+  ): Promise<TagDto> {
+    const existing = await this.getTagById(tagId, itemOwnership);
+
+    if (!existing) {
+      throw new CustomNotFoundError(`tag with ID "${tagId}"`);
+    }
+
     return this.connector.getOne<TagDto>(this.DELETE_TAG_SQL, [tagId]);
   }
 }
