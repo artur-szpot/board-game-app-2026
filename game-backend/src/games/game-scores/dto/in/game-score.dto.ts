@@ -1,9 +1,22 @@
-import { IsDate, IsNotEmpty, IsObject, IsString } from 'class-validator';
+import {
+    IsBoolean,
+    IsDate,
+    IsNotEmpty,
+    IsObject,
+    IsString,
+} from 'class-validator';
 
 export class GameScoreDto {
   @IsString()
   @IsNotEmpty()
   id: string;
+
+  @IsString()
+  @IsNotEmpty()
+  ownerId: string;
+
+  @IsBoolean()
+  private: boolean;
 
   @IsString()
   @IsNotEmpty()

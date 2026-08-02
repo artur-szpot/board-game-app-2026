@@ -32,6 +32,8 @@ describe('PostgresLocationRepository', () => {
   it('creates a location via the connector and includes a generated id', async () => {
     const createdLocation = {
       id: 'location-1',
+      ownerId: '123-abc',
+      private: true,
       name: 'Test location',
       description: 'A description',
       parentId: null,
@@ -41,31 +43,36 @@ describe('PostgresLocationRepository', () => {
     connector.getOne.mockResolvedValue(createdLocation);
 
     await expect(
-      repository.createLocation({
-        name: 'Test location',
-        description: 'A description',
-        parentId: null,
-      }),
+      repository.createLocation(
+        {
+          name: 'Test location',
+          description: 'A description',
+          parentId: null,
+        },
+        '123-abc',
+      ),
     ).resolves.toEqual(createdLocation);
 
     expect(connector.getOne).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO locations'),
       expect.any(Array),
     );
-    expect((connector.getOne.mock.calls[0][1]).slice(1, 4)).toEqual([
+    expect(connector.getOne.mock.calls[0][1].slice(2, 5)).toEqual([
       'Test location',
       'A description',
       null,
     ]);
-    expect((connector.getOne.mock.calls[0][1])[4]).toEqual(['Test location']);
-    expect((connector.getOne.mock.calls[0][1])[5]).toEqual([]);
+    expect(connector.getOne.mock.calls[0][1][5]).toEqual(['Test location']);
+    expect(connector.getOne.mock.calls[0][1][6]).toEqual([]);
   });
 
   it('returns paginated locations', async () => {
     connector.getMany.mockResolvedValue([{ id: 'location-1' }]);
 
     await expect(
-      repository.getManyLocations({ pagination: { pageSize: 10, pageNumber: 0 } }),
+      repository.getManyLocations({
+        pagination: { pageSize: 10, pageNumber: 0 },
+      }),
     ).resolves.toEqual([{ id: 'location-1' }]);
 
     expect(connector.searchSQL).toHaveBeenCalledWith({

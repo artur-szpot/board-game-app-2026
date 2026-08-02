@@ -95,12 +95,15 @@ describe('GameService', () => {
     );
 
     await expect(
-      service.create({
-        name: 'Duplicate',
-        length: GameLength.SHORT,
-        minPlayers: 2,
-        maxPlayers: 4,
-      }),
+      service.create(
+        {
+          name: 'Duplicate',
+          length: GameLength.SHORT,
+          minPlayers: 2,
+          maxPlayers: 4,
+        },
+        '123-abc',
+      ),
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
@@ -114,12 +117,15 @@ describe('GameService', () => {
     );
 
     await expect(
-      service.create({
-        name: 'Invalid',
-        length: GameLength.SHORT,
-        minPlayers: 0,
-        maxPlayers: 4,
-      }),
+      service.create(
+        {
+          name: 'Invalid',
+          length: GameLength.SHORT,
+          minPlayers: 0,
+          maxPlayers: 4,
+        },
+        '123-abc',
+      ),
     ).rejects.toBeInstanceOf(BadRequestException);
 
     expect(repository.createGame).not.toHaveBeenCalled();
@@ -135,12 +141,15 @@ describe('GameService', () => {
     );
 
     await expect(
-      service.create({
-        name: 'Invalid',
-        length: GameLength.SHORT,
-        minPlayers: 4,
-        maxPlayers: 3,
-      }),
+      service.create(
+        {
+          name: 'Invalid',
+          length: GameLength.SHORT,
+          minPlayers: 4,
+          maxPlayers: 3,
+        },
+        '123-abc',
+      ),
     ).rejects.toBeInstanceOf(BadRequestException);
 
     expect(repository.createGame).not.toHaveBeenCalled();
@@ -149,6 +158,8 @@ describe('GameService', () => {
   it('rejects maxPlayers lower than the existing minPlayers on update', async () => {
     repository.getGameById.mockResolvedValue({
       id: 'game-1',
+      ownerId: '123-abc',
+      private: true,
       name: 'Terraforming Mars',
       description: null,
       length: GameLength.LONG,
@@ -171,9 +182,13 @@ describe('GameService', () => {
     );
 
     await expect(
-      service.update('game-1', {
-        maxPlayers: 1,
-      }),
+      service.update(
+        'game-1',
+        {
+          maxPlayers: 1,
+        },
+        '123-abc',
+      ),
     ).rejects.toBeInstanceOf(BadRequestException);
 
     expect(repository.updateGame).not.toHaveBeenCalled();
@@ -196,13 +211,16 @@ describe('GameService', () => {
     );
 
     await expect(
-      service.create({
-        name: 'Base + Expansion',
-        length: GameLength.MEDIUM,
-        minPlayers: 2,
-        maxPlayers: 4,
-        locations: [{ locationId: 'missing-game', isGameId: true }],
-      }),
+      service.create(
+        {
+          name: 'Base + Expansion',
+          length: GameLength.MEDIUM,
+          minPlayers: 2,
+          maxPlayers: 4,
+          locations: [{ locationId: 'missing-game', isGameId: true }],
+        },
+        '123-abc',
+      ),
     ).rejects.toThrow('Game with ID "missing-game" not found');
 
     expect(repository.createGame).not.toHaveBeenCalled();
@@ -213,6 +231,8 @@ describe('GameService', () => {
       if (id === 'game-1') {
         return {
           id: 'game-1',
+          ownerId: '123-abc',
+          private: true,
           name: 'Root Game',
           description: null,
           length: GameLength.MEDIUM,
@@ -238,9 +258,13 @@ describe('GameService', () => {
     );
 
     await expect(
-      service.update('game-1', {
-        locations: [{ locationId: 'game-1', isGameId: true }],
-      }),
+      service.update(
+        'game-1',
+        {
+          locations: [{ locationId: 'game-1', isGameId: true }],
+        },
+        '123-abc',
+      ),
     ).rejects.toThrow('Game cannot reference itself as a location');
 
     expect(repository.updateGame).not.toHaveBeenCalled();
@@ -251,6 +275,8 @@ describe('GameService', () => {
       if (id === 'game-1') {
         return {
           id: 'game-1',
+          ownerId: '123-abc',
+          private: true,
           name: 'Root Game',
           description: null,
           length: GameLength.MEDIUM,
@@ -268,6 +294,8 @@ describe('GameService', () => {
       if (id === 'game-2') {
         return {
           id: 'game-2',
+          ownerId: '123-abc',
+          private: true,
           name: 'Child Game',
           description: null,
           length: GameLength.SHORT,
@@ -294,9 +322,13 @@ describe('GameService', () => {
     );
 
     await expect(
-      service.update('game-1', {
-        locations: [{ locationId: 'game-2', isGameId: true }],
-      }),
+      service.update(
+        'game-1',
+        {
+          locations: [{ locationId: 'game-2', isGameId: true }],
+        },
+        '123-abc',
+      ),
     ).rejects.toThrow(
       'Game location relationship would create a cycle via game ID "game-2"',
     );
@@ -318,6 +350,8 @@ describe('GameService', () => {
     ]);
     repository.getGameById.mockResolvedValue({
       id: 'game-1',
+      ownerId: '123-abc',
+      private: true,
       name: 'Terraforming Mars',
       description: null,
       length: GameLength.LONG,
@@ -344,6 +378,8 @@ describe('GameService', () => {
 
     await expect(service.getById('game-1')).resolves.toEqual({
       id: 'game-1',
+      ownerId: '123-abc',
+      private: true,
       name: 'Terraforming Mars',
       description: null,
       length: GameLength.LONG,
@@ -370,6 +406,10 @@ describe('GameService', () => {
       createdOn: new Date('2026-01-01T00:00:00.000Z'),
       updatedOn: new Date('2026-01-02T00:00:00.000Z'),
     });
-    expect(locationGateway.getByIds).toHaveBeenCalledWith(['location-1']);
+    expect(locationGateway.getByIds).toHaveBeenCalledWith(
+      ['location-1'],
+      '123-abc',
+      false,
+    );
   });
 });

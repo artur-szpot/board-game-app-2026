@@ -1,4 +1,4 @@
-import { IsObject, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsObject, IsOptional, IsString } from 'class-validator';
 
 export class UpdateScoringSchemaDto {
   @IsString()
@@ -12,4 +12,8 @@ export class UpdateScoringSchemaDto {
   @IsString()
   @IsOptional()
   description?: string | null;
+
+  @IsBoolean()
+  @IsOptional()
+  private?: boolean;
 }

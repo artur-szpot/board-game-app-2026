@@ -73,14 +73,19 @@ export class GameService implements GameGateway {
     }
   }
 
-  private async ensureGameIdsExist(gameIds: string[] | undefined) {
+  private async ensureGameIdsExist(
+    gameIds: string[] | undefined,
+    userId: string,
+  ) {
     if (!gameIds?.length) {
       return;
     }
 
     const uniqueIds = [...new Set(gameIds)];
     const games = await Promise.all(
-      uniqueIds.map((gameId) => this.gameRepository.getGameById(gameId)),
+      uniqueIds.map((gameId) =>
+        this.gameRepository.getGameById(gameId, userId, false),
+      ),
     );
     const missingIndex = games.findIndex((game) => !game);
     if (missingIndex !== -1) {
@@ -93,6 +98,7 @@ export class GameService implements GameGateway {
   private async canReachGame(
     fromGameId: string,
     targetGameId: string,
+    userId: string,
     visited: Set<string>,
   ): Promise<boolean> {
     if (fromGameId === targetGameId) {
@@ -103,7 +109,11 @@ export class GameService implements GameGateway {
     }
 
     visited.add(fromGameId);
-    const game = await this.gameRepository.getGameById(fromGameId);
+    const game = await this.gameRepository.getGameById(
+      fromGameId,
+      userId,
+      false,
+    );
     if (!game) {
       return false;
     }
@@ -113,7 +123,9 @@ export class GameService implements GameGateway {
       .map((location) => location.locationId);
 
     for (const linkedGameId of linkedGameIds) {
-      if (await this.canReachGame(linkedGameId, targetGameId, visited)) {
+      if (
+        await this.canReachGame(linkedGameId, targetGameId, userId, visited)
+      ) {
         return true;
       }
     }
@@ -124,6 +136,7 @@ export class GameService implements GameGateway {
   private async ensureNoGameLocationCycle(
     gameId: string,
     gameLocationIds: string[] | undefined,
+    userId: string,
   ) {
     if (!gameLocationIds?.length) {
       return;
@@ -139,6 +152,7 @@ export class GameService implements GameGateway {
       const wouldCreateCycle = await this.canReachGame(
         locationGameId,
         gameId,
+        userId,
         new Set<string>(),
       );
       if (wouldCreateCycle) {
@@ -151,6 +165,7 @@ export class GameService implements GameGateway {
 
   private async validateInput(
     input: CreateGameDto | UpdateGameDto,
+    userId: string,
     id?: string,
     currentGame?: GameDto,
   ) {
@@ -189,7 +204,10 @@ export class GameService implements GameGateway {
       .map((location) => location.locationId);
 
     if (input.name !== undefined) {
-      const existingGame = await this.gameRepository.getGameByName(input.name);
+      const existingGame = await this.gameRepository.getGameByName(
+        input.name,
+        userId,
+      );
       if (existingGame && existingGame.id !== id) {
         throw new BadRequestException(
           `Game name "${input.name}" is already in use`,
@@ -200,29 +218,29 @@ export class GameService implements GameGateway {
     await Promise.all([
       this.ensureIdsExist(
         input.tagIds,
-        (ids) => this.tagGateway.getByIds(ids),
+        (ids) => this.tagGateway.getByIds(ids, userId, false),
         'Tag',
       ),
       this.ensureIdsExist(
         locationIds,
-        (ids) => this.locationGateway.getByIds(ids),
+        (ids) => this.locationGateway.getByIds(ids, userId, false),
         'Location',
       ),
-      this.ensureGameIdsExist(gameLocationIds),
+      this.ensureGameIdsExist(gameLocationIds, userId),
       this.ensureIdsExist(
         input.scoringSchemaIds,
-        (ids) => this.scoringSchemaGateway.getByIds(ids),
+        (ids) => this.scoringSchemaGateway.getByIds(ids, userId, false),
         'Scoring schema',
       ),
       this.ensureIdsExist(
         input.helperIds,
-        (ids) => this.helperGateway.getByIds(ids),
+        (ids) => this.helperGateway.getByIds(ids, userId, false),
         'Helper',
       ),
     ]);
 
     if (id) {
-      await this.ensureNoGameLocationCycle(id, gameLocationIds);
+      await this.ensureNoGameLocationCycle(id, gameLocationIds, userId);
     }
   }
 
@@ -236,7 +254,7 @@ export class GameService implements GameGateway {
       .filter((location) => !location.isGameId)
       .map((location) => location.locationId);
     const locationResponses = locationIds.length
-      ? await this.locationGateway.getByIds(locationIds)
+      ? await this.locationGateway.getByIds(locationIds, game.ownerId, false)
       : [];
     const locations = (game.locations ?? []).map((location) => {
       const locationResponse = locationResponses.find(
@@ -253,7 +271,7 @@ export class GameService implements GameGateway {
       return { ...responseGame, locations, tags: [] };
     }
 
-    const tags = await this.tagGateway.getByIds(tagIds);
+    const tags = await this.tagGateway.getByIds(tagIds, game.ownerId, false);
     return {
       ...responseGame,
       locations,
@@ -265,9 +283,17 @@ export class GameService implements GameGateway {
     };
   }
 
-  public async getById(id: string): Promise<GameDto> {
+  private async getByIdWithAccess(
+    id: string,
+    userId?: string,
+    hasCollectionSuperuserPermission?: boolean,
+  ): Promise<GameDto> {
     try {
-      const game = await this.gameRepository.getGameById(id);
+      const game = await this.gameRepository.getGameById(
+        id,
+        userId,
+        hasCollectionSuperuserPermission,
+      );
       if (!game) {
         this.logger.error(`Could not find game with ID "${id}"`);
         throw new CustomNotFoundError(`game with ID "${id}"`);
@@ -284,8 +310,24 @@ export class GameService implements GameGateway {
     }
   }
 
-  public async getByIds(ids: string[]): Promise<GameDto[]> {
-    const games = await Promise.all(ids.map((id) => this.getById(id)));
+  public async getById(
+    id: string,
+    userId?: string,
+    hasCollectionSuperuserPermission?: boolean,
+  ): Promise<GameDto> {
+    return this.getByIdWithAccess(id, userId, hasCollectionSuperuserPermission);
+  }
+
+  public async getByIds(
+    ids: string[],
+    userId?: string,
+    hasCollectionSuperuserPermission?: boolean,
+  ): Promise<GameDto[]> {
+    const games = await Promise.all(
+      ids.map((id) =>
+        this.getById(id, userId, hasCollectionSuperuserPermission),
+      ),
+    );
     return games;
   }
 
@@ -305,10 +347,18 @@ export class GameService implements GameGateway {
     }
   }
 
-  public async create(input: CreateGameDto): Promise<GameDto> {
+  public async create(
+    input: CreateGameDto,
+    userId?: string,
+    hasCollectionSuperuserPermission = false,
+  ): Promise<GameDto> {
+    if (!userId) {
+      throw new CustomInternalError('creating the game');
+    }
+
     try {
-      await this.validateInput(input);
-      const created = await this.gameRepository.createGame(input);
+      await this.validateInput(input, userId);
+      const created = await this.gameRepository.createGame(input, userId);
       return this.mapGameResponse(created);
     } catch (error) {
       if (error instanceof BadRequestException) {
@@ -319,12 +369,26 @@ export class GameService implements GameGateway {
     }
   }
 
-  public async update(id: string, input: UpdateGameDto): Promise<GameDto> {
+  public async update(
+    id: string,
+    input: UpdateGameDto,
+    userId?: string,
+    hasCollectionSuperuserPermission = false,
+  ): Promise<GameDto> {
+    if (!userId) {
+      throw new CustomInternalError('updating the game');
+    }
+
     validateUpdateDtoNotEmpty(input);
     try {
-      const currentGame = await this.getById(id);
-      await this.validateInput(input, id, currentGame);
-      const updated = await this.gameRepository.updateGame(id, input);
+      const currentGame = await this.getById(id, userId, false);
+      await this.validateInput(input, userId, id, currentGame);
+      const updated = await this.gameRepository.updateGame(
+        id,
+        input,
+        userId,
+        false,
+      );
       return this.mapGameResponse(updated);
     } catch (error) {
       if (
@@ -338,10 +402,18 @@ export class GameService implements GameGateway {
     }
   }
 
-  public async delete(id: string): Promise<GameDto> {
+  public async delete(
+    id: string,
+    userId?: string,
+    hasCollectionSuperuserPermission = false,
+  ): Promise<GameDto> {
+    if (!userId) {
+      throw new CustomInternalError('deleting the game');
+    }
+
     try {
-      await this.getById(id);
-      const deleted = await this.gameRepository.deleteGame(id);
+      await this.getById(id, userId, false);
+      const deleted = await this.gameRepository.deleteGame(id, userId, false);
       return this.mapGameResponse(deleted);
     } catch (error) {
       if (error instanceof CustomNotFoundError) {

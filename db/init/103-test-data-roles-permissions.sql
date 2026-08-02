@@ -20,6 +20,10 @@ VALUES (
    'ADMIN_PANEL',
    'READ'
 ), (
+   'admin',
+   'COLLECTION_SUPERUSER',
+   'READ'
+), (
    'user',
    'GAME_COLLECTIONS',
    'FULL'

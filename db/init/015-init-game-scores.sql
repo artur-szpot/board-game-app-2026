@@ -1,5 +1,7 @@
 CREATE TABLE game_scores (
    id VARCHAR(40) NOT NULL,
+   owner_id VARCHAR(40) NOT NULL,
+   private BOOLEAN NOT NULL DEFAULT true,
    game_id VARCHAR(40) NOT NULL,
    played_on TIMESTAMP(6),
    schema_id VARCHAR(40) NOT NULL,
@@ -11,6 +13,12 @@ CREATE TABLE game_scores (
 ALTER TABLE game_scores
    ADD CONSTRAINT game_scores_pk
    PRIMARY KEY (id);
+
+ALTER TABLE game_scores
+   ADD CONSTRAINT game_scores_owner_fk
+   FOREIGN KEY (owner_id)
+   REFERENCES users(id)
+   ON DELETE CASCADE;
 
 ALTER TABLE game_scores
    ADD CONSTRAINT game_scores_game_fk
@@ -26,3 +34,4 @@ ALTER TABLE game_scores
 
 CREATE INDEX game_scores_game_id_idx ON game_scores (game_id);
 CREATE INDEX game_scores_played_on_idx ON game_scores (played_on);
+CREATE INDEX game_scores_owner_id_idx ON game_scores (owner_id);

@@ -5,17 +5,37 @@ import { ScoringSchemaDto } from '../../games/scoring-schemas/dto/in/scoring-sch
 import { UpdateScoringSchemaDto } from '../../games/scoring-schemas/dto/in/update-scoring-schema.dto';
 
 export interface ScoringSchemaRepository {
-  getScoringSchemaById(id: string): Promise<ScoringSchemaDto | null>;
-  getScoringSchemaByIds(ids: string[]): Promise<ScoringSchemaDto[]>;
-  getScoringSchemaByName(name: string): Promise<ScoringSchemaDto | null>;
+  getScoringSchemaById(
+    id: string,
+    userId?: string,
+    hasCollectionSuperuserPermission?: boolean,
+  ): Promise<ScoringSchemaDto | null>;
+  getScoringSchemaByIds(
+    ids: string[],
+    userId?: string,
+    hasCollectionSuperuserPermission?: boolean,
+  ): Promise<ScoringSchemaDto[]>;
+  getScoringSchemaByName(
+    name: string,
+    ownerId: string,
+  ): Promise<ScoringSchemaDto | null>;
   getManyScoringSchemas(dto?: GetManyItemsDto): Promise<ScoringSchemaDto[]>;
   getScoringSchemasCount(dto?: GetManyItemsDto): Promise<number>;
-  createScoringSchema(input: CreateScoringSchemaDto): Promise<ScoringSchemaDto>;
+  createScoringSchema(
+    input: CreateScoringSchemaDto,
+    ownerId: string,
+  ): Promise<ScoringSchemaDto>;
   updateScoringSchema(
     id: string,
     input: UpdateScoringSchemaDto,
+    userId?: string,
+    hasCollectionSuperuserPermission?: boolean,
   ): Promise<ScoringSchemaDto>;
-  deleteScoringSchema(id: string): Promise<ScoringSchemaDto>;
+  deleteScoringSchema(
+    id: string,
+    userId?: string,
+    hasCollectionSuperuserPermission?: boolean,
+  ): Promise<ScoringSchemaDto>;
 }
 
 export const SCORING_SCHEMA_REPOSITORY = Symbol('SCORING_SCHEMA_REPOSITORY');

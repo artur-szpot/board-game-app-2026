@@ -3215,6 +3215,7 @@
           "PERMISSIONS",
           "ROLES",
           "GAME_COLLECTIONS",
+          "COLLECTION_SUPERUSER",
           "ADMIN_PANEL"
         ]
       },
@@ -3330,6 +3331,7 @@
               "PERMISSIONS",
               "ROLES",
               "GAME_COLLECTIONS",
+              "COLLECTION_SUPERUSER",
               "ADMIN_PANEL"
             ]
           },
@@ -3527,6 +3529,9 @@
           },
           "parentId": {
             "type": "string"
+          },
+          "private": {
+            "type": "boolean"
           }
         }
       },
@@ -3562,6 +3567,9 @@
           },
           "parentId": {
             "type": "string"
+          },
+          "private": {
+            "type": "boolean"
           }
         }
       },
@@ -3599,6 +3607,9 @@
           "description": {
             "type": "string",
             "nullable": true
+          },
+          "private": {
+            "type": "boolean"
           }
         }
       },
@@ -3642,6 +3653,9 @@
           },
           "scores": {
             "type": "object"
+          },
+          "private": {
+            "type": "boolean"
           }
         }
       },
@@ -3672,6 +3686,9 @@
           },
           "logic": {
             "type": "object"
+          },
+          "private": {
+            "type": "boolean"
           }
         }
       },
@@ -3751,6 +3768,12 @@
           "id": {
             "type": "string"
           },
+          "ownerId": {
+            "type": "string"
+          },
+          "private": {
+            "type": "boolean"
+          },
           "name": {
             "type": "string"
           },
@@ -3801,6 +3824,8 @@
         "required": [
           "length",
           "id",
+          "ownerId",
+          "private",
           "name",
           "minPlayers",
           "maxPlayers",

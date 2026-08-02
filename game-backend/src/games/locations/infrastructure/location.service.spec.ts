@@ -17,6 +17,8 @@ describe('LocationService', () => {
 
   const testLocationDto: LocationDto = {
     id: 'location-1',
+    ownerId: '123-abc',
+    private: true,
     name: 'Test Location',
     path: ['Test Location'],
     pathIds: ['location-1'],
@@ -46,9 +48,13 @@ describe('LocationService', () => {
 
       expect(mockRepository.getLocationById).toHaveBeenCalledWith(
         testLocationDto.id,
+        undefined,
+        undefined,
       );
       expect(result).toStrictEqual({
         id: testLocationDto.id,
+        ownerId: testLocationDto.ownerId,
+        private: testLocationDto.private,
         name: testLocationDto.name,
         description: undefined,
         parentId: undefined,
@@ -66,6 +72,8 @@ describe('LocationService', () => {
       );
       expect(mockRepository.getLocationById).toHaveBeenCalledWith(
         testLocationDto.id,
+        undefined,
+        undefined,
       );
     });
 
@@ -79,6 +87,8 @@ describe('LocationService', () => {
       );
       expect(mockRepository.getLocationById).toHaveBeenCalledWith(
         testLocationDto.id,
+        undefined,
+        undefined,
       );
     });
   });
@@ -96,6 +106,8 @@ describe('LocationService', () => {
         page: [
           {
             id: testLocationDto.id,
+            ownerId: testLocationDto.ownerId,
+            private: testLocationDto.private,
             name: testLocationDto.name,
             description: undefined,
             parentId: undefined,
@@ -131,16 +143,20 @@ describe('LocationService', () => {
       mockRepository.getLocationByName.mockResolvedValueOnce(null);
       mockRepository.createLocation.mockResolvedValueOnce(testLocationDto);
 
-      const result = await service.create(createLocationDto);
+      const result = await service.create(createLocationDto, '123-abc');
 
       expect(mockRepository.getLocationByName).toHaveBeenCalledWith(
         createLocationDto.name,
+        '123-abc',
       );
       expect(mockRepository.createLocation).toHaveBeenCalledWith(
         createLocationDto,
+        '123-abc',
       );
       expect(result).toStrictEqual({
         id: testLocationDto.id,
+        ownerId: testLocationDto.ownerId,
+        private: testLocationDto.private,
         name: testLocationDto.name,
         description: undefined,
         parentId: undefined,
@@ -157,11 +173,12 @@ describe('LocationService', () => {
 
       mockRepository.getLocationByName.mockResolvedValueOnce(testLocationDto);
 
-      await expect(service.create(createLocationDto)).rejects.toBeInstanceOf(
-        BadRequestException,
-      );
+      await expect(
+        service.create(createLocationDto, '123-abc'),
+      ).rejects.toBeInstanceOf(BadRequestException);
       expect(mockRepository.getLocationByName).toHaveBeenCalledWith(
         createLocationDto.name,
+        '123-abc',
       );
     });
   });
@@ -186,20 +203,28 @@ describe('LocationService', () => {
       const result = await service.update(
         testLocationDto.id,
         updateLocationDto,
+        '123-abc',
       );
 
       expect(mockRepository.getLocationById).toHaveBeenCalledWith(
         testLocationDto.id,
+        '123-abc',
+        false,
       );
       expect(mockRepository.getLocationByName).toHaveBeenCalledWith(
         updateLocationDto.name,
+        '123-abc',
       );
       expect(mockRepository.updateLocation).toHaveBeenCalledWith(
         testLocationDto.id,
         updateLocationDto,
+        '123-abc',
+        false,
       );
       expect(result).toStrictEqual({
         id: updatedLocationDto.id,
+        ownerId: updatedLocationDto.ownerId,
+        private: updatedLocationDto.private,
         name: updatedLocationDto.name,
         description: undefined,
         parentId: undefined,
@@ -213,10 +238,12 @@ describe('LocationService', () => {
       mockRepository.getLocationById.mockResolvedValueOnce(null);
 
       await expect(
-        service.update(testLocationDto.id, { name: 'New Name' }),
+        service.update(testLocationDto.id, { name: 'New Name' }, '123-abc'),
       ).rejects.toBeInstanceOf(CustomNotFoundError);
       expect(mockRepository.getLocationById).toHaveBeenCalledWith(
         testLocationDto.id,
+        '123-abc',
+        false,
       );
     });
 
@@ -224,7 +251,11 @@ describe('LocationService', () => {
       mockRepository.getLocationById.mockResolvedValueOnce(testLocationDto);
 
       await expect(
-        service.update(testLocationDto.id, { parentId: testLocationDto.id }),
+        service.update(
+          testLocationDto.id,
+          { parentId: testLocationDto.id },
+          '123-abc',
+        ),
       ).rejects.toThrow('Location cannot be its own parent');
 
       expect(mockRepository.updateLocation).not.toHaveBeenCalled();
@@ -249,7 +280,7 @@ describe('LocationService', () => {
         });
 
       await expect(
-        service.update('location-1', { parentId: 'location-2' }),
+        service.update('location-1', { parentId: 'location-2' }, '123-abc'),
       ).rejects.toThrow('Location parent relationship would create a cycle');
 
       expect(mockRepository.updateLocation).not.toHaveBeenCalled();
@@ -261,16 +292,22 @@ describe('LocationService', () => {
       mockRepository.getLocationById.mockResolvedValueOnce(testLocationDto);
       mockRepository.deleteLocation.mockResolvedValueOnce(testLocationDto);
 
-      const result = await service.delete(testLocationDto.id);
+      const result = await service.delete(testLocationDto.id, '123-abc');
 
       expect(mockRepository.getLocationById).toHaveBeenCalledWith(
         testLocationDto.id,
+        '123-abc',
+        false,
       );
       expect(mockRepository.deleteLocation).toHaveBeenCalledWith(
         testLocationDto.id,
+        '123-abc',
+        false,
       );
       expect(result).toStrictEqual({
         id: testLocationDto.id,
+        ownerId: testLocationDto.ownerId,
+        private: testLocationDto.private,
         name: testLocationDto.name,
         description: undefined,
         parentId: undefined,
@@ -283,11 +320,13 @@ describe('LocationService', () => {
     it('should throw CustomNotFoundError when deleting a missing location', async () => {
       mockRepository.getLocationById.mockResolvedValueOnce(null);
 
-      await expect(service.delete(testLocationDto.id)).rejects.toBeInstanceOf(
-        CustomNotFoundError,
-      );
+      await expect(
+        service.delete(testLocationDto.id, '123-abc'),
+      ).rejects.toBeInstanceOf(CustomNotFoundError);
       expect(mockRepository.getLocationById).toHaveBeenCalledWith(
         testLocationDto.id,
+        '123-abc',
+        false,
       );
     });
   });

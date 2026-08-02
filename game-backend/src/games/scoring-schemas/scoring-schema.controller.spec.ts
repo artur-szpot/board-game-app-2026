@@ -1,4 +1,4 @@
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { JwtAuthGuard } from '@auth/guards/jwt.guard';
@@ -23,12 +23,23 @@ describe('ScoringSchemaController', () => {
       providers: [{ provide: SCORING_SCHEMA_GATEWAY, useValue: gateway }],
     })
       .overrideGuard(JwtAuthGuard)
-      .useValue({ canActivate: () => true })
+      .useValue({
+        canActivate: (context: {
+          switchToHttp: () => { getRequest: () => Record<string, unknown> };
+        }) => {
+          const request = context.switchToHttp().getRequest();
+          request.user = { id: '123-abc', permissions: [] };
+          return true;
+        },
+      })
       .overrideGuard(PermisionsGuard)
       .useValue({ canActivate: () => true })
       .compile();
 
     app = moduleRef.createNestApplication();
+    app.useGlobalPipes(
+      new ValidationPipe({ transform: true, whitelist: true }),
+    );
     await app.init();
     await app.listen(0);
 
@@ -48,6 +59,8 @@ describe('ScoringSchemaController', () => {
   it('creates a scoring schema endpoint', async () => {
     gateway.create.mockResolvedValue({
       id: 'schema-1',
+      ownerId: '123-abc',
+      private: true,
       name: 'Default',
       schema: { points: 1 },
       description: 'A scoring schema',
@@ -70,16 +83,21 @@ describe('ScoringSchemaController', () => {
     expect(payload).toEqual(
       expect.objectContaining({ id: 'schema-1', name: 'Default' }),
     );
-    expect(gateway.create).toHaveBeenCalledWith({
-      name: 'Default',
-      schema: { points: 1 },
-      description: 'A scoring schema',
-    });
+    expect(gateway.create).toHaveBeenCalledWith(
+      {
+        name: 'Default',
+        schema: { points: 1 },
+        description: 'A scoring schema',
+      },
+      '123-abc',
+    );
   });
 
   it('retrieves a scoring schema by id endpoint', async () => {
     gateway.getById.mockResolvedValue({
       id: 'schema-1',
+      ownerId: '123-abc',
+      private: true,
       name: 'Default',
       schema: { points: 1 },
       description: 'A scoring schema',
@@ -96,6 +114,6 @@ describe('ScoringSchemaController', () => {
     expect(payload).toEqual(
       expect.objectContaining({ id: 'schema-1', name: 'Default' }),
     );
-    expect(gateway.getById).toHaveBeenCalledWith('schema-1');
+    expect(gateway.getById).toHaveBeenCalledWith('schema-1', '123-abc', false);
   });
 });

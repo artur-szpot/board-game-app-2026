@@ -1,13 +1,16 @@
 import { RequirePermissions } from '@auth/decorators/permissions.decorator';
+import { JwtDto } from '@auth/dto/in/jwt.dto';
 import { JwtAuthGuard } from '@auth/guards/jwt.guard';
 import { PermisionsGuard } from '@auth/guards/permissions.guard';
+import { hasCollectionSuperuserPermission } from '@auth/helpers/has-collection-superuser-permission';
 import { PermissionLevel } from '@auth/modules/permissions/enums/permission-level.enum';
 import { PermissionType } from '@auth/modules/permissions/enums/permission-type.enum';
+import { UserId } from '@common/decorators/user-id.decorator';
 import {
     HttpErrorResponseDto,
     ValidationErrorResponseDto,
 } from '@common/openapi/error-response.dto';
-import { Body, Controller, Inject, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Inject, Post, Req, UseGuards } from '@nestjs/common';
 import {
     ApiBadRequestResponse,
     ApiBearerAuth,
@@ -41,7 +44,15 @@ export class SearchController {
   @ApiBody({ type: SearchQueryDto })
   @ApiOkResponse({ type: SearchResponse })
   @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.FULL])
-  public search(@Body() query: SearchQueryDto): Promise<SearchResponse> {
-    return this.searchGateway.search(query);
+  public search(
+    @Body() query: SearchQueryDto,
+    @UserId() userId: string,
+    @Req() req: { user: JwtDto },
+  ): Promise<SearchResponse> {
+    return this.searchGateway.search(
+      query,
+      userId,
+      hasCollectionSuperuserPermission(req.user.permissions),
+    );
   }
 }

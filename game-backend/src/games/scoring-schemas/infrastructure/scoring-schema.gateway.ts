@@ -6,15 +6,27 @@ import { UpdateScoringSchemaDto } from '../dto/in/update-scoring-schema.dto';
 import { ScoringSchemaResponse } from '../dto/out/scoring-schema.response';
 
 export interface ScoringSchemaGateway {
-  getById(id: string): Promise<ScoringSchemaResponse>;
-  getByIds(ids: string[]): Promise<ScoringSchemaResponse[]>;
+  getById(
+    id: string,
+    userId?: string,
+    hasCollectionSuperuserPermission?: boolean,
+  ): Promise<ScoringSchemaResponse>;
+  getByIds(
+    ids: string[],
+    userId?: string,
+    hasCollectionSuperuserPermission?: boolean,
+  ): Promise<ScoringSchemaResponse[]>;
   getMany(dto?: GetManyItemsDto): Promise<Paginated<ScoringSchemaResponse>>;
-  create(input: CreateScoringSchemaDto): Promise<ScoringSchemaResponse>;
+  create(
+    input: CreateScoringSchemaDto,
+    userId?: string,
+  ): Promise<ScoringSchemaResponse>;
   update(
     id: string,
     input: UpdateScoringSchemaDto,
+    userId?: string,
   ): Promise<ScoringSchemaResponse>;
-  delete(id: string): Promise<ScoringSchemaResponse>;
+  delete(id: string, userId?: string): Promise<ScoringSchemaResponse>;
 }
 
 export const SCORING_SCHEMA_GATEWAY = Symbol('SCORING_SCHEMA_GATEWAY');

@@ -6,8 +6,8 @@ import { LOCATION_GATEWAY } from '../../locations/infrastructure/location.gatewa
 import { SCORING_SCHEMA_GATEWAY } from '../../scoring-schemas/infrastructure/scoring-schema.gateway';
 import { TAG_GATEWAY } from '../../tags/infrastructure/tag.gateway';
 
-import { SearchService } from './search.service';
 import { GameDataType } from '@common/enums/GameDataType.enum';
+import { SearchService } from './search.service';
 
 describe('SearchService', () => {
   it('returns combined short results for requested types', async () => {
@@ -17,19 +17,28 @@ describe('SearchService', () => {
         {
           provide: GAME_GATEWAY,
           useValue: {
-            getMany: jest.fn().mockResolvedValue({ page: [{ id: 'g1', name: 'Game 1' }], total: 1 }),
+            getMany: jest.fn().mockResolvedValue({
+              page: [{ id: 'g1', name: 'Game 1' }],
+              total: 1,
+            }),
           },
         },
         {
           provide: TAG_GATEWAY,
           useValue: {
-            getMany: jest.fn().mockResolvedValue({ page: [{ id: 't1', name: 'Tag 1' }], total: 1 }),
+            getMany: jest.fn().mockResolvedValue({
+              page: [{ id: 't1', name: 'Tag 1' }],
+              total: 1,
+            }),
           },
         },
         {
           provide: LOCATION_GATEWAY,
           useValue: {
-            getMany: jest.fn().mockResolvedValue({ page: [{ id: 'l1', name: 'Location 1' }], total: 1 }),
+            getMany: jest.fn().mockResolvedValue({
+              page: [{ id: 'l1', name: 'Location 1' }],
+              total: 1,
+            }),
           },
         },
         {
@@ -66,12 +75,17 @@ describe('SearchService', () => {
   it('paginates globally across requested data types in request order', async () => {
     const gameGateway = {
       getMany: jest.fn().mockResolvedValue({
-        page: [{ id: 'g4', name: 'Game 4' }, { id: 'g5', name: 'Game 5' }],
+        page: [
+          { id: 'g4', name: 'Game 4' },
+          { id: 'g5', name: 'Game 5' },
+        ],
         total: 5,
       }),
     };
     const tagGateway = {
-      getMany: jest.fn().mockResolvedValue({ page: [{ id: 't1', name: 'Tag 1' }], total: 4 }),
+      getMany: jest
+        .fn()
+        .mockResolvedValue({ page: [{ id: 't1', name: 'Tag 1' }], total: 4 }),
     };
 
     const moduleRef = await Test.createTestingModule({
@@ -81,15 +95,21 @@ describe('SearchService', () => {
         { provide: TAG_GATEWAY, useValue: tagGateway },
         {
           provide: LOCATION_GATEWAY,
-          useValue: { getMany: jest.fn().mockResolvedValue({ page: [], total: 0 }) },
+          useValue: {
+            getMany: jest.fn().mockResolvedValue({ page: [], total: 0 }),
+          },
         },
         {
           provide: HELPER_GATEWAY,
-          useValue: { getMany: jest.fn().mockResolvedValue({ page: [], total: 0 }) },
+          useValue: {
+            getMany: jest.fn().mockResolvedValue({ page: [], total: 0 }),
+          },
         },
         {
           provide: SCORING_SCHEMA_GATEWAY,
-          useValue: { getMany: jest.fn().mockResolvedValue({ page: [], total: 0 }) },
+          useValue: {
+            getMany: jest.fn().mockResolvedValue({ page: [], total: 0 }),
+          },
         },
       ],
     }).compile();
@@ -152,10 +172,30 @@ describe('SearchService', () => {
             getMany: jest.fn().mockResolvedValue({ page: [game], total: 1 }),
           },
         },
-        { provide: TAG_GATEWAY, useValue: { getMany: jest.fn().mockResolvedValue({ page: [], total: 0 }) } },
-        { provide: LOCATION_GATEWAY, useValue: { getMany: jest.fn().mockResolvedValue({ page: [], total: 0 }) } },
-        { provide: HELPER_GATEWAY, useValue: { getMany: jest.fn().mockResolvedValue({ page: [], total: 0 }) } },
-        { provide: SCORING_SCHEMA_GATEWAY, useValue: { getMany: jest.fn().mockResolvedValue({ page: [], total: 0 }) } },
+        {
+          provide: TAG_GATEWAY,
+          useValue: {
+            getMany: jest.fn().mockResolvedValue({ page: [], total: 0 }),
+          },
+        },
+        {
+          provide: LOCATION_GATEWAY,
+          useValue: {
+            getMany: jest.fn().mockResolvedValue({ page: [], total: 0 }),
+          },
+        },
+        {
+          provide: HELPER_GATEWAY,
+          useValue: {
+            getMany: jest.fn().mockResolvedValue({ page: [], total: 0 }),
+          },
+        },
+        {
+          provide: SCORING_SCHEMA_GATEWAY,
+          useValue: {
+            getMany: jest.fn().mockResolvedValue({ page: [], total: 0 }),
+          },
+        },
       ],
     }).compile();
 

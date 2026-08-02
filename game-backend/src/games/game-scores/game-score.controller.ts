@@ -7,6 +7,7 @@ import {
     Param,
     Patch,
     Post,
+    Req,
     UseGuards,
 } from '@nestjs/common';
 import {
@@ -23,10 +24,13 @@ import {
 } from '@nestjs/swagger';
 
 import { RequirePermissions } from '@auth/decorators/permissions.decorator';
+import { JwtDto } from '@auth/dto/in/jwt.dto';
 import { JwtAuthGuard } from '@auth/guards/jwt.guard';
 import { PermisionsGuard } from '@auth/guards/permissions.guard';
+import { hasCollectionSuperuserPermission } from '@auth/helpers/has-collection-superuser-permission';
 import { PermissionLevel } from '@auth/modules/permissions/enums/permission-level.enum';
 import { PermissionType } from '@auth/modules/permissions/enums/permission-type.enum';
+import { UserId } from '@common/decorators/user-id.decorator';
 import { GetEntityByIdDto } from '@common/dto/in/get-entity-by-id.dto';
 import {
     HttpErrorResponseDto,
@@ -58,8 +62,15 @@ export class GameScoreController {
   @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.READ])
   public async getById(
     @Param() params: GetEntityByIdDto,
+    @UserId() userId: string,
+    @Req() req: { user: JwtDto },
   ): Promise<GameScoreResponse> {
-    return this.gateway.getById(params.id);
+    return this.gateway.getById(params.id, {
+      userId,
+      hasCollectionSuperuserPermission: hasCollectionSuperuserPermission(
+        req.user.permissions,
+      ),
+    });
   }
 
   @Post()
@@ -69,8 +80,9 @@ export class GameScoreController {
   @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.FULL])
   public async create(
     @Body() body: CreateGameScoreDto,
+    @UserId() userId: string,
   ): Promise<GameScoreResponse> {
-    return this.gateway.create(body);
+    return this.gateway.create(body, userId);
   }
 
   @Patch('/:id')
@@ -83,8 +95,9 @@ export class GameScoreController {
   public async update(
     @Param() params: GetEntityByIdDto,
     @Body() body: UpdateGameScoreDto,
+    @UserId() userId: string,
   ): Promise<GameScoreResponse> {
-    return this.gateway.update(params.id, body);
+    return this.gateway.update(params.id, body, userId);
   }
 
   @Delete('/:id')
@@ -95,7 +108,8 @@ export class GameScoreController {
   @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.FULL])
   public async delete(
     @Param() params: GetEntityByIdDto,
+    @UserId() userId: string,
   ): Promise<GameScoreResponse> {
-    return this.gateway.delete(params.id);
+    return this.gateway.delete(params.id, userId);
   }
 }

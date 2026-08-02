@@ -1,4 +1,4 @@
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { JwtAuthGuard } from '@auth/guards/jwt.guard';
@@ -23,12 +23,23 @@ describe('GameScoreController', () => {
       providers: [{ provide: GAME_SCORE_GATEWAY, useValue: gateway }],
     })
       .overrideGuard(JwtAuthGuard)
-      .useValue({ canActivate: () => true })
+      .useValue({
+        canActivate: (context: {
+          switchToHttp: () => { getRequest: () => Record<string, unknown> };
+        }) => {
+          const request = context.switchToHttp().getRequest();
+          request.user = { id: '123-abc', permissions: [] };
+          return true;
+        },
+      })
       .overrideGuard(PermisionsGuard)
       .useValue({ canActivate: () => true })
       .compile();
 
     app = moduleRef.createNestApplication();
+    app.useGlobalPipes(
+      new ValidationPipe({ transform: true, whitelist: true }),
+    );
     await app.init();
     await app.listen(0);
 
@@ -48,6 +59,8 @@ describe('GameScoreController', () => {
   it('creates a game score endpoint', async () => {
     gateway.create.mockResolvedValue({
       id: 'score-1',
+      ownerId: '123-abc',
+      private: true,
       gameId: 'game-1',
       playedOn: '2026-07-18',
       schema: { points: 'number' },
@@ -72,17 +85,22 @@ describe('GameScoreController', () => {
     expect(payload).toEqual(
       expect.objectContaining({ id: 'score-1', gameId: 'game-1' }),
     );
-    expect(gateway.create).toHaveBeenCalledWith({
-      gameId: 'game-1',
-      playedOn: '2026-07-18',
-      schemaId: 'schema-1',
-      scores: { alice: 32, bob: 28 },
-    });
+    expect(gateway.create).toHaveBeenCalledWith(
+      {
+        gameId: 'game-1',
+        playedOn: '2026-07-18',
+        schemaId: 'schema-1',
+        scores: { alice: 32, bob: 28 },
+      },
+      '123-abc',
+    );
   });
 
   it('retrieves a game score by id endpoint', async () => {
     gateway.getById.mockResolvedValue({
       id: 'score-1',
+      ownerId: '123-abc',
+      private: true,
       gameId: 'game-1',
       playedOn: '2026-07-18',
       schema: { points: 'number' },
@@ -98,6 +116,9 @@ describe('GameScoreController', () => {
     expect(payload).toEqual(
       expect.objectContaining({ id: 'score-1', gameId: 'game-1' }),
     );
-    expect(gateway.getById).toHaveBeenCalledWith('score-1');
+    expect(gateway.getById).toHaveBeenCalledWith('score-1', {
+      userId: '123-abc',
+      hasCollectionSuperuserPermission: false,
+    });
   });
 });

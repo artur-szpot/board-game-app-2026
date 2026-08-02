@@ -1,5 +1,7 @@
 CREATE TABLE locations (
    id VARCHAR(40) NOT NULL,
+   owner_id VARCHAR(40) NOT NULL,
+   private BOOLEAN NOT NULL DEFAULT true,
    name TEXT NOT NULL,
    description TEXT,
    parent_id VARCHAR(40),
@@ -13,7 +15,14 @@ ALTER TABLE locations
    ADD CONSTRAINT locations_pk
    PRIMARY KEY (id);
 
-CREATE UNIQUE INDEX locations_name_idx ON locations (name);
+ALTER TABLE locations
+   ADD CONSTRAINT locations_owner_fk
+   FOREIGN KEY (owner_id)
+   REFERENCES users(id)
+   ON DELETE CASCADE;
+
+CREATE UNIQUE INDEX locations_owner_name_idx ON locations (owner_id, name);
+CREATE INDEX locations_owner_id_idx ON locations (owner_id);
 
 ALTER TABLE locations
    ADD CONSTRAINT locations_parent_fk

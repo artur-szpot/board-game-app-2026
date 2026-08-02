@@ -38,11 +38,14 @@ describe('PostgresScoringSchemaRepository', () => {
     connector.getOne.mockResolvedValue(created);
 
     await expect(
-      repository.createScoringSchema({
-        name: 'Default',
-        schema: { points: 1 },
-        description: 'A scoring schema',
-      }),
+      repository.createScoringSchema(
+        {
+          name: 'Default',
+          schema: { points: 1 },
+          description: 'A scoring schema',
+        },
+        'user-1',
+      ),
     ).resolves.toEqual(created);
 
     expect(connector.getOne).toHaveBeenCalledWith(

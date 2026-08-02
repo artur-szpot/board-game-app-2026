@@ -15,8 +15,14 @@ describe('SearchController', () => {
 
     const controller = moduleRef.get(SearchController);
     await expect(
-      controller.search({ types: [GameDataType.GAME] }),
+      controller.search({ types: [GameDataType.GAME] }, 'user-1', {
+        user: { permissions: [] },
+      } as never),
     ).resolves.toEqual({ results: [], total: 0 });
-    expect(search).toHaveBeenCalledWith({ types: [GameDataType.GAME] });
+    expect(search).toHaveBeenCalledWith(
+      { types: [GameDataType.GAME] },
+      'user-1',
+      false,
+    );
   });
 });

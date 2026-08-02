@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { createId } from '@paralleldrive/cuid2';
 
 import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
+import { CustomNotFoundError } from '@common/errors/service-errors';
 
 import { ScoringSchemaDto } from '../../../games/scoring-schemas/dto/in/scoring-schema.dto';
 import { UpdateScoringSchemaDto } from '../../../games/scoring-schemas/dto/in/update-scoring-schema.dto';
@@ -13,6 +14,8 @@ export class PostgresScoringSchemaRepository implements ScoringSchemaRepository 
   private readonly SELECT_SCORING_SCHEMA_SQL = `
     SELECT
       id,
+      owner_id AS "ownerId",
+      private,
       name,
       schema,
       description,
@@ -25,9 +28,9 @@ export class PostgresScoringSchemaRepository implements ScoringSchemaRepository 
     'SELECT COUNT(*) AS total FROM scoring_schemas;';
 
   private readonly CREATE_SCORING_SCHEMA_SQL = `
-    INSERT INTO scoring_schemas (id, name, schema, description)
-    VALUES ($1, $2, $3, $4)
-    RETURNING id, name, schema, description, created_on AS "createdOn", updated_on AS "updatedOn";
+    INSERT INTO scoring_schemas (id, owner_id, private, name, schema, description)
+    VALUES ($1, $2, true, $3, $4, $5)
+    RETURNING id, owner_id AS "ownerId", private, name, schema, description, created_on AS "createdOn", updated_on AS "updatedOn";
   `;
 
   private readonly UPDATE_SCORING_SCHEMA_SQL = (
@@ -43,20 +46,23 @@ export class PostgresScoringSchemaRepository implements ScoringSchemaRepository 
     if (input.description !== undefined) {
       valuesToSet.push('description = $' + (valuesToSet.length + 2));
     }
+    if (input.private !== undefined) {
+      valuesToSet.push('private = $' + (valuesToSet.length + 2));
+    }
     return `
       UPDATE scoring_schemas
       SET
         ${valuesToSet.join(', ')},
         updated_on = CURRENT_TIMESTAMP
       WHERE id = $1
-      RETURNING id, name, schema, description, created_on AS "createdOn", updated_on AS "updatedOn";
+      RETURNING id, owner_id AS "ownerId", private, name, schema, description, created_on AS "createdOn", updated_on AS "updatedOn";
     `;
   };
 
   private readonly DELETE_SCORING_SCHEMA_SQL = `
     DELETE FROM scoring_schemas
     WHERE id = $1
-    RETURNING id, name, schema, description, created_on AS "createdOn", updated_on AS "updatedOn";
+    RETURNING id, owner_id AS "ownerId", private, name, schema, description, created_on AS "createdOn", updated_on AS "updatedOn";
   `;
 
   constructor(private readonly connector: PostgresConnector) {}
@@ -72,7 +78,8 @@ export class PostgresScoringSchemaRepository implements ScoringSchemaRepository 
     const clauses = Object.entries(sort ?? {})
       .filter(
         ([field, direction]) =>
-          sortableFields[field] && (direction === 'asc' || direction === 'desc'),
+          sortableFields[field] &&
+          (direction === 'asc' || direction === 'desc'),
       )
       .map(
         ([field, direction]) =>
@@ -83,44 +90,83 @@ export class PostgresScoringSchemaRepository implements ScoringSchemaRepository 
   }
 
   private buildSearchArgs(dto?: GetManyItemsDto) {
-    const { pagination, searchTerm, sort } = dto ?? {};
-    const args = searchTerm ? [`%${searchTerm}%`] : undefined;
-    const where = searchTerm
-      ? `(name ILIKE $1 OR COALESCE(description, '') ILIKE $1)`
-      : undefined;
+    const {
+      pagination,
+      searchTerm,
+      sort,
+      userId,
+      hasCollectionSuperuserPermission,
+    } = dto ?? {};
+    const args: string[] = [];
+    const predicates: string[] = [];
+
+    if (searchTerm) {
+      args.push(`%${searchTerm}%`);
+      predicates.push(
+        `(name ILIKE $${args.length} OR COALESCE(description, '') ILIKE $${args.length})`,
+      );
+    }
+
+    if (userId && !hasCollectionSuperuserPermission) {
+      args.push(userId);
+      predicates.push(`owner_id = $${args.length}`);
+    }
+
+    const where = predicates.length ? predicates.join(' AND ') : undefined;
     const orderBy = this.buildOrderBy(sort);
 
-    return { pagination, args, orderBy, where };
+    return { pagination, args: args.length ? args : undefined, orderBy, where };
   }
 
   public async getScoringSchemaById(
     id: string,
+    userId?: string,
+    hasCollectionSuperuserPermission?: boolean,
   ): Promise<ScoringSchemaDto | null> {
+    const args: string[] = [id];
+    let where = 'id = $1';
+
+    if (userId && !hasCollectionSuperuserPermission) {
+      args.push(userId);
+      where += ` AND owner_id = $${args.length}`;
+    }
+
     return this.connector.getOne<ScoringSchemaDto>(
-      `${this.SELECT_SCORING_SCHEMA_SQL} WHERE id = $1`,
-      [id],
+      `${this.SELECT_SCORING_SCHEMA_SQL} WHERE ${where}`,
+      args,
     );
   }
 
   public async getScoringSchemaByIds(
     ids: string[],
+    userId?: string,
+    hasCollectionSuperuserPermission?: boolean,
   ): Promise<ScoringSchemaDto[]> {
     if (ids.length === 0) {
       return [];
     }
 
+    const args: (string[] | string)[] = [ids];
+    let where = 'id IN $1';
+
+    if (userId && !hasCollectionSuperuserPermission) {
+      args.push(userId);
+      where += ` AND owner_id = $${args.length}`;
+    }
+
     return this.connector.getMany<ScoringSchemaDto>(
-      `${this.SELECT_SCORING_SCHEMA_SQL} WHERE id IN $1`,
-      [ids],
+      `${this.SELECT_SCORING_SCHEMA_SQL} WHERE ${where}`,
+      args,
     );
   }
 
   public async getScoringSchemaByName(
     name: string,
+    ownerId: string,
   ): Promise<ScoringSchemaDto | null> {
     return this.connector.getOne<ScoringSchemaDto>(
-      `${this.SELECT_SCORING_SCHEMA_SQL} WHERE name = $1`,
-      [name],
+      `${this.SELECT_SCORING_SCHEMA_SQL} WHERE name = $1 AND owner_id = $2`,
+      [name, ownerId],
     );
   }
 
@@ -142,11 +188,14 @@ export class PostgresScoringSchemaRepository implements ScoringSchemaRepository 
     return this.connector.getCount(query, args);
   }
 
-  public async createScoringSchema(input: any): Promise<ScoringSchemaDto> {
+  public async createScoringSchema(
+    input: any,
+    ownerId: string,
+  ): Promise<ScoringSchemaDto> {
     const id = createId();
     const result = await this.connector.getOne<ScoringSchemaDto>(
       this.CREATE_SCORING_SCHEMA_SQL,
-      [id, input.name, input.schema, input.description ?? null],
+      [id, ownerId, input.name, input.schema, input.description ?? null],
     );
     return result;
   }
@@ -154,7 +203,19 @@ export class PostgresScoringSchemaRepository implements ScoringSchemaRepository 
   public async updateScoringSchema(
     id: string,
     input: UpdateScoringSchemaDto,
+    userId?: string,
+    hasCollectionSuperuserPermission?: boolean,
   ): Promise<ScoringSchemaDto> {
+    const existing = await this.getScoringSchemaById(
+      id,
+      userId,
+      hasCollectionSuperuserPermission,
+    );
+
+    if (!existing) {
+      throw new CustomNotFoundError(`scoring schema with ID "${id}"`);
+    }
+
     const parameters: any[] = [id];
     if (input.name !== undefined) {
       parameters.push(input.name);
@@ -165,13 +226,30 @@ export class PostgresScoringSchemaRepository implements ScoringSchemaRepository 
     if (input.description !== undefined) {
       parameters.push(input.description);
     }
+    if (input.private !== undefined) {
+      parameters.push(input.private);
+    }
     return this.connector.getOne<ScoringSchemaDto>(
       this.UPDATE_SCORING_SCHEMA_SQL(input),
       parameters,
     );
   }
 
-  public async deleteScoringSchema(id: string): Promise<ScoringSchemaDto> {
+  public async deleteScoringSchema(
+    id: string,
+    userId?: string,
+    hasCollectionSuperuserPermission?: boolean,
+  ): Promise<ScoringSchemaDto> {
+    const existing = await this.getScoringSchemaById(
+      id,
+      userId,
+      hasCollectionSuperuserPermission,
+    );
+
+    if (!existing) {
+      throw new CustomNotFoundError(`scoring schema with ID "${id}"`);
+    }
+
     return this.connector.getOne<ScoringSchemaDto>(
       this.DELETE_SCORING_SCHEMA_SQL,
       [id],

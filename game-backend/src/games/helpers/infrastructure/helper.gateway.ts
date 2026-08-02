@@ -6,12 +6,24 @@ import { UpdateHelperDto } from '../dto/in/update-helper.dto';
 import { HelperResponse } from '../dto/out/helper.response';
 
 export interface HelperGateway {
-  getById(id: string): Promise<HelperResponse>;
-  getByIds(ids: string[]): Promise<HelperResponse[]>;
+  getById(
+    id: string,
+    userId?: string,
+    hasCollectionSuperuserPermission?: boolean,
+  ): Promise<HelperResponse>;
+  getByIds(
+    ids: string[],
+    userId?: string,
+    hasCollectionSuperuserPermission?: boolean,
+  ): Promise<HelperResponse[]>;
   getMany(dto?: GetManyItemsDto): Promise<Paginated<HelperResponse>>;
-  create(input: CreateHelperDto): Promise<HelperResponse>;
-  update(id: string, input: UpdateHelperDto): Promise<HelperResponse>;
-  delete(id: string): Promise<HelperResponse>;
+  create(input: CreateHelperDto, userId?: string): Promise<HelperResponse>;
+  update(
+    id: string,
+    input: UpdateHelperDto,
+    userId?: string,
+  ): Promise<HelperResponse>;
+  delete(id: string, userId?: string): Promise<HelperResponse>;
 }
 
 export const HELPER_GATEWAY = Symbol('HELPER_GATEWAY');

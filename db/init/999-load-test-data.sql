@@ -1,40 +1,44 @@
 BEGIN;
 
-INSERT INTO tags (id, name, description, parent_id)
+INSERT INTO tags (id, owner_id, private, name, description, parent_id)
 VALUES
-	('test-tag-01', 'Test Tag 01', 'Family-friendly board game tag.', NULL),
-	('test-tag-02', 'Test Tag 02', 'Light strategy tag for test data.', NULL),
-	('test-tag-03', 'Test Tag 03', 'Cooperative game tag for test data.', NULL),
-	('test-tag-04', 'Test Tag 04', 'Abstract game tag for test data.', NULL),
-	('test-tag-05', 'Test Tag 05', 'Party game tag for test data.', NULL),
-	('test-tag-06', 'Test Tag 06', 'Deck-building game tag for test data.', NULL),
-	('test-tag-07', 'Test Tag 07', 'Worker placement tag for test data.', NULL),
-	('test-tag-08', 'Test Tag 08', 'Area control tag for test data.', NULL),
-	('test-tag-09', 'Test Tag 09', 'Engine-building tag for test data.', NULL),
-	('test-tag-10', 'Test Tag 10', 'Solo-friendly game tag for test data.', NULL)
+	('test-tag-01', '123-abc', true, 'Test Tag 01', 'Family-friendly board game tag.', NULL),
+	('test-tag-02', '123-abc', true, 'Test Tag 02', 'Light strategy tag for test data.', NULL),
+	('test-tag-03', '123-abc', true, 'Test Tag 03', 'Cooperative game tag for test data.', NULL),
+	('test-tag-04', '123-abc', true, 'Test Tag 04', 'Abstract game tag for test data.', NULL),
+	('test-tag-05', '123-abc', true, 'Test Tag 05', 'Party game tag for test data.', NULL),
+	('test-tag-06', '123-abc', true, 'Test Tag 06', 'Deck-building game tag for test data.', NULL),
+	('test-tag-07', '123-abc', true, 'Test Tag 07', 'Worker placement tag for test data.', NULL),
+	('test-tag-08', '123-abc', true, 'Test Tag 08', 'Area control tag for test data.', NULL),
+	('test-tag-09', '123-abc', true, 'Test Tag 09', 'Engine-building tag for test data.', NULL),
+	('test-tag-10', '123-abc', true, 'Test Tag 10', 'Solo-friendly game tag for test data.', NULL)
 ON CONFLICT (id)
 DO UPDATE
 SET
+	owner_id = EXCLUDED.owner_id,
+	private = EXCLUDED.private,
 	name = EXCLUDED.name,
 	description = EXCLUDED.description,
 	parent_id = EXCLUDED.parent_id,
 	updated_on = CURRENT_TIMESTAMP;
 
-INSERT INTO locations (id, name, description, parent_id, path, path_ids)
+INSERT INTO locations (id, owner_id, private, name, description, parent_id, path, path_ids)
 VALUES
-	('test-location-01', 'Test Location 01', 'Main shelf A for test games.', NULL, ARRAY['Test Location 02', 'Test Location 01']::TEXT[], ARRAY['test-location-02']::VARCHAR(40)[]),
-	('test-location-02', 'Test Location 02', 'Main shelf B for test games.', NULL, ARRAY['Test Location 02']::TEXT[], ARRAY[]::VARCHAR(40)[]),
-	('test-location-03', 'Test Location 03', 'Closet top section for test games.', NULL, ARRAY['Test Location 03']::TEXT[], ARRAY[]::VARCHAR(40)[]),
-	('test-location-04', 'Test Location 04', 'Closet middle section for test games.', NULL, ARRAY['Test Location 04']::TEXT[], ARRAY[]::VARCHAR(40)[]),
-	('test-location-05', 'Test Location 05', 'Closet bottom section for test games.', NULL, ARRAY['Test Location 05']::TEXT[], ARRAY[]::VARCHAR(40)[]),
-	('test-location-06', 'Test Location 06', 'Living room cabinet left side.', NULL, ARRAY['Test Location 06']::TEXT[], ARRAY[]::VARCHAR(40)[]),
-	('test-location-07', 'Test Location 07', 'Living room cabinet right side.', NULL, ARRAY['Test Location 07']::TEXT[], ARRAY[]::VARCHAR(40)[]),
-	('test-location-08', 'Test Location 08', 'Travel bag storage location.', NULL, ARRAY['Test Location 08']::TEXT[], ARRAY[]::VARCHAR(40)[]),
-	('test-location-09', 'Test Location 09', 'Guest room shelf for overflow.', NULL, ARRAY['Test Location 09']::TEXT[], ARRAY[]::VARCHAR(40)[]),
-	('test-location-10', 'Test Location 10', 'Office shelf for prototypes.', NULL, ARRAY['Test Location 10']::TEXT[], ARRAY[]::VARCHAR(40)[])
+	('test-location-01', '123-abc', true, 'Test Location 01', 'Main shelf A for test games.', NULL, ARRAY['Test Location 02', 'Test Location 01']::TEXT[], ARRAY['test-location-02']::VARCHAR(40)[]),
+	('test-location-02', '123-abc', true, 'Test Location 02', 'Main shelf B for test games.', NULL, ARRAY['Test Location 02']::TEXT[], ARRAY[]::VARCHAR(40)[]),
+	('test-location-03', '123-abc', true, 'Test Location 03', 'Closet top section for test games.', NULL, ARRAY['Test Location 03']::TEXT[], ARRAY[]::VARCHAR(40)[]),
+	('test-location-04', '123-abc', true, 'Test Location 04', 'Closet middle section for test games.', NULL, ARRAY['Test Location 04']::TEXT[], ARRAY[]::VARCHAR(40)[]),
+	('test-location-05', '123-abc', true, 'Test Location 05', 'Closet bottom section for test games.', NULL, ARRAY['Test Location 05']::TEXT[], ARRAY[]::VARCHAR(40)[]),
+	('test-location-06', '123-abc', true, 'Test Location 06', 'Living room cabinet left side.', NULL, ARRAY['Test Location 06']::TEXT[], ARRAY[]::VARCHAR(40)[]),
+	('test-location-07', '123-abc', true, 'Test Location 07', 'Living room cabinet right side.', NULL, ARRAY['Test Location 07']::TEXT[], ARRAY[]::VARCHAR(40)[]),
+	('test-location-08', '123-abc', true, 'Test Location 08', 'Travel bag storage location.', NULL, ARRAY['Test Location 08']::TEXT[], ARRAY[]::VARCHAR(40)[]),
+	('test-location-09', '123-abc', true, 'Test Location 09', 'Guest room shelf for overflow.', NULL, ARRAY['Test Location 09']::TEXT[], ARRAY[]::VARCHAR(40)[]),
+	('test-location-10', '123-abc', true, 'Test Location 10', 'Office shelf for prototypes.', NULL, ARRAY['Test Location 10']::TEXT[], ARRAY[]::VARCHAR(40)[])
 ON CONFLICT (id)
 DO UPDATE
 SET
+	owner_id = EXCLUDED.owner_id,
+	private = EXCLUDED.private,
 	name = EXCLUDED.name,
 	description = EXCLUDED.description,
 	parent_id = EXCLUDED.parent_id,
@@ -42,21 +46,23 @@ SET
 	path_ids = EXCLUDED.path_ids,
 	updated_on = CURRENT_TIMESTAMP;
 
-INSERT INTO games (id, name, description, length, min_players, max_players)
+INSERT INTO games (id, owner_id, private, name, description, length, min_players, max_players)
 VALUES
-	('test-game-01', 'Test Game 01', 'Small-box card drafting game for tests.', 'FILLER', 2, 5),
-	('test-game-02', 'Test Game 02', 'Fast tactical skirmish game for tests.', 'SHORT', 2, 4),
-	('test-game-03', 'Test Game 03', 'Resource management game for tests.', 'MEDIUM', 3, 6),
-	('test-game-04', 'Test Game 04', 'Epic campaign game for tests.', 'LONG', 4, 8),
-	('test-game-05', 'Test Game 05', 'Push-your-luck dice game for tests.', 'FILLER', 2, 6),
-	('test-game-06', 'Test Game 06', 'Two-player duel game for tests.', 'SHORT', 2, 2),
-	('test-game-07', 'Test Game 07', 'Economic strategy game for tests.', 'MEDIUM', 2, 5),
-	('test-game-08', 'Test Game 08', 'Civilization game for tests.', 'LONG', 3, 6),
-	('test-game-09', 'Test Game 09', 'Tile-laying puzzle game for tests.', 'SHORT', 1, 4),
-	('test-game-10', 'Test Game 10', 'Narrative adventure game for tests.', 'MEDIUM', 2, 6)
+	('test-game-01', '123-abc', true, 'Test Game 01', 'Small-box card drafting game for tests.', 'FILLER', 2, 5),
+	('test-game-02', '123-abc', true, 'Test Game 02', 'Fast tactical skirmish game for tests.', 'SHORT', 2, 4),
+	('test-game-03', '123-abc', true, 'Test Game 03', 'Resource management game for tests.', 'MEDIUM', 3, 6),
+	('test-game-04', '123-abc', true, 'Test Game 04', 'Epic campaign game for tests.', 'LONG', 4, 8),
+	('test-game-05', '123-abc', true, 'Test Game 05', 'Push-your-luck dice game for tests.', 'FILLER', 2, 6),
+	('test-game-06', '123-abc', true, 'Test Game 06', 'Two-player duel game for tests.', 'SHORT', 2, 2),
+	('test-game-07', '123-abc', true, 'Test Game 07', 'Economic strategy game for tests.', 'MEDIUM', 2, 5),
+	('test-game-08', '123-abc', true, 'Test Game 08', 'Civilization game for tests.', 'LONG', 3, 6),
+	('test-game-09', '123-abc', true, 'Test Game 09', 'Tile-laying puzzle game for tests.', 'SHORT', 1, 4),
+	('test-game-10', '123-abc', true, 'Test Game 10', 'Narrative adventure game for tests.', 'MEDIUM', 2, 6)
 ON CONFLICT (id)
 DO UPDATE
 SET
+	owner_id = EXCLUDED.owner_id,
+	private = EXCLUDED.private,
 	name = EXCLUDED.name,
 	description = EXCLUDED.description,
 	length = EXCLUDED.length,

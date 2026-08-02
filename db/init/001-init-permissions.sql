@@ -4,6 +4,7 @@ CREATE TYPE permission_type
       'ROLES',
       'PERMISSIONS',
       'GAME_COLLECTIONS',
+      'COLLECTION_SUPERUSER',
       'ADMIN_PANEL'
    );
 

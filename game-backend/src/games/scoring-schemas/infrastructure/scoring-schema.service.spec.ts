@@ -1,14 +1,14 @@
 import { BadRequestException } from '@nestjs/common';
 
 import {
-  CustomInternalError,
-  CustomNotFoundError,
+    CustomInternalError,
+    CustomNotFoundError,
 } from '@common/errors/service-errors';
 
-import { CreateScoringSchemaDto } from '../dto/in/create-scoring-schema.dto';
-import { UpdateScoringSchemaDto } from '../dto/in/update-scoring-schema.dto';
-import { ScoringSchemaDto } from '../dto/in/scoring-schema.dto';
 import { ScoringSchemaRepository } from '@db/repositories/scoring-schema.repository';
+import { CreateScoringSchemaDto } from '../dto/in/create-scoring-schema.dto';
+import { ScoringSchemaDto } from '../dto/in/scoring-schema.dto';
+import { UpdateScoringSchemaDto } from '../dto/in/update-scoring-schema.dto';
 import { ScoringSchemaService } from './scoring-schema.service';
 
 describe('ScoringSchemaService', () => {
@@ -17,6 +17,8 @@ describe('ScoringSchemaService', () => {
 
   const testDto: ScoringSchemaDto = {
     id: 'schema-1',
+    ownerId: 'user-1',
+    private: true,
     name: 'Test Schema',
     schema: {
       coins: 'number',
@@ -54,9 +56,13 @@ describe('ScoringSchemaService', () => {
 
       expect(mockRepository.getScoringSchemaById).toHaveBeenCalledWith(
         testDto.id,
+        undefined,
+        undefined,
       );
       expect(result).toStrictEqual({
         id: testDto.id,
+        ownerId: testDto.ownerId,
+        private: testDto.private,
         name: testDto.name,
         schema: testDto.schema,
         description: undefined,
@@ -73,6 +79,8 @@ describe('ScoringSchemaService', () => {
       );
       expect(mockRepository.getScoringSchemaById).toHaveBeenCalledWith(
         testDto.id,
+        undefined,
+        undefined,
       );
     });
 
@@ -86,6 +94,8 @@ describe('ScoringSchemaService', () => {
       );
       expect(mockRepository.getScoringSchemaById).toHaveBeenCalledWith(
         testDto.id,
+        undefined,
+        undefined,
       );
     });
   });
@@ -100,11 +110,15 @@ describe('ScoringSchemaService', () => {
       expect(mockRepository.getManyScoringSchemas).toHaveBeenCalledWith(
         undefined,
       );
-      expect(mockRepository.getScoringSchemasCount).toHaveBeenCalledTimes(1);
+      expect(mockRepository.getScoringSchemasCount).toHaveBeenCalledWith(
+        undefined,
+      );
       expect(result).toStrictEqual({
         page: [
           {
             id: testDto.id,
+            ownerId: testDto.ownerId,
+            private: testDto.private,
             name: testDto.name,
             schema: testDto.schema,
             description: undefined,
@@ -149,13 +163,15 @@ describe('ScoringSchemaService', () => {
       mockRepository.getScoringSchemaByName.mockResolvedValueOnce(null);
       mockRepository.createScoringSchema.mockResolvedValueOnce(testDto);
 
-      const result = await service.create(createDto);
+      const result = await service.create(createDto, 'user-1');
 
       expect(mockRepository.getScoringSchemaByName).toHaveBeenCalledWith(
         createDto.name,
+        'user-1',
       );
       expect(mockRepository.createScoringSchema).toHaveBeenCalledWith(
         createDto,
+        'user-1',
       );
       expect(result.id).toBe(testDto.id);
     });
@@ -175,11 +191,12 @@ describe('ScoringSchemaService', () => {
       };
       mockRepository.getScoringSchemaByName.mockResolvedValueOnce(testDto);
 
-      await expect(service.create(createDto)).rejects.toBeInstanceOf(
+      await expect(service.create(createDto, 'user-1')).rejects.toBeInstanceOf(
         BadRequestException,
       );
       expect(mockRepository.getScoringSchemaByName).toHaveBeenCalledWith(
         createDto.name,
+        'user-1',
       );
     });
   });
@@ -193,17 +210,22 @@ describe('ScoringSchemaService', () => {
       mockRepository.getScoringSchemaByName.mockResolvedValueOnce(null);
       mockRepository.updateScoringSchema.mockResolvedValueOnce(updated);
 
-      const result = await service.update(testDto.id, updateDto);
+      const result = await service.update(testDto.id, updateDto, 'user-1');
 
       expect(mockRepository.getScoringSchemaById).toHaveBeenCalledWith(
         testDto.id,
+        'user-1',
+        false,
       );
       expect(mockRepository.getScoringSchemaByName).toHaveBeenCalledWith(
         updateDto.name,
+        'user-1',
       );
       expect(mockRepository.updateScoringSchema).toHaveBeenCalledWith(
         testDto.id,
         updateDto,
+        'user-1',
+        false,
       );
       expect(result.name).toBe(updated.name);
     });
@@ -212,10 +234,12 @@ describe('ScoringSchemaService', () => {
       mockRepository.getScoringSchemaById.mockResolvedValueOnce(null);
 
       await expect(
-        service.update(testDto.id, { name: 'x' }),
+        service.update(testDto.id, { name: 'x' }, 'user-1'),
       ).rejects.toBeInstanceOf(CustomNotFoundError);
       expect(mockRepository.getScoringSchemaById).toHaveBeenCalledWith(
         testDto.id,
+        'user-1',
+        false,
       );
     });
   });
@@ -225,13 +249,17 @@ describe('ScoringSchemaService', () => {
       mockRepository.getScoringSchemaById.mockResolvedValueOnce(testDto);
       mockRepository.deleteScoringSchema.mockResolvedValueOnce(testDto);
 
-      const result = await service.delete(testDto.id);
+      const result = await service.delete(testDto.id, 'user-1');
 
       expect(mockRepository.getScoringSchemaById).toHaveBeenCalledWith(
         testDto.id,
+        'user-1',
+        false,
       );
       expect(mockRepository.deleteScoringSchema).toHaveBeenCalledWith(
         testDto.id,
+        'user-1',
+        false,
       );
       expect(result.id).toBe(testDto.id);
     });
@@ -239,11 +267,13 @@ describe('ScoringSchemaService', () => {
     it('throws CustomNotFoundError when missing', async () => {
       mockRepository.getScoringSchemaById.mockResolvedValueOnce(null);
 
-      await expect(service.delete(testDto.id)).rejects.toBeInstanceOf(
+      await expect(service.delete(testDto.id, 'user-1')).rejects.toBeInstanceOf(
         CustomNotFoundError,
       );
       expect(mockRepository.getScoringSchemaById).toHaveBeenCalledWith(
         testDto.id,
+        'user-1',
+        false,
       );
     });
   });

@@ -1,6 +1,7 @@
 import {
     ArrayMinSize,
     IsArray,
+    IsBoolean,
     IsDateString,
     IsNotEmpty,
     IsOptional,
@@ -11,6 +12,13 @@ export class LocationDto {
   @IsString()
   @IsNotEmpty()
   id: string;
+
+  @IsString()
+  @IsNotEmpty()
+  ownerId: string;
+
+  @IsBoolean()
+  private: boolean;
 
   @IsString()
   @IsNotEmpty()

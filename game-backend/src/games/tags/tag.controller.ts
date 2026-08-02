@@ -7,6 +7,7 @@ import {
     Param,
     Patch,
     Post,
+    Req,
     UseGuards,
 } from '@nestjs/common';
 import {
@@ -23,10 +24,13 @@ import {
 } from '@nestjs/swagger';
 
 import { RequirePermissions } from '@auth/decorators/permissions.decorator';
+import { JwtDto } from '@auth/dto/in/jwt.dto';
 import { JwtAuthGuard } from '@auth/guards/jwt.guard';
 import { PermisionsGuard } from '@auth/guards/permissions.guard';
+import { hasCollectionSuperuserPermission } from '@auth/helpers/has-collection-superuser-permission';
 import { PermissionLevel } from '@auth/modules/permissions/enums/permission-level.enum';
 import { PermissionType } from '@auth/modules/permissions/enums/permission-type.enum';
+import { UserId } from '@common/decorators/user-id.decorator';
 import { GetEntityByIdDto } from '@common/dto/in/get-entity-by-id.dto';
 import {
     HttpErrorResponseDto,
@@ -59,8 +63,14 @@ export class TagController {
   @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.READ])
   public async getTagById(
     @Param() params: GetEntityByIdDto,
+    @UserId() userId: string,
+    @Req() req: { user: JwtDto },
   ): Promise<TagResponse> {
-    return this.gateway.getById(params.id);
+    return this.gateway.getById(
+      params.id,
+      userId,
+      hasCollectionSuperuserPermission(req.user.permissions),
+    );
   }
 
   @Post()
@@ -68,8 +78,11 @@ export class TagController {
   @ApiBody({ type: CreateTagDto })
   @ApiOkResponse({ type: TagResponse })
   @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.FULL])
-  public async createTag(@Body() body: CreateTagDto): Promise<TagResponse> {
-    return this.gateway.create(body);
+  public async createTag(
+    @Body() body: CreateTagDto,
+    @UserId() userId: string,
+  ): Promise<TagResponse> {
+    return this.gateway.create(body, userId);
   }
 
   @Patch('/:id')
@@ -82,8 +95,9 @@ export class TagController {
   public async updateTag(
     @Param() params: GetEntityByIdDto,
     @Body() body: UpdateTagDto,
+    @UserId() userId: string,
   ): Promise<TagResponse> {
-    return this.gateway.update(params.id, body);
+    return this.gateway.update(params.id, body, userId);
   }
 
   @Delete('/:id')
@@ -94,7 +108,8 @@ export class TagController {
   @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.FULL])
   public async deleteTag(
     @Param() params: GetEntityByIdDto,
+    @UserId() userId: string,
   ): Promise<TagResponse> {
-    return this.gateway.delete(params.id);
+    return this.gateway.delete(params.id, userId);
   }
 }

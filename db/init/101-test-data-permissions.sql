@@ -15,6 +15,9 @@ VALUES (
    'Allows the user to manage their game collection',
    'GAME_COLLECTIONS'
 ), (
+   'Allows the user to view all users'' collections',
+   'COLLECTION_SUPERUSER'
+), (
    'Allows the user to access the admin panel',
    'ADMIN_PANEL'
 );

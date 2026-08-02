@@ -20,6 +20,8 @@ export type GameTagResponseDto = {
 
 export type GameResponseDto = {
   id: string;
+  ownerId: string;
+  private: boolean;
   name: string;
   description?: string;
   length: GameLength;
@@ -35,6 +37,8 @@ export type GameResponseDto = {
 
 export type TagResponseDto = {
   id: string;
+  ownerId: string;
+  private: boolean;
   name: string;
   description?: string;
   parentId?: string;
@@ -44,6 +48,8 @@ export type TagResponseDto = {
 
 export type LocationResponseDto = {
   id: string;
+  ownerId: string;
+  private: boolean;
   name: string;
   description?: string;
   parentId?: string;

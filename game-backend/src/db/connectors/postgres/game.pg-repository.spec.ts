@@ -36,6 +36,8 @@ describe('PostgresGameRepository', () => {
   it('creates a game and persists relation links in one transaction', async () => {
     const created = {
       id: 'generated-id',
+      ownerId: '123-abc',
+      private: true,
       name: 'Catan',
       description: 'Trade and build',
       length: 'medium',
@@ -60,20 +62,23 @@ describe('PostgresGameRepository', () => {
     });
 
     await expect(
-      repository.createGame({
-        name: 'Catan',
-        description: 'Trade and build',
-        length: GameLength.MEDIUM,
-        minPlayers: 2,
-        maxPlayers: 4,
-        tagIds: ['tag-1'],
-        locations: [
-          { locationId: 'location-1', note: 'shelf-2', isGameId: false },
-          { locationId: 'game-2', note: 'same crate', isGameId: true },
-        ],
-        scoringSchemaIds: ['schema-1'],
-        helperIds: ['helper-1'],
-      }),
+      repository.createGame(
+        {
+          name: 'Catan',
+          description: 'Trade and build',
+          length: GameLength.MEDIUM,
+          minPlayers: 2,
+          maxPlayers: 4,
+          tagIds: ['tag-1'],
+          locations: [
+            { locationId: 'location-1', note: 'shelf-2', isGameId: false },
+            { locationId: 'game-2', note: 'same crate', isGameId: true },
+          ],
+          scoringSchemaIds: ['schema-1'],
+          helperIds: ['helper-1'],
+        },
+        '123-abc',
+      ),
     ).resolves.toEqual(created);
 
     expect(connection.query).toHaveBeenCalledWith('BEGIN');
@@ -86,6 +91,7 @@ describe('PostgresGameRepository', () => {
     );
     expect(createGameCall?.[1]).toEqual([
       expect.any(String),
+      '123-abc',
       'Catan',
       'Trade and build',
       GameLength.MEDIUM,
