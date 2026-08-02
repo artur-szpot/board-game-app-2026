@@ -88,7 +88,7 @@
 ## Data and persistence
 
 - DB bootstrap runs from db/init in filename order.
-- The Compose cycle-test gate reapplies the idempotent cycle-trigger installer before testing so existing volumes receive those guards.
+- Cycle prevention is enforced by game-backend services rather than database triggers or Compose startup checks.
 - SQL files include schema, relation tables, and test-data loaders.
 - Postgres data volume is persisted in docker volume db-volume.
 
