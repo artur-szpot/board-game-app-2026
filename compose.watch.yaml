@@ -4,11 +4,15 @@ services:
       context: game-backend
     env_file:
       - ./secrets/backend.env
+    environment:
+      CYCLE_TRIGGER_SQL_PATH: /db-init/016-install-cycle-triggers.sql
     depends_on:
       db:
         condition: service_healthy
     command: npm run test:db:cycles
     restart: "no"
+    volumes:
+      - ./db/init:/db-init:ro
 
   game-backend:
     build:
