@@ -3,6 +3,7 @@ import { JwtDto } from '@auth/dto/in/jwt.dto';
 import { JwtAuthGuard } from '@auth/guards/jwt.guard';
 import { PermisionsGuard } from '@auth/guards/permissions.guard';
 import { hasCollectionSuperuserPermission } from '@auth/helpers/has-collection-superuser-permission';
+import { hasSystemCollectionFullPermission } from '@auth/helpers/has-system-collection-full-permission';
 import { PermissionLevel } from '@auth/modules/permissions/enums/permission-level.enum';
 import { PermissionType } from '@auth/modules/permissions/enums/permission-type.enum';
 import { UserId } from '@common/decorators/user-id.decorator';
@@ -84,6 +85,15 @@ export class HelperController {
     return this.helperGateway.create(input, userId);
   }
 
+  @Post('/system')
+  @ApiOperation({ summary: 'Create a SYSTEM-owned helper' })
+  @ApiBody({ type: CreateHelperDto })
+  @ApiOkResponse({ type: HelperResponse })
+  @RequirePermissions([PermissionType.SYSTEM_COLLECTION, PermissionLevel.FULL])
+  createSystem(@Body() input: CreateHelperDto): Promise<HelperResponse> {
+    return this.helperGateway.createSystem(input);
+  }
+
   @Put(':id')
   @ApiOperation({ summary: 'Update helper by ID' })
   @ApiParam({ name: 'id', type: String })
@@ -95,10 +105,14 @@ export class HelperController {
     @Param('id') id: string,
     @Body() input: UpdateHelperDto,
     @UserId() userId: string,
+    @Req() req: { user: JwtDto },
   ): Promise<HelperResponse> {
     return this.helperGateway.update(id, input, {
       userId,
       hasCollectionSuperuserPermission: false,
+      hasSystemCollectionFullPermission: hasSystemCollectionFullPermission(
+        req.user.permissions,
+      ),
     });
   }
 
@@ -111,10 +125,14 @@ export class HelperController {
   delete(
     @Param('id') id: string,
     @UserId() userId: string,
+    @Req() req: { user: JwtDto },
   ): Promise<HelperResponse> {
     return this.helperGateway.delete(id, {
       userId,
       hasCollectionSuperuserPermission: false,
+      hasSystemCollectionFullPermission: hasSystemCollectionFullPermission(
+        req.user.permissions,
+      ),
     });
   }
 }

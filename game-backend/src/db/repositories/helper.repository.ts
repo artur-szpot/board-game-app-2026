@@ -19,7 +19,11 @@ export interface HelperRepository {
   getHelperByName(name: string, ownerId: string): Promise<HelperDto | null>;
   getManyHelpers(dto?: GetManyItemsDto): Promise<HelperDto[]>;
   getHelpersCount(dto?: GetManyItemsDto): Promise<number>;
-  createHelper(input: CreateHelperDto, ownerId: string): Promise<HelperDto>;
+  createHelper(
+    input: CreateHelperDto,
+    ownerId: string,
+    isPrivate?: boolean,
+  ): Promise<HelperDto>;
   updateHelper(
     helperId: string,
     input: UpdateHelperDto,

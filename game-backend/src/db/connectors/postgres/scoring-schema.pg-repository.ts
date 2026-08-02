@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { createId } from '@paralleldrive/cuid2';
 
+import { SYSTEM_OWNER_ID } from '@common/constants/system-owner';
 import {
     GetManyItemsDto,
     ItemOwnershipDto,
@@ -32,7 +33,7 @@ export class PostgresScoringSchemaRepository implements ScoringSchemaRepository 
 
   private readonly CREATE_SCORING_SCHEMA_SQL = `
     INSERT INTO scoring_schemas (id, owner_id, private, name, schema, description)
-    VALUES ($1, $2, true, $3, $4, $5)
+    VALUES ($1, $2, $3, $4, $5, $6)
     RETURNING id, owner_id AS "ownerId", private, name, schema, description, created_on AS "createdOn", updated_on AS "updatedOn";
   `;
 
@@ -112,7 +113,11 @@ export class PostgresScoringSchemaRepository implements ScoringSchemaRepository 
 
     if (userId && !hasCollectionSuperuserPermission) {
       args.push(userId);
-      predicates.push(`owner_id = $${args.length}`);
+      const userIdParameter = args.length;
+      args.push(SYSTEM_OWNER_ID);
+      predicates.push(
+        `(owner_id = $${userIdParameter} OR owner_id = $${args.length})`,
+      );
     }
 
     const where = predicates.length ? predicates.join(' AND ') : undefined;
@@ -131,7 +136,9 @@ export class PostgresScoringSchemaRepository implements ScoringSchemaRepository 
 
     if (userId && !hasCollectionSuperuserPermission) {
       args.push(userId);
-      where += ` AND owner_id = $${args.length}`;
+      const userIdParameter = args.length;
+      args.push(SYSTEM_OWNER_ID);
+      where += ` AND (owner_id = $${userIdParameter} OR owner_id = $${args.length})`;
     }
 
     return this.connector.getOne<ScoringSchemaDto>(
@@ -154,7 +161,9 @@ export class PostgresScoringSchemaRepository implements ScoringSchemaRepository 
 
     if (userId && !hasCollectionSuperuserPermission) {
       args.push(userId);
-      where += ` AND owner_id = $${args.length}`;
+      const userIdParameter = args.length;
+      args.push(SYSTEM_OWNER_ID);
+      where += ` AND (owner_id = $${userIdParameter} OR owner_id = $${args.length})`;
     }
 
     return this.connector.getMany<ScoringSchemaDto>(
@@ -194,11 +203,19 @@ export class PostgresScoringSchemaRepository implements ScoringSchemaRepository 
   public async createScoringSchema(
     input: any,
     ownerId: string,
+    isPrivate = true,
   ): Promise<ScoringSchemaDto> {
     const id = createId();
     const result = await this.connector.getOne<ScoringSchemaDto>(
       this.CREATE_SCORING_SCHEMA_SQL,
-      [id, ownerId, input.name, input.schema, input.description ?? null],
+      [
+        id,
+        ownerId,
+        isPrivate,
+        input.name,
+        input.schema,
+        input.description ?? null,
+      ],
     );
     return result;
   }

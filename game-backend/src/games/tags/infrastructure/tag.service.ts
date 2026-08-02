@@ -1,10 +1,12 @@
 import {
     BadRequestException,
+    ForbiddenException,
     Inject,
     Injectable,
     Logger,
 } from '@nestjs/common';
 
+import { SYSTEM_OWNER_ID } from '@common/constants/system-owner';
 import {
     GetManyItemsDto,
     ItemOwnershipDto,
@@ -212,6 +214,24 @@ export class TagService implements TagGateway {
     }
   }
 
+  public async createSystem(input: CreateTagDto): Promise<TagResponse> {
+    try {
+      await this.validateCreateInput(input, SYSTEM_OWNER_ID);
+      const createdTag = await this.tagRepository.createTag(
+        input,
+        SYSTEM_OWNER_ID,
+        false,
+      );
+      return this.mapToResponse(createdTag);
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      this.logger.error(`Unexpected error while creating system tag: ${error}`);
+      throw new CustomInternalError('creating the system tag');
+    }
+  }
+
   public async update(
     id: string,
     input: UpdateTagDto,
@@ -224,12 +244,24 @@ export class TagService implements TagGateway {
 
     validateUpdateDtoNotEmpty(input);
     try {
-      const writeOwnership = {
+      const visibleOwnership = {
         userId,
         hasCollectionSuperuserPermission: false,
       };
-      await this.getTag(id, writeOwnership);
-      await this.validateUpdateInput(id, input, userId);
+      const existingTag = await this.getTag(id, visibleOwnership);
+      if (
+        existingTag.ownerId === SYSTEM_OWNER_ID &&
+        !itemOwnership?.hasSystemCollectionFullPermission
+      ) {
+        throw new ForbiddenException(
+          'SYSTEM_COLLECTION FULL permission is required',
+        );
+      }
+      const writeOwnership = {
+        userId: existingTag.ownerId,
+        hasCollectionSuperuserPermission: false,
+      };
+      await this.validateUpdateInput(id, input, existingTag.ownerId);
       const updatedTag = await this.tagRepository.updateTag(
         id,
         input,
@@ -239,6 +271,7 @@ export class TagService implements TagGateway {
     } catch (error) {
       if (
         error instanceof BadRequestException ||
+        error instanceof ForbiddenException ||
         error instanceof CustomNotFoundError
       ) {
         throw error;
@@ -258,15 +291,30 @@ export class TagService implements TagGateway {
     }
 
     try {
-      const writeOwnership = {
+      const visibleOwnership = {
         userId,
         hasCollectionSuperuserPermission: false,
       };
-      await this.getTag(id, writeOwnership);
+      const existingTag = await this.getTag(id, visibleOwnership);
+      if (
+        existingTag.ownerId === SYSTEM_OWNER_ID &&
+        !itemOwnership?.hasSystemCollectionFullPermission
+      ) {
+        throw new ForbiddenException(
+          'SYSTEM_COLLECTION FULL permission is required',
+        );
+      }
+      const writeOwnership = {
+        userId: existingTag.ownerId,
+        hasCollectionSuperuserPermission: false,
+      };
       const deletedTag = await this.tagRepository.deleteTag(id, writeOwnership);
       return this.mapToResponse(deletedTag);
     } catch (error) {
-      if (error instanceof CustomNotFoundError) {
+      if (
+        error instanceof ForbiddenException ||
+        error instanceof CustomNotFoundError
+      ) {
         throw error;
       }
       this.logger.error(`Unexpected error while deleting tag: ${error}`);

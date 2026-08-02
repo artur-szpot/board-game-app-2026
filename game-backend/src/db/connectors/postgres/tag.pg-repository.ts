@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { createId } from '@paralleldrive/cuid2';
 
+import { SYSTEM_OWNER_ID } from '@common/constants/system-owner';
 import {
     GetManyItemsDto,
     ItemOwnershipDto,
@@ -33,7 +34,7 @@ export class PostgresTagRepository implements TagRepository {
 
   private readonly CREATE_TAG_SQL = `
       INSERT INTO tags (id, owner_id, private, name, description, parent_id)
-      VALUES ($1, $2, true, $3, $4, $5)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING id, owner_id AS "ownerId", private, name, description, parent_id AS "parentId", created_on AS "createdOn", updated_on AS "updatedOn";
   `;
 
@@ -111,7 +112,11 @@ export class PostgresTagRepository implements TagRepository {
 
     if (userId && !hasCollectionSuperuserPermission) {
       args.push(userId);
-      predicates.push(`owner_id = $${args.length}`);
+      const userIdParameter = args.length;
+      args.push(SYSTEM_OWNER_ID);
+      predicates.push(
+        `(owner_id = $${userIdParameter} OR owner_id = $${args.length})`,
+      );
     }
 
     const where = predicates.length ? predicates.join(' AND ') : undefined;
@@ -130,7 +135,9 @@ export class PostgresTagRepository implements TagRepository {
 
     if (userId && !hasCollectionSuperuserPermission) {
       args.push(userId);
-      where += ` AND owner_id = $${args.length}`;
+      const userIdParameter = args.length;
+      args.push(SYSTEM_OWNER_ID);
+      where += ` AND (owner_id = $${userIdParameter} OR owner_id = $${args.length})`;
     }
 
     return this.connector.getOne<TagDto>(
@@ -153,7 +160,9 @@ export class PostgresTagRepository implements TagRepository {
 
     if (userId && !hasCollectionSuperuserPermission) {
       args.push(userId);
-      where += ` AND owner_id = $${args.length}`;
+      const userIdParameter = args.length;
+      args.push(SYSTEM_OWNER_ID);
+      where += ` AND (owner_id = $${userIdParameter} OR owner_id = $${args.length})`;
     }
 
     return this.connector.getMany<TagDto>(
@@ -195,11 +204,13 @@ export class PostgresTagRepository implements TagRepository {
   public async createTag(
     input: CreateTagDto,
     ownerId: string,
+    isPrivate = true,
   ): Promise<TagDto> {
     const id = createId();
     const result = await this.connector.getOne<TagDto>(this.CREATE_TAG_SQL, [
       id,
       ownerId,
+      isPrivate,
       input.name,
       input.description ?? null,
       input.parentId ?? null,

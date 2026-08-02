@@ -35,6 +35,10 @@ Use this file to capture operational context, decisions, and any remaining unkno
 - game-api prefixes are stable and should not be renamed.
 - randomizer-backend is intentionally lightweight and isolated.
 - Collection ownership scoping baseline: games, tags, locations, helpers, scoring schemas, and game scores are owner-scoped for non-superusers on reads; writes remain owner-bound.
+- Shared collection ownership: `SYSTEM` is a reserved, non-login user ID used as the immutable owner of shared tags, helpers, and scoring schemas.
+- Shared collection visibility: authenticated users can read their own and `SYSTEM`-owned tags, helpers, and scoring schemas; `private` remains ignored for read authorization.
+- Shared collection creation: `POST /game-api/tags/system`, `/game-api/helpers/system`, and `/game-api/scoring-schemas/system` require `SYSTEM_COLLECTION:FULL` and force `ownerId = SYSTEM` and `private = false`.
+- Shared collection mutation: existing PUT/PATCH/DELETE routes still require `GAME_COLLECTIONS:FULL`; a `SYSTEM`-owned target additionally requires `SYSTEM_COLLECTION:FULL` and otherwise returns 403.
 
 ## Frontend Frame Stack Notes
 

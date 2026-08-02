@@ -28,6 +28,7 @@ import { JwtDto } from '@auth/dto/in/jwt.dto';
 import { JwtAuthGuard } from '@auth/guards/jwt.guard';
 import { PermisionsGuard } from '@auth/guards/permissions.guard';
 import { hasCollectionSuperuserPermission } from '@auth/helpers/has-collection-superuser-permission';
+import { hasSystemCollectionFullPermission } from '@auth/helpers/has-system-collection-full-permission';
 import { PermissionLevel } from '@auth/modules/permissions/enums/permission-level.enum';
 import { PermissionType } from '@auth/modules/permissions/enums/permission-type.enum';
 import { UserId } from '@common/decorators/user-id.decorator';
@@ -89,6 +90,17 @@ export class ScoringSchemaController {
     return this.gateway.create(body, userId);
   }
 
+  @Post('/system')
+  @ApiOperation({ summary: 'Create a SYSTEM-owned scoring schema' })
+  @ApiBody({ type: CreateScoringSchemaDto })
+  @ApiOkResponse({ type: ScoringSchemaResponse })
+  @RequirePermissions([PermissionType.SYSTEM_COLLECTION, PermissionLevel.FULL])
+  public async createSystem(
+    @Body() body: CreateScoringSchemaDto,
+  ): Promise<ScoringSchemaResponse> {
+    return this.gateway.createSystem(body);
+  }
+
   @Patch('/:id')
   @ApiOperation({ summary: 'Update scoring schema by ID' })
   @ApiParam({ name: 'id', type: String })
@@ -100,10 +112,14 @@ export class ScoringSchemaController {
     @Param() params: GetEntityByIdDto,
     @Body() body: UpdateScoringSchemaDto,
     @UserId() userId: string,
+    @Req() req: { user: JwtDto },
   ): Promise<ScoringSchemaResponse> {
     return this.gateway.update(params.id, body, {
       userId,
       hasCollectionSuperuserPermission: false,
+      hasSystemCollectionFullPermission: hasSystemCollectionFullPermission(
+        req.user.permissions,
+      ),
     });
   }
 
@@ -116,10 +132,14 @@ export class ScoringSchemaController {
   public async delete(
     @Param() params: GetEntityByIdDto,
     @UserId() userId: string,
+    @Req() req: { user: JwtDto },
   ): Promise<ScoringSchemaResponse> {
     return this.gateway.delete(params.id, {
       userId,
       hasCollectionSuperuserPermission: false,
+      hasSystemCollectionFullPermission: hasSystemCollectionFullPermission(
+        req.user.permissions,
+      ),
     });
   }
 }

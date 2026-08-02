@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { createId } from '@paralleldrive/cuid2';
 
+import { SYSTEM_OWNER_ID } from '@common/constants/system-owner';
 import {
     GetManyItemsDto,
     ItemOwnershipDto,
@@ -31,7 +32,7 @@ export class PostgresHelperRepository implements HelperRepository {
 
   private readonly CREATE_HELPER_SQL = `
     INSERT INTO helpers (id, owner_id, private, name, logic)
-    VALUES ($1, $2, true, $3, $4)
+    VALUES ($1, $2, $3, $4, $5)
     RETURNING id, owner_id AS "ownerId", private, name, logic, created_on AS "createdOn", updated_on AS "updatedOn";
   `;
 
@@ -104,7 +105,11 @@ export class PostgresHelperRepository implements HelperRepository {
 
     if (userId && !hasCollectionSuperuserPermission) {
       args.push(userId);
-      predicates.push(`owner_id = $${args.length}`);
+      const userIdParameter = args.length;
+      args.push(SYSTEM_OWNER_ID);
+      predicates.push(
+        `(owner_id = $${userIdParameter} OR owner_id = $${args.length})`,
+      );
     }
 
     const where = predicates.length ? predicates.join(' AND ') : undefined;
@@ -123,7 +128,9 @@ export class PostgresHelperRepository implements HelperRepository {
 
     if (userId && !hasCollectionSuperuserPermission) {
       args.push(userId);
-      where += ` AND owner_id = $${args.length}`;
+      const userIdParameter = args.length;
+      args.push(SYSTEM_OWNER_ID);
+      where += ` AND (owner_id = $${userIdParameter} OR owner_id = $${args.length})`;
     }
 
     return this.connector.getOne<HelperDto>(
@@ -146,7 +153,9 @@ export class PostgresHelperRepository implements HelperRepository {
 
     if (userId && !hasCollectionSuperuserPermission) {
       args.push(userId);
-      where += ` AND owner_id = $${args.length}`;
+      const userIdParameter = args.length;
+      args.push(SYSTEM_OWNER_ID);
+      where += ` AND (owner_id = $${userIdParameter} OR owner_id = $${args.length})`;
     }
 
     return this.connector.getMany<HelperDto>(
@@ -184,11 +193,12 @@ export class PostgresHelperRepository implements HelperRepository {
   public async createHelper(
     input: CreateHelperDto,
     ownerId: string,
+    isPrivate = true,
   ): Promise<HelperDto> {
     const id = createId();
     const result = await this.connector.getOne<HelperDto>(
       this.CREATE_HELPER_SQL,
-      [id, ownerId, input.name, input.logic],
+      [id, ownerId, isPrivate, input.name, input.logic],
     );
     return result;
   }

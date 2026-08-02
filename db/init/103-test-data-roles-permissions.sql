@@ -24,6 +24,10 @@ VALUES (
    'COLLECTION_SUPERUSER',
    'READ'
 ), (
+   'admin',
+   'SYSTEM_COLLECTION',
+   'FULL'
+), (
    'user',
    'GAME_COLLECTIONS',
    'FULL'

@@ -25,6 +25,7 @@ export interface ScoringSchemaRepository {
   createScoringSchema(
     input: CreateScoringSchemaDto,
     ownerId: string,
+    isPrivate?: boolean,
   ): Promise<ScoringSchemaDto>;
   updateScoringSchema(
     id: string,

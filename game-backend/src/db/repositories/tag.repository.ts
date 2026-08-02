@@ -19,7 +19,11 @@ export interface TagRepository {
   getTagByName(name: string, ownerId: string): Promise<TagDto | null>;
   getManyTags(dto?: GetManyItemsDto): Promise<TagDto[]>;
   getTagsCount(dto?: GetManyItemsDto): Promise<number>;
-  createTag(input: CreateTagDto, ownerId: string): Promise<TagDto>;
+  createTag(
+    input: CreateTagDto,
+    ownerId: string,
+    isPrivate?: boolean,
+  ): Promise<TagDto>;
   updateTag(
     tagId: string,
     input: UpdateTagDto,
