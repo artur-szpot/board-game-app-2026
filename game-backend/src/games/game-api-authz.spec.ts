@@ -25,13 +25,14 @@ const expectRequiredPermission = (
   controller: object,
   methodName: string,
   level: PermissionLevel,
+  type = PermissionType.GAME_COLLECTIONS,
 ) => {
   const permissions = Reflect.getMetadata(
     PERMISSIONS_KEY,
     (controller as Record<string, unknown>)[methodName],
   );
 
-  expect(permissions).toEqual([[PermissionType.GAME_COLLECTIONS, level]]);
+  expect(permissions).toEqual([[type, level]]);
 };
 
 describe('Game API auth/permissions metadata', () => {
@@ -179,6 +180,27 @@ describe('Game API auth/permissions metadata', () => {
       SearchController.prototype,
       'search',
       PermissionLevel.FULL,
+    );
+  });
+
+  it('requires SYSTEM_COLLECTION FULL for SYSTEM create handlers', () => {
+    expectRequiredPermission(
+      TagController.prototype,
+      'createSystemTag',
+      PermissionLevel.FULL,
+      PermissionType.SYSTEM_COLLECTION,
+    );
+    expectRequiredPermission(
+      HelperController.prototype,
+      'createSystem',
+      PermissionLevel.FULL,
+      PermissionType.SYSTEM_COLLECTION,
+    );
+    expectRequiredPermission(
+      ScoringSchemaController.prototype,
+      'createSystem',
+      PermissionLevel.FULL,
+      PermissionType.SYSTEM_COLLECTION,
     );
   });
 });

@@ -22,6 +22,7 @@ export interface ScoringSchemaGateway {
     input: CreateScoringSchemaDto,
     userId?: string,
   ): Promise<ScoringSchemaResponse>;
+  createSystem(input: CreateScoringSchemaDto): Promise<ScoringSchemaResponse>;
   update(
     id: string,
     input: UpdateScoringSchemaDto,

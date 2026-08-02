@@ -1,10 +1,12 @@
 import {
     BadRequestException,
+    ForbiddenException,
     Inject,
     Injectable,
     Logger,
 } from '@nestjs/common';
 
+import { SYSTEM_OWNER_ID } from '@common/constants/system-owner';
 import {
     CustomInternalError,
     CustomNotFoundError,
@@ -137,6 +139,26 @@ export class HelperService implements HelperGateway {
     }
   }
 
+  public async createSystem(input: CreateHelperDto): Promise<HelperResponse> {
+    try {
+      await this.ensureUniqueName(input.name, SYSTEM_OWNER_ID);
+      const created = await this.repository.createHelper(
+        input,
+        SYSTEM_OWNER_ID,
+        false,
+      );
+      return this.mapToResponse(created);
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      this.logger.error(
+        `Unexpected error while creating system helper: ${error}`,
+      );
+      throw new CustomInternalError('creating the system helper');
+    }
+  }
+
   public async update(
     id: string,
     input: UpdateHelperDto,
@@ -149,13 +171,25 @@ export class HelperService implements HelperGateway {
 
     validateUpdateDtoNotEmpty(input);
     try {
-      const writeOwnership = {
+      const visibleOwnership = {
         userId,
         hasCollectionSuperuserPermission: false,
       };
-      await this.getHelper(id, writeOwnership);
+      const existingHelper = await this.getHelper(id, visibleOwnership);
+      if (
+        existingHelper.ownerId === SYSTEM_OWNER_ID &&
+        !itemOwnership?.hasSystemCollectionFullPermission
+      ) {
+        throw new ForbiddenException(
+          'SYSTEM_COLLECTION FULL permission is required',
+        );
+      }
+      const writeOwnership = {
+        userId: existingHelper.ownerId,
+        hasCollectionSuperuserPermission: false,
+      };
       if (input.name) {
-        await this.ensureUniqueName(input.name, userId, id);
+        await this.ensureUniqueName(input.name, existingHelper.ownerId, id);
       }
       const updated = await this.repository.updateHelper(
         id,
@@ -166,6 +200,7 @@ export class HelperService implements HelperGateway {
     } catch (error) {
       if (
         error instanceof BadRequestException ||
+        error instanceof ForbiddenException ||
         error instanceof CustomNotFoundError
       ) {
         throw error;
@@ -185,15 +220,30 @@ export class HelperService implements HelperGateway {
     }
 
     try {
-      const writeOwnership = {
+      const visibleOwnership = {
         userId,
         hasCollectionSuperuserPermission: false,
       };
-      await this.getHelper(id, writeOwnership);
+      const existingHelper = await this.getHelper(id, visibleOwnership);
+      if (
+        existingHelper.ownerId === SYSTEM_OWNER_ID &&
+        !itemOwnership?.hasSystemCollectionFullPermission
+      ) {
+        throw new ForbiddenException(
+          'SYSTEM_COLLECTION FULL permission is required',
+        );
+      }
+      const writeOwnership = {
+        userId: existingHelper.ownerId,
+        hasCollectionSuperuserPermission: false,
+      };
       const deleted = await this.repository.deleteHelper(id, writeOwnership);
       return this.mapToResponse(deleted);
     } catch (error) {
-      if (error instanceof CustomNotFoundError) {
+      if (
+        error instanceof ForbiddenException ||
+        error instanceof CustomNotFoundError
+      ) {
         throw error;
       }
       this.logger.error(`Unexpected error while deleting helper: ${error}`);

@@ -18,6 +18,9 @@ VALUES (
    'Allows the user to view all users'' collections',
    'COLLECTION_SUPERUSER'
 ), (
+   'Allows the user to manage the shared system collection',
+   'SYSTEM_COLLECTION'
+), (
    'Allows the user to access the admin panel',
    'ADMIN_PANEL'
 );

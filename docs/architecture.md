@@ -88,6 +88,7 @@
 ## Data and persistence
 
 - DB bootstrap runs from db/init in filename order.
+- Cycle prevention is enforced by game-backend services rather than database triggers or Compose startup checks.
 - SQL files include schema, relation tables, and test-data loaders.
 - Postgres data volume is persisted in docker volume db-volume.
 
@@ -110,6 +111,13 @@
 - Public routes are auth endpoints only (for example login/signup).
 - All non-auth endpoints require authentication.
 - Authorization is endpoint-specific and uses permissions granted through user roles.
+- `SYSTEM_COLLECTION:FULL` controls creation and mutation of shared SYSTEM-owned tags, helpers, and scoring schemas.
+
+## Shared collection records
+
+- `SYSTEM` is a reserved user row so shared records retain the existing collection owner foreign keys.
+- Ordinary collection reads include records owned by the current user and records owned by `SYSTEM`.
+- Resource-local `/system` POST routes create public SYSTEM records; existing mutation routes enforce the additional SYSTEM permission based on the loaded record owner.
 
 ## AI-agent implementation checklist
 

@@ -19,6 +19,7 @@ export interface HelperGateway {
   ): Promise<HelperResponse[]>;
   getMany(dto?: GetManyItemsDto): Promise<Paginated<HelperResponse>>;
   create(input: CreateHelperDto, userId?: string): Promise<HelperResponse>;
+  createSystem(input: CreateHelperDto): Promise<HelperResponse>;
   update(
     id: string,
     input: UpdateHelperDto,

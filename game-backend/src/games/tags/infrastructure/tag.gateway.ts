@@ -16,6 +16,7 @@ export interface TagGateway {
   ): Promise<TagResponse[]>;
   getMany(dto?: GetManyItemsDto): Promise<Paginated<TagResponse>>;
   create(input: CreateTagDto, userId?: string): Promise<TagResponse>;
+  createSystem(input: CreateTagDto): Promise<TagResponse>;
   update(
     id: string,
     input: UpdateTagDto,

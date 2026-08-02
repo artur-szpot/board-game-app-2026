@@ -1,10 +1,12 @@
 import {
     BadRequestException,
+    ForbiddenException,
     Inject,
     Injectable,
     Logger,
 } from '@nestjs/common';
 
+import { SYSTEM_OWNER_ID } from '@common/constants/system-owner';
 import {
     CustomInternalError,
     CustomNotFoundError,
@@ -149,6 +151,28 @@ export class ScoringSchemaService implements ScoringSchemaGateway {
     }
   }
 
+  public async createSystem(
+    input: CreateScoringSchemaDto,
+  ): Promise<ScoringSchemaResponse> {
+    try {
+      await this.ensureUniqueName(input.name, SYSTEM_OWNER_ID);
+      const created = await this.repository.createScoringSchema(
+        input,
+        SYSTEM_OWNER_ID,
+        false,
+      );
+      return this.mapToResponse(created);
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      this.logger.error(
+        `Unexpected error while creating system scoring schema: ${error}`,
+      );
+      throw new CustomInternalError('creating the system scoring schema');
+    }
+  }
+
   public async update(
     id: string,
     input: UpdateScoringSchemaDto,
@@ -160,13 +184,25 @@ export class ScoringSchemaService implements ScoringSchemaGateway {
     }
 
     try {
-      const writeOwnership = {
+      const visibleOwnership = {
         userId,
         hasCollectionSuperuserPermission: false,
       };
-      await this.getSchema(id, writeOwnership);
+      const existingSchema = await this.getSchema(id, visibleOwnership);
+      if (
+        existingSchema.ownerId === SYSTEM_OWNER_ID &&
+        !itemOwnership?.hasSystemCollectionFullPermission
+      ) {
+        throw new ForbiddenException(
+          'SYSTEM_COLLECTION FULL permission is required',
+        );
+      }
+      const writeOwnership = {
+        userId: existingSchema.ownerId,
+        hasCollectionSuperuserPermission: false,
+      };
       if (input.name) {
-        await this.ensureUniqueName(input.name, userId, id);
+        await this.ensureUniqueName(input.name, existingSchema.ownerId, id);
       }
       const updated = await this.repository.updateScoringSchema(
         id,
@@ -177,6 +213,7 @@ export class ScoringSchemaService implements ScoringSchemaGateway {
     } catch (error) {
       if (
         error instanceof BadRequestException ||
+        error instanceof ForbiddenException ||
         error instanceof CustomNotFoundError
       ) {
         throw error;
@@ -198,18 +235,33 @@ export class ScoringSchemaService implements ScoringSchemaGateway {
     }
 
     try {
-      const writeOwnership = {
+      const visibleOwnership = {
         userId,
         hasCollectionSuperuserPermission: false,
       };
-      await this.getSchema(id, writeOwnership);
+      const existingSchema = await this.getSchema(id, visibleOwnership);
+      if (
+        existingSchema.ownerId === SYSTEM_OWNER_ID &&
+        !itemOwnership?.hasSystemCollectionFullPermission
+      ) {
+        throw new ForbiddenException(
+          'SYSTEM_COLLECTION FULL permission is required',
+        );
+      }
+      const writeOwnership = {
+        userId: existingSchema.ownerId,
+        hasCollectionSuperuserPermission: false,
+      };
       const deleted = await this.repository.deleteScoringSchema(
         id,
         writeOwnership,
       );
       return this.mapToResponse(deleted);
     } catch (error) {
-      if (error instanceof CustomNotFoundError) {
+      if (
+        error instanceof ForbiddenException ||
+        error instanceof CustomNotFoundError
+      ) {
         throw error;
       }
       this.logger.error(

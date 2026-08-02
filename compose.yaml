@@ -1,15 +1,4 @@
 services:
-  db-cycle-tests:
-    build:
-      context: game-backend
-    env_file:
-      - ./secrets/backend.env
-    depends_on:
-      db:
-        condition: service_healthy
-    command: npm run test:db:cycles
-    restart: "no"
-
   game-backend:
     build:
       context: game-backend
@@ -20,8 +9,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      db-cycle-tests:
-        condition: service_completed_successfully
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3001/health || exit 1"]
       interval: 30m
@@ -41,8 +28,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      db-cycle-tests:
-        condition: service_completed_successfully
     healthcheck:
       test:
         ["CMD-SHELL", "wget -qO- http://127.0.0.1:3003/health/live || exit 1"]
@@ -64,10 +49,6 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
-
-    depends_on:
-      db-cycle-tests:
-        condition: service_completed_successfully
 
   db:
     image: postgres:17

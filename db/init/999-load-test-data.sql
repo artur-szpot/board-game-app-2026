@@ -2,16 +2,16 @@ BEGIN;
 
 INSERT INTO tags (id, owner_id, private, name, description, parent_id)
 VALUES
-	('test-tag-01', '123-abc', true, 'Test Tag 01', 'Family-friendly board game tag.', NULL),
-	('test-tag-02', '123-abc', true, 'Test Tag 02', 'Light strategy tag for test data.', NULL),
-	('test-tag-03', '123-abc', true, 'Test Tag 03', 'Cooperative game tag for test data.', NULL),
-	('test-tag-04', '123-abc', true, 'Test Tag 04', 'Abstract game tag for test data.', NULL),
-	('test-tag-05', '123-abc', true, 'Test Tag 05', 'Party game tag for test data.', NULL),
-	('test-tag-06', '123-abc', true, 'Test Tag 06', 'Deck-building game tag for test data.', NULL),
-	('test-tag-07', '123-abc', true, 'Test Tag 07', 'Worker placement tag for test data.', NULL),
-	('test-tag-08', '123-abc', true, 'Test Tag 08', 'Area control tag for test data.', NULL),
-	('test-tag-09', '123-abc', true, 'Test Tag 09', 'Engine-building tag for test data.', NULL),
-	('test-tag-10', '123-abc', true, 'Test Tag 10', 'Solo-friendly game tag for test data.', NULL)
+	('test-tag-01', 'SYSTEM', false, 'Test Tag 01', 'Family-friendly board game tag.', NULL),
+	('test-tag-02', 'SYSTEM', false, 'Test Tag 02', 'Light strategy tag for test data.', NULL),
+	('test-tag-03', 'SYSTEM', false, 'Test Tag 03', 'Cooperative game tag for test data.', NULL),
+	('test-tag-04', 'SYSTEM', false, 'Test Tag 04', 'Abstract game tag for test data.', NULL),
+	('test-tag-05', 'SYSTEM', false, 'Test Tag 05', 'Party game tag for test data.', NULL),
+	('test-tag-06', 'SYSTEM', false, 'Test Tag 06', 'Deck-building game tag for test data.', NULL),
+	('test-tag-07', 'SYSTEM', false, 'Test Tag 07', 'Worker placement tag for test data.', NULL),
+	('test-tag-08', 'SYSTEM', false, 'Test Tag 08', 'Area control tag for test data.', NULL),
+	('test-tag-09', 'SYSTEM', false, 'Test Tag 09', 'Engine-building tag for test data.', NULL),
+	('test-tag-10', 'SYSTEM', false, 'Test Tag 10', 'Solo-friendly game tag for test data.', NULL)
 ON CONFLICT (id)
 DO UPDATE
 SET

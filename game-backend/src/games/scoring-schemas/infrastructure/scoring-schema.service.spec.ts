@@ -1,5 +1,6 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 
+import { SYSTEM_OWNER_ID } from '@common/constants/system-owner';
 import {
     CustomInternalError,
     CustomNotFoundError,
@@ -200,6 +201,27 @@ describe('ScoringSchemaService', () => {
         'user-1',
       );
     });
+
+    it('creates a public SYSTEM-owned scoring schema', async () => {
+      const createDto: CreateScoringSchemaDto = {
+        name: 'Shared Schema',
+        schema: { points: 'number' },
+      };
+      mockRepository.getScoringSchemaByName.mockResolvedValueOnce(null);
+      mockRepository.createScoringSchema.mockResolvedValueOnce({
+        ...testDto,
+        ownerId: SYSTEM_OWNER_ID,
+        private: false,
+      });
+
+      await service.createSystem(createDto);
+
+      expect(mockRepository.createScoringSchema).toHaveBeenCalledWith(
+        createDto,
+        SYSTEM_OWNER_ID,
+        false,
+      );
+    });
   });
 
   describe('update', () => {
@@ -242,6 +264,45 @@ describe('ScoringSchemaService', () => {
       expect(mockRepository.getScoringSchemaById).toHaveBeenCalledWith(
         testDto.id,
         writeOwnership,
+      );
+    });
+
+    it('denies updating a SYSTEM schema without SYSTEM_COLLECTION FULL', async () => {
+      mockRepository.getScoringSchemaById.mockResolvedValueOnce({
+        ...testDto,
+        ownerId: SYSTEM_OWNER_ID,
+        private: false,
+      });
+
+      await expect(
+        service.update(testDto.id, { name: 'Updated' }, writeOwnership),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+      expect(mockRepository.updateScoringSchema).not.toHaveBeenCalled();
+    });
+
+    it('updates a SYSTEM schema with SYSTEM_COLLECTION FULL', async () => {
+      const systemSchema = {
+        ...testDto,
+        ownerId: SYSTEM_OWNER_ID,
+        private: false,
+      };
+      mockRepository.getScoringSchemaById.mockResolvedValueOnce(systemSchema);
+      mockRepository.getScoringSchemaByName.mockResolvedValueOnce(null);
+      mockRepository.updateScoringSchema.mockResolvedValueOnce({
+        ...systemSchema,
+        name: 'Updated',
+      });
+
+      await service.update(
+        testDto.id,
+        { name: 'Updated' },
+        { ...writeOwnership, hasSystemCollectionFullPermission: true },
+      );
+
+      expect(mockRepository.updateScoringSchema).toHaveBeenCalledWith(
+        testDto.id,
+        { name: 'Updated' },
+        { userId: SYSTEM_OWNER_ID, hasCollectionSuperuserPermission: false },
       );
     });
   });

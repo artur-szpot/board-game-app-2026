@@ -21,6 +21,7 @@ export const PermissionProps = t.intersection([
         t.literal(PermissionType.ROLES),
         t.literal(PermissionType.GAME_COLLECTIONS),
         t.literal(PermissionType.COLLECTION_SUPERUSER),
+        t.literal(PermissionType.SYSTEM_COLLECTION),
         t.literal(PermissionType.ADMIN_PANEL),
       ]),
     },

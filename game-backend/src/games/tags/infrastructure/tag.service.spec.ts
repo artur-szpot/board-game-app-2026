@@ -1,5 +1,6 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 
+import { SYSTEM_OWNER_ID } from '@common/constants/system-owner';
 import {
     CustomInternalError,
     CustomNotFoundError,
@@ -155,6 +156,27 @@ describe('TagService', () => {
       });
     });
 
+    it('should create a public SYSTEM-owned tag', async () => {
+      const createTagDto: CreateTagDto = { name: 'Shared Tag' };
+      const systemTag = {
+        ...testTagDto,
+        ownerId: SYSTEM_OWNER_ID,
+        private: false,
+      };
+      mockRepository.getTagByName.mockResolvedValueOnce(null);
+      mockRepository.createTag.mockResolvedValueOnce(systemTag);
+
+      await expect(service.createSystem(createTagDto)).resolves.toMatchObject({
+        ownerId: SYSTEM_OWNER_ID,
+        private: false,
+      });
+      expect(mockRepository.createTag).toHaveBeenCalledWith(
+        createTagDto,
+        SYSTEM_OWNER_ID,
+        false,
+      );
+    });
+
     it('should throw BadRequestException when tag name is already in use', async () => {
       const createTagDto: CreateTagDto = { name: testTagDto.name };
       mockRepository.getTagByName.mockResolvedValueOnce(testTagDto);
@@ -221,6 +243,45 @@ describe('TagService', () => {
       expect(mockRepository.getTagById).toHaveBeenCalledWith(
         testTagDto.id,
         writeOwnership,
+      );
+    });
+
+    it('should deny updating a SYSTEM tag without SYSTEM_COLLECTION FULL', async () => {
+      mockRepository.getTagById.mockResolvedValueOnce({
+        ...testTagDto,
+        ownerId: SYSTEM_OWNER_ID,
+        private: false,
+      });
+
+      await expect(
+        service.update(testTagDto.id, { name: 'Updated' }, writeOwnership),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+      expect(mockRepository.updateTag).not.toHaveBeenCalled();
+    });
+
+    it('should update a SYSTEM tag with SYSTEM_COLLECTION FULL', async () => {
+      const systemTag = {
+        ...testTagDto,
+        ownerId: SYSTEM_OWNER_ID,
+        private: false,
+      };
+      mockRepository.getTagById.mockResolvedValueOnce(systemTag);
+      mockRepository.getTagByName.mockResolvedValueOnce(null);
+      mockRepository.updateTag.mockResolvedValueOnce({
+        ...systemTag,
+        name: 'Updated',
+      });
+
+      await service.update(
+        testTagDto.id,
+        { name: 'Updated' },
+        { ...writeOwnership, hasSystemCollectionFullPermission: true },
+      );
+
+      expect(mockRepository.updateTag).toHaveBeenCalledWith(
+        testTagDto.id,
+        { name: 'Updated' },
+        { userId: SYSTEM_OWNER_ID, hasCollectionSuperuserPermission: false },
       );
     });
 

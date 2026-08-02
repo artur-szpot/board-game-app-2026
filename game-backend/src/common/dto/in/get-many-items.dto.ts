@@ -5,6 +5,7 @@ export type SortDirection = 'asc' | 'desc';
 export type ItemOwnershipDto = {
   userId?: string;
   hasCollectionSuperuserPermission?: boolean;
+  hasSystemCollectionFullPermission?: boolean;
 };
 
 export type GetManyItemsDto = ItemOwnershipDto & {

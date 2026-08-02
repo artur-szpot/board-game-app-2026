@@ -24,6 +24,17 @@ describe('PostgresTagRepository', () => {
     );
   });
 
+  it('allows ordinary users to read their own and SYSTEM tags', async () => {
+    connector.getOne.mockResolvedValue(null);
+
+    await repository.getTagById('tag-1', { userId: 'user-1' });
+
+    expect(connector.getOne).toHaveBeenCalledWith(
+      expect.stringContaining('(owner_id = $2 OR owner_id = $3)'),
+      ['tag-1', 'user-1', 'SYSTEM'],
+    );
+  });
+
   it('creates a tag with a generated id', async () => {
     const created = {
       id: 'tag-1',
@@ -51,6 +62,17 @@ describe('PostgresTagRepository', () => {
     expect(connector.getOne).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO tags'),
       expect.any(Array),
+    );
+  });
+
+  it('creates explicitly public tags', async () => {
+    connector.getOne.mockResolvedValue({ id: 'tag-1' });
+
+    await repository.createTag({ name: 'Shared' }, 'SYSTEM', false);
+
+    expect(connector.getOne).toHaveBeenCalledWith(
+      expect.stringContaining('VALUES ($1, $2, $3, $4, $5, $6)'),
+      [expect.any(String), 'SYSTEM', false, 'Shared', null, null],
     );
   });
 

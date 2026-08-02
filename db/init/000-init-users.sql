@@ -10,3 +10,16 @@ CREATE TABLE users (
 ALTER TABLE users 
    ADD CONSTRAINT users_pk 
    PRIMARY KEY (id);
+
+INSERT INTO users (
+   id,
+   username,
+   email,
+   password
+)
+VALUES (
+   'SYSTEM',
+   'SYSTEM',
+   'system@localhost.invalid',
+   '!'
+);
