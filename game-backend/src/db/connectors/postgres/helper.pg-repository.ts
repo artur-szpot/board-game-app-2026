@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { createId } from '@paralleldrive/cuid2';
 
-import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
+import {
+    GetManyItemsDto,
+    ItemOwnershipDto,
+} from '@common/dto/in/get-many-items.dto';
 import { CustomNotFoundError } from '@common/errors/service-errors';
 import { CreateHelperDto } from '../../../games/helpers/dto/in/create-helper.dto';
 import { HelperDto } from '../../../games/helpers/dto/in/helper.dto';
@@ -112,9 +115,9 @@ export class PostgresHelperRepository implements HelperRepository {
 
   public async getHelperById(
     helperId: string,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<HelperDto | null> {
+    const { userId, hasCollectionSuperuserPermission } = itemOwnership ?? {};
     const args: string[] = [helperId];
     let where = 'id = $1';
 
@@ -131,9 +134,9 @@ export class PostgresHelperRepository implements HelperRepository {
 
   public async getHelpersByIds(
     helperIds: string[],
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<HelperDto[]> {
+    const { userId, hasCollectionSuperuserPermission } = itemOwnership ?? {};
     if (helperIds.length === 0) {
       return [];
     }
@@ -193,14 +196,9 @@ export class PostgresHelperRepository implements HelperRepository {
   public async updateHelper(
     helperId: string,
     input: UpdateHelperDto,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<HelperDto> {
-    const existing = await this.getHelperById(
-      helperId,
-      userId,
-      hasCollectionSuperuserPermission,
-    );
+    const existing = await this.getHelperById(helperId, itemOwnership);
 
     if (!existing) {
       throw new CustomNotFoundError(`helper with ID "${helperId}"`);
@@ -224,14 +222,9 @@ export class PostgresHelperRepository implements HelperRepository {
 
   public async deleteHelper(
     helperId: string,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<HelperDto> {
-    const existing = await this.getHelperById(
-      helperId,
-      userId,
-      hasCollectionSuperuserPermission,
-    );
+    const existing = await this.getHelperById(helperId, itemOwnership);
 
     if (!existing) {
       throw new CustomNotFoundError(`helper with ID "${helperId}"`);

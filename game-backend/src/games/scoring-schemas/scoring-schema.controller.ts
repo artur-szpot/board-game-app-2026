@@ -69,11 +69,12 @@ export class ScoringSchemaController {
     @UserId() userId: string,
     @Req() req: { user: JwtDto },
   ): Promise<ScoringSchemaResponse> {
-    return this.gateway.getById(
-      params.id,
+    return this.gateway.getById(params.id, {
       userId,
-      hasCollectionSuperuserPermission(req.user.permissions),
-    );
+      hasCollectionSuperuserPermission: hasCollectionSuperuserPermission(
+        req.user.permissions,
+      ),
+    });
   }
 
   @Post()
@@ -100,7 +101,10 @@ export class ScoringSchemaController {
     @Body() body: UpdateScoringSchemaDto,
     @UserId() userId: string,
   ): Promise<ScoringSchemaResponse> {
-    return this.gateway.update(params.id, body, userId);
+    return this.gateway.update(params.id, body, {
+      userId,
+      hasCollectionSuperuserPermission: false,
+    });
   }
 
   @Delete('/:id')
@@ -113,6 +117,9 @@ export class ScoringSchemaController {
     @Param() params: GetEntityByIdDto,
     @UserId() userId: string,
   ): Promise<ScoringSchemaResponse> {
-    return this.gateway.delete(params.id, userId);
+    return this.gateway.delete(params.id, {
+      userId,
+      hasCollectionSuperuserPermission: false,
+    });
   }
 }

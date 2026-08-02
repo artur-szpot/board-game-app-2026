@@ -69,11 +69,12 @@ export class LocationController {
     @UserId() userId: string,
     @Req() req: { user: JwtDto },
   ): Promise<LocationResponse> {
-    return this.gateway.getById(
-      params.id,
+    return this.gateway.getById(params.id, {
       userId,
-      hasCollectionSuperuserPermission(req.user.permissions),
-    );
+      hasCollectionSuperuserPermission: hasCollectionSuperuserPermission(
+        req.user.permissions,
+      ),
+    });
   }
 
   @Post()
@@ -100,7 +101,10 @@ export class LocationController {
     @Body() body: UpdateLocationDto,
     @UserId() userId: string,
   ): Promise<LocationResponse> {
-    return this.gateway.update(params.id, body, userId);
+    return this.gateway.update(params.id, body, {
+      userId,
+      hasCollectionSuperuserPermission: false,
+    });
   }
 
   @Delete('/:id')
@@ -113,6 +117,9 @@ export class LocationController {
     @Param() params: GetEntityByIdDto,
     @UserId() userId: string,
   ): Promise<LocationResponse> {
-    return this.gateway.delete(params.id, userId);
+    return this.gateway.delete(params.id, {
+      userId,
+      hasCollectionSuperuserPermission: false,
+    });
   }
 }

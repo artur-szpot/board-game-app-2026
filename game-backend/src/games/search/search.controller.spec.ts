@@ -21,8 +21,10 @@ describe('SearchController', () => {
     ).resolves.toEqual({ results: [], total: 0 });
     expect(search).toHaveBeenCalledWith(
       { types: [GameDataType.GAME] },
-      'user-1',
-      false,
+      {
+        userId: 'user-1',
+        hasCollectionSuperuserPermission: false,
+      },
     );
   });
 });

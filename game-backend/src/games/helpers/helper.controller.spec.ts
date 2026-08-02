@@ -105,6 +105,9 @@ describe('HelperController', () => {
     expect(payload).toEqual(
       expect.objectContaining({ id: 'helper-1', name: 'Auto Score' }),
     );
-    expect(gateway.getById).toHaveBeenCalledWith('helper-1', '123-abc', false);
+    expect(gateway.getById).toHaveBeenCalledWith('helper-1', {
+      userId: '123-abc',
+      hasCollectionSuperuserPermission: false,
+    });
   });
 });

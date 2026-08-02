@@ -1,4 +1,7 @@
-import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
+import {
+    GetManyItemsDto,
+    ItemOwnershipDto,
+} from '@common/dto/in/get-many-items.dto';
 import { Paginated } from '@common/pagination/Paginated';
 
 import { CreateLocationDto } from '../dto/in/create-location.dto';
@@ -8,22 +11,23 @@ import { LocationResponse } from '../dto/out/location.response';
 export interface LocationGateway {
   getById(
     id: string,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<LocationResponse>;
   getByIds(
     ids: string[],
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<LocationResponse[]>;
   getMany(dto?: GetManyItemsDto): Promise<Paginated<LocationResponse>>;
   create(input: CreateLocationDto, userId?: string): Promise<LocationResponse>;
   update(
     id: string,
     input: UpdateLocationDto,
-    userId?: string,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<LocationResponse>;
-  delete(id: string, userId?: string): Promise<LocationResponse>;
+  delete(
+    id: string,
+    itemOwnership?: ItemOwnershipDto,
+  ): Promise<LocationResponse>;
 }
 
 export const LOCATION_GATEWAY = Symbol('LOCATION_GATEWAY');

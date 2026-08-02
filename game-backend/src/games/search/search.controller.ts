@@ -49,10 +49,11 @@ export class SearchController {
     @UserId() userId: string,
     @Req() req: { user: JwtDto },
   ): Promise<SearchResponse> {
-    return this.searchGateway.search(
-      query,
+    return this.searchGateway.search(query, {
       userId,
-      hasCollectionSuperuserPermission(req.user.permissions),
-    );
+      hasCollectionSuperuserPermission: hasCollectionSuperuserPermission(
+        req.user.permissions,
+      ),
+    });
   }
 }

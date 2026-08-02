@@ -1,4 +1,7 @@
-import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
+import {
+    GetManyItemsDto,
+    ItemOwnershipDto,
+} from '@common/dto/in/get-many-items.dto';
 
 import { CreateScoringSchemaDto } from '../../games/scoring-schemas/dto/in/create-scoring-schema.dto';
 import { ScoringSchemaDto } from '../../games/scoring-schemas/dto/in/scoring-schema.dto';
@@ -7,13 +10,11 @@ import { UpdateScoringSchemaDto } from '../../games/scoring-schemas/dto/in/updat
 export interface ScoringSchemaRepository {
   getScoringSchemaById(
     id: string,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<ScoringSchemaDto | null>;
   getScoringSchemaByIds(
     ids: string[],
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<ScoringSchemaDto[]>;
   getScoringSchemaByName(
     name: string,
@@ -28,13 +29,11 @@ export interface ScoringSchemaRepository {
   updateScoringSchema(
     id: string,
     input: UpdateScoringSchemaDto,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<ScoringSchemaDto>;
   deleteScoringSchema(
     id: string,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<ScoringSchemaDto>;
 }
 

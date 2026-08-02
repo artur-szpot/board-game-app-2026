@@ -64,11 +64,12 @@ export class GameController {
     @UserId() userId: string,
     @Req() req: { user: JwtDto },
   ): Promise<GameDto> {
-    return this.gameGateway.getById(
-      id,
+    return this.gameGateway.getById(id, {
       userId,
-      hasCollectionSuperuserPermission(req.user.permissions),
-    );
+      hasCollectionSuperuserPermission: hasCollectionSuperuserPermission(
+        req.user.permissions,
+      ),
+    });
   }
 
   @Post()
@@ -95,7 +96,10 @@ export class GameController {
     @Body() input: UpdateGameDto,
     @UserId() userId: string,
   ): Promise<GameDto> {
-    return this.gameGateway.update(id, input, userId);
+    return this.gameGateway.update(id, input, {
+      userId,
+      hasCollectionSuperuserPermission: false,
+    });
   }
 
   @Delete(':id')
@@ -108,6 +112,9 @@ export class GameController {
     @Param('id') id: string,
     @UserId() userId: string,
   ): Promise<GameDto> {
-    return this.gameGateway.delete(id, userId);
+    return this.gameGateway.delete(id, {
+      userId,
+      hasCollectionSuperuserPermission: false,
+    });
   }
 }

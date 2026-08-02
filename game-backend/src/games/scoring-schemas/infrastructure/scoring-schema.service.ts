@@ -15,7 +15,10 @@ import {
     ScoringSchemaRepository,
 } from '@db/repositories/scoring-schema.repository';
 
-import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
+import {
+    GetManyItemsDto,
+    ItemOwnershipDto,
+} from '@common/dto/in/get-many-items.dto';
 import { CreateScoringSchemaDto } from '../dto/in/create-scoring-schema.dto';
 import { ScoringSchemaDto } from '../dto/in/scoring-schema.dto';
 import { UpdateScoringSchemaDto } from '../dto/in/update-scoring-schema.dto';
@@ -46,13 +49,11 @@ export class ScoringSchemaService implements ScoringSchemaGateway {
 
   private async getSchema(
     id: string,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<ScoringSchemaDto> {
     const schema = await this.repository.getScoringSchemaById(
       id,
-      userId,
-      hasCollectionSuperuserPermission,
+      itemOwnership,
     );
     if (!schema) {
       this.logger.error(`Could not find scoring schema with ID "${id}"`);
@@ -79,28 +80,20 @@ export class ScoringSchemaService implements ScoringSchemaGateway {
 
   public async getByIds(
     ids: string[],
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<ScoringSchemaResponse[]> {
     const schemas = await Promise.all(
-      ids.map((id) =>
-        this.getById(id, userId, hasCollectionSuperuserPermission),
-      ),
+      ids.map((id) => this.getById(id, itemOwnership)),
     );
     return schemas;
   }
 
   public async getById(
     id: string,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<ScoringSchemaResponse> {
     try {
-      const schema = await this.getSchema(
-        id,
-        userId,
-        hasCollectionSuperuserPermission,
-      );
+      const schema = await this.getSchema(id, itemOwnership);
       return this.mapToResponse(schema);
     } catch (error) {
       if (error instanceof CustomNotFoundError) {
@@ -159,22 +152,26 @@ export class ScoringSchemaService implements ScoringSchemaGateway {
   public async update(
     id: string,
     input: UpdateScoringSchemaDto,
-    userId?: string,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<ScoringSchemaResponse> {
+    const userId = itemOwnership?.userId;
     if (!userId) {
       throw new CustomInternalError('updating the scoring schema');
     }
 
     try {
-      await this.getSchema(id, userId, false);
+      const writeOwnership = {
+        userId,
+        hasCollectionSuperuserPermission: false,
+      };
+      await this.getSchema(id, writeOwnership);
       if (input.name) {
         await this.ensureUniqueName(input.name, userId, id);
       }
       const updated = await this.repository.updateScoringSchema(
         id,
         input,
-        userId,
-        false,
+        writeOwnership,
       );
       return this.mapToResponse(updated);
     } catch (error) {
@@ -193,18 +190,22 @@ export class ScoringSchemaService implements ScoringSchemaGateway {
 
   public async delete(
     id: string,
-    userId?: string,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<ScoringSchemaResponse> {
+    const userId = itemOwnership?.userId;
     if (!userId) {
       throw new CustomInternalError('deleting the scoring schema');
     }
 
     try {
-      await this.getSchema(id, userId, false);
+      const writeOwnership = {
+        userId,
+        hasCollectionSuperuserPermission: false,
+      };
+      await this.getSchema(id, writeOwnership);
       const deleted = await this.repository.deleteScoringSchema(
         id,
-        userId,
-        false,
+        writeOwnership,
       );
       return this.mapToResponse(deleted);
     } catch (error) {

@@ -165,6 +165,9 @@ describe('GameController', () => {
     expect(payload).toEqual(
       expect.objectContaining({ id: 'game-1', name: 'Catan' }),
     );
-    expect(gateway.getById).toHaveBeenCalledWith('game-1', '123-abc', false);
+    expect(gateway.getById).toHaveBeenCalledWith('game-1', {
+      userId: '123-abc',
+      hasCollectionSuperuserPermission: false,
+    });
   });
 });

@@ -1,11 +1,11 @@
+import { ItemOwnershipDto } from '@common/dto/in/get-many-items.dto';
 import { SearchQueryDto } from '../dto/in/search-query.dto';
 import { SearchResponse } from '../dto/out/search.response';
 
 export interface SearchGateway {
   search(
     query: SearchQueryDto,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<SearchResponse>;
 }
 

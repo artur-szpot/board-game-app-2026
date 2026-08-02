@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { createId } from '@paralleldrive/cuid2';
 
-import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
+import {
+    GetManyItemsDto,
+    ItemOwnershipDto,
+} from '@common/dto/in/get-many-items.dto';
 import { CustomNotFoundError } from '@common/errors/service-errors';
 
 import { CreateTagDto } from '../../../games/tags/dto/in/create-tag.dto';
@@ -119,9 +122,9 @@ export class PostgresTagRepository implements TagRepository {
 
   public async getTagById(
     tagId: string,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<TagDto | null> {
+    const { userId, hasCollectionSuperuserPermission } = itemOwnership ?? {};
     const args: string[] = [tagId];
     let where = 'id = $1';
 
@@ -138,9 +141,9 @@ export class PostgresTagRepository implements TagRepository {
 
   public async getTagsByIds(
     tagIds: string[],
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<TagDto[]> {
+    const { userId, hasCollectionSuperuserPermission } = itemOwnership ?? {};
     if (tagIds.length === 0) {
       return [];
     }
@@ -207,14 +210,9 @@ export class PostgresTagRepository implements TagRepository {
   public async updateTag(
     tagId: string,
     input: UpdateTagDto,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<TagDto> {
-    const existing = await this.getTagById(
-      tagId,
-      userId,
-      hasCollectionSuperuserPermission,
-    );
+    const existing = await this.getTagById(tagId, itemOwnership);
 
     if (!existing) {
       throw new CustomNotFoundError(`tag with ID "${tagId}"`);
@@ -242,14 +240,9 @@ export class PostgresTagRepository implements TagRepository {
 
   public async deleteTag(
     tagId: string,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<TagDto> {
-    const existing = await this.getTagById(
-      tagId,
-      userId,
-      hasCollectionSuperuserPermission,
-    );
+    const existing = await this.getTagById(tagId, itemOwnership);
 
     if (!existing) {
       throw new CustomNotFoundError(`tag with ID "${tagId}"`);

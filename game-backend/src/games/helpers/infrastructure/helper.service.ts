@@ -12,7 +12,10 @@ import {
 import { validateUpdateDtoNotEmpty } from '@common/helpers/validate-update-dto-not-empty';
 import { Paginated } from '@common/pagination/Paginated';
 
-import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
+import {
+    GetManyItemsDto,
+    ItemOwnershipDto,
+} from '@common/dto/in/get-many-items.dto';
 import {
     HELPER_REPOSITORY,
     HelperRepository,
@@ -46,14 +49,9 @@ export class HelperService implements HelperGateway {
 
   private async getHelper(
     id: string,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<HelperDto> {
-    const helper = await this.repository.getHelperById(
-      id,
-      userId,
-      hasCollectionSuperuserPermission,
-    );
+    const helper = await this.repository.getHelperById(id, itemOwnership);
     if (!helper) {
       this.logger.error(`Could not find helper with ID "${id}"`);
       throw new CustomNotFoundError(`helper with ID "${id}"`);
@@ -63,13 +61,10 @@ export class HelperService implements HelperGateway {
 
   public async getByIds(
     ids: string[],
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<HelperResponse[]> {
     const helpers = await Promise.all(
-      ids.map((id) =>
-        this.getById(id, userId, hasCollectionSuperuserPermission),
-      ),
+      ids.map((id) => this.getById(id, itemOwnership)),
     );
     return helpers;
   }
@@ -87,15 +82,10 @@ export class HelperService implements HelperGateway {
 
   public async getById(
     id: string,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<HelperResponse> {
     try {
-      const helper = await this.getHelper(
-        id,
-        userId,
-        hasCollectionSuperuserPermission,
-      );
+      const helper = await this.getHelper(id, itemOwnership);
       return this.mapToResponse(helper);
     } catch (error) {
       if (error instanceof CustomNotFoundError) {
@@ -150,23 +140,27 @@ export class HelperService implements HelperGateway {
   public async update(
     id: string,
     input: UpdateHelperDto,
-    userId?: string,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<HelperResponse> {
+    const userId = itemOwnership?.userId;
     if (!userId) {
       throw new CustomInternalError('updating the helper');
     }
 
     validateUpdateDtoNotEmpty(input);
     try {
-      await this.getHelper(id, userId, false);
+      const writeOwnership = {
+        userId,
+        hasCollectionSuperuserPermission: false,
+      };
+      await this.getHelper(id, writeOwnership);
       if (input.name) {
         await this.ensureUniqueName(input.name, userId, id);
       }
       const updated = await this.repository.updateHelper(
         id,
         input,
-        userId,
-        false,
+        writeOwnership,
       );
       return this.mapToResponse(updated);
     } catch (error) {
@@ -181,14 +175,22 @@ export class HelperService implements HelperGateway {
     }
   }
 
-  public async delete(id: string, userId?: string): Promise<HelperResponse> {
+  public async delete(
+    id: string,
+    itemOwnership?: ItemOwnershipDto,
+  ): Promise<HelperResponse> {
+    const userId = itemOwnership?.userId;
     if (!userId) {
       throw new CustomInternalError('deleting the helper');
     }
 
     try {
-      await this.getHelper(id, userId, false);
-      const deleted = await this.repository.deleteHelper(id, userId, false);
+      const writeOwnership = {
+        userId,
+        hasCollectionSuperuserPermission: false,
+      };
+      await this.getHelper(id, writeOwnership);
+      const deleted = await this.repository.deleteHelper(id, writeOwnership);
       return this.mapToResponse(deleted);
     } catch (error) {
       if (error instanceof CustomNotFoundError) {

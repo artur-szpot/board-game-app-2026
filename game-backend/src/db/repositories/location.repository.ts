@@ -1,4 +1,7 @@
-import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
+import {
+    GetManyItemsDto,
+    ItemOwnershipDto,
+} from '@common/dto/in/get-many-items.dto';
 
 import { CreateLocationDto } from '../../games/locations/dto/in/create-location.dto';
 import { LocationDto } from '../../games/locations/dto/in/location.dto';
@@ -7,13 +10,11 @@ import { UpdateLocationDto } from '../../games/locations/dto/in/update-location.
 export interface LocationRepository {
   getLocationById(
     locationId: string,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<LocationDto | null>;
   getLocationsByIds(
     locationIds: string[],
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<LocationDto[]>;
   getLocationByName(name: string, ownerId: string): Promise<LocationDto | null>;
   getManyLocations(dto?: GetManyItemsDto): Promise<LocationDto[]>;
@@ -25,13 +26,11 @@ export interface LocationRepository {
   updateLocation(
     locationId: string,
     input: UpdateLocationDto,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<LocationDto>;
   deleteLocation(
     locationId: string,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<LocationDto>;
 }
 

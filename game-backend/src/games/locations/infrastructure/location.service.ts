@@ -5,7 +5,10 @@ import {
     Logger,
 } from '@nestjs/common';
 
-import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
+import {
+    GetManyItemsDto,
+    ItemOwnershipDto,
+} from '@common/dto/in/get-many-items.dto';
 import {
     CustomInternalError,
     CustomNotFoundError,
@@ -53,13 +56,11 @@ export class LocationService implements LocationGateway {
 
   private async getLocation(
     id: string,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<LocationDto> {
     const location = await this.locationRepository.getLocationById(
       id,
-      userId,
-      hasCollectionSuperuserPermission,
+      itemOwnership,
     );
     if (!location) {
       this.logger.error(`Could not find location with ID "${id}"`);
@@ -70,13 +71,10 @@ export class LocationService implements LocationGateway {
 
   public async getByIds(
     ids: string[],
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<LocationResponse[]> {
     const locations = await Promise.all(
-      ids.map((id) =>
-        this.getById(id, userId, hasCollectionSuperuserPermission),
-      ),
+      ids.map((id) => this.getById(id, itemOwnership)),
     );
     return locations;
   }
@@ -103,7 +101,7 @@ export class LocationService implements LocationGateway {
   ): Promise<void> {
     const parentLocation = await this.locationRepository.getLocationById(
       parentId,
-      userId,
+      { userId, hasCollectionSuperuserPermission: false },
     );
 
     if (!parentLocation) {
@@ -122,9 +120,10 @@ export class LocationService implements LocationGateway {
       throw new BadRequestException('Location cannot be its own parent');
     }
 
+    const writeOwnership = { userId, hasCollectionSuperuserPermission: false };
     const parentLocation = await this.locationRepository.getLocationById(
       parentId,
-      userId,
+      writeOwnership,
     );
 
     if (!parentLocation) {
@@ -145,7 +144,7 @@ export class LocationService implements LocationGateway {
       visited.add(currentParentId);
       const currentParent = await this.locationRepository.getLocationById(
         currentParentId,
-        userId,
+        writeOwnership,
       );
       if (!currentParent) {
         break;
@@ -176,15 +175,10 @@ export class LocationService implements LocationGateway {
 
   public async getById(
     id: string,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<LocationResponse> {
     try {
-      const location = await this.getLocation(
-        id,
-        userId,
-        hasCollectionSuperuserPermission,
-      );
+      const location = await this.getLocation(id, itemOwnership);
       return this.mapToResponse(location);
     } catch (error) {
       if (error instanceof CustomNotFoundError) {
@@ -246,21 +240,25 @@ export class LocationService implements LocationGateway {
   public async update(
     id: string,
     input: UpdateLocationDto,
-    userId?: string,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<LocationResponse> {
+    const userId = itemOwnership?.userId;
     if (!userId) {
       throw new CustomInternalError('updating the location');
     }
 
     validateUpdateDtoNotEmpty(input);
     try {
-      await this.getLocation(id, userId, false);
+      const writeOwnership = {
+        userId,
+        hasCollectionSuperuserPermission: false,
+      };
+      await this.getLocation(id, writeOwnership);
       await this.validateUpdateInput(id, input, userId);
       const updatedLocation = await this.locationRepository.updateLocation(
         id,
         input,
-        userId,
-        false,
+        writeOwnership,
       );
       return this.mapToResponse(updatedLocation);
     } catch (error) {
@@ -275,17 +273,24 @@ export class LocationService implements LocationGateway {
     }
   }
 
-  public async delete(id: string, userId?: string): Promise<LocationResponse> {
+  public async delete(
+    id: string,
+    itemOwnership?: ItemOwnershipDto,
+  ): Promise<LocationResponse> {
+    const userId = itemOwnership?.userId;
     if (!userId) {
       throw new CustomInternalError('deleting the location');
     }
 
     try {
-      await this.getLocation(id, userId, false);
+      const writeOwnership = {
+        userId,
+        hasCollectionSuperuserPermission: false,
+      };
+      await this.getLocation(id, writeOwnership);
       const deletedLocation = await this.locationRepository.deleteLocation(
         id,
-        userId,
-        false,
+        writeOwnership,
       );
       return this.mapToResponse(deletedLocation);
     } catch (error) {

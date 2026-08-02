@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { createId } from '@paralleldrive/cuid2';
 
-import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
+import {
+  GetManyItemsDto,
+  ItemOwnershipDto,
+} from '@common/dto/in/get-many-items.dto';
 import { CustomNotFoundError } from '@common/errors/service-errors';
 
 import { CreateGameDto } from '../../../games/games/dto/in/create-game.dto';
@@ -199,9 +202,9 @@ export class PostgresGameRepository implements GameRepository {
 
   public async getGameById(
     gameId: string,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<GameDto | null> {
+    const { userId, hasCollectionSuperuserPermission } = itemOwnership ?? {};
     const args: string[] = [gameId];
     let where = 'id = $1';
 
@@ -334,14 +337,9 @@ export class PostgresGameRepository implements GameRepository {
   public async updateGame(
     gameId: string,
     input: UpdateGameDto,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<GameDto> {
-    const existing = await this.getGameById(
-      gameId,
-      userId,
-      hasCollectionSuperuserPermission,
-    );
+    const existing = await this.getGameById(gameId, itemOwnership);
     if (!existing) {
       throw new CustomNotFoundError(`game with ID "${gameId}"`);
     }
@@ -482,14 +480,9 @@ export class PostgresGameRepository implements GameRepository {
 
   public async deleteGame(
     gameId: string,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<GameDto> {
-    const existing = await this.getGameById(
-      gameId,
-      userId,
-      hasCollectionSuperuserPermission,
-    );
+    const existing = await this.getGameById(gameId, itemOwnership);
 
     if (!existing) {
       throw new CustomNotFoundError(`game with ID "${gameId}"`);

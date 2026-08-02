@@ -101,6 +101,9 @@ describe('TagController', () => {
     expect(payload).toEqual(
       expect.objectContaining({ id: 'tag-1', name: 'Strategy' }),
     );
-    expect(gateway.getById).toHaveBeenCalledWith('tag-1', '123-abc', false);
+    expect(gateway.getById).toHaveBeenCalledWith('tag-1', {
+      userId: '123-abc',
+      hasCollectionSuperuserPermission: false,
+    });
   });
 });

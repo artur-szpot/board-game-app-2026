@@ -1,4 +1,7 @@
-import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
+import {
+    GetManyItemsDto,
+    ItemOwnershipDto,
+} from '@common/dto/in/get-many-items.dto';
 
 import { CreateHelperDto } from '../../games/helpers/dto/in/create-helper.dto';
 import { HelperDto } from '../../games/helpers/dto/in/helper.dto';
@@ -7,13 +10,11 @@ import { UpdateHelperDto } from '../../games/helpers/dto/in/update-helper.dto';
 export interface HelperRepository {
   getHelperById(
     helperId: string,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<HelperDto | null>;
   getHelpersByIds(
     helperIds: string[],
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<HelperDto[]>;
   getHelperByName(name: string, ownerId: string): Promise<HelperDto | null>;
   getManyHelpers(dto?: GetManyItemsDto): Promise<HelperDto[]>;
@@ -22,13 +23,11 @@ export interface HelperRepository {
   updateHelper(
     helperId: string,
     input: UpdateHelperDto,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<HelperDto>;
   deleteHelper(
     helperId: string,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<HelperDto>;
 }
 

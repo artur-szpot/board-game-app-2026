@@ -187,7 +187,7 @@ describe('GameService', () => {
         {
           maxPlayers: 1,
         },
-        '123-abc',
+        { userId: '123-abc', hasCollectionSuperuserPermission: false },
       ),
     ).rejects.toBeInstanceOf(BadRequestException);
 
@@ -263,7 +263,7 @@ describe('GameService', () => {
         {
           locations: [{ locationId: 'game-1', isGameId: true }],
         },
-        '123-abc',
+        { userId: '123-abc', hasCollectionSuperuserPermission: false },
       ),
     ).rejects.toThrow('Game cannot reference itself as a location');
 
@@ -327,7 +327,7 @@ describe('GameService', () => {
         {
           locations: [{ locationId: 'game-2', isGameId: true }],
         },
-        '123-abc',
+        { userId: '123-abc', hasCollectionSuperuserPermission: false },
       ),
     ).rejects.toThrow(
       'Game location relationship would create a cycle via game ID "game-2"',
@@ -406,10 +406,9 @@ describe('GameService', () => {
       createdOn: new Date('2026-01-01T00:00:00.000Z'),
       updatedOn: new Date('2026-01-02T00:00:00.000Z'),
     });
-    expect(locationGateway.getByIds).toHaveBeenCalledWith(
-      ['location-1'],
-      '123-abc',
-      false,
-    );
+    expect(locationGateway.getByIds).toHaveBeenCalledWith(['location-1'], {
+      userId: '123-abc',
+      hasCollectionSuperuserPermission: false,
+    });
   });
 });

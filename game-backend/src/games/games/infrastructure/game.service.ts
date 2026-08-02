@@ -1,33 +1,36 @@
 import {
-    BadRequestException,
-    Inject,
-    Injectable,
-    Logger,
+  BadRequestException,
+  Inject,
+  Injectable,
+  Logger,
 } from '@nestjs/common';
 
-import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 import {
-    CustomInternalError,
-    CustomNotFoundError,
+  GetManyItemsDto,
+  ItemOwnershipDto,
+} from '@common/dto/in/get-many-items.dto';
+import {
+  CustomInternalError,
+  CustomNotFoundError,
 } from '@common/errors/service-errors';
 import { validateUpdateDtoNotEmpty } from '@common/helpers/validate-update-dto-not-empty';
 import { Paginated } from '@common/pagination/Paginated';
 import {
-    GAME_REPOSITORY,
-    GameRepository,
+  GAME_REPOSITORY,
+  GameRepository,
 } from '@db/repositories/game.repository';
 
 import {
-    HELPER_GATEWAY,
-    HelperGateway,
+  HELPER_GATEWAY,
+  HelperGateway,
 } from '../../helpers/infrastructure/helper.gateway';
 import {
-    LOCATION_GATEWAY,
-    LocationGateway,
+  LOCATION_GATEWAY,
+  LocationGateway,
 } from '../../locations/infrastructure/location.gateway';
 import {
-    SCORING_SCHEMA_GATEWAY,
-    ScoringSchemaGateway,
+  SCORING_SCHEMA_GATEWAY,
+  ScoringSchemaGateway,
 } from '../../scoring-schemas/infrastructure/scoring-schema.gateway';
 import { TAG_GATEWAY, TagGateway } from '../../tags/infrastructure/tag.gateway';
 import { CreateGameDto } from '../dto/in/create-game.dto';
@@ -84,7 +87,10 @@ export class GameService implements GameGateway {
     const uniqueIds = [...new Set(gameIds)];
     const games = await Promise.all(
       uniqueIds.map((gameId) =>
-        this.gameRepository.getGameById(gameId, userId, false),
+        this.gameRepository.getGameById(gameId, {
+          userId,
+          hasCollectionSuperuserPermission: false,
+        }),
       ),
     );
     const missingIndex = games.findIndex((game) => !game);
@@ -109,11 +115,10 @@ export class GameService implements GameGateway {
     }
 
     visited.add(fromGameId);
-    const game = await this.gameRepository.getGameById(
-      fromGameId,
+    const game = await this.gameRepository.getGameById(fromGameId, {
       userId,
-      false,
-    );
+      hasCollectionSuperuserPermission: false,
+    });
     if (!game) {
       return false;
     }
@@ -218,23 +223,39 @@ export class GameService implements GameGateway {
     await Promise.all([
       this.ensureIdsExist(
         input.tagIds,
-        (ids) => this.tagGateway.getByIds(ids, userId, false),
+        (ids) =>
+          this.tagGateway.getByIds(ids, {
+            userId,
+            hasCollectionSuperuserPermission: false,
+          }),
         'Tag',
       ),
       this.ensureIdsExist(
         locationIds,
-        (ids) => this.locationGateway.getByIds(ids, userId, false),
+        (ids) =>
+          this.locationGateway.getByIds(ids, {
+            userId,
+            hasCollectionSuperuserPermission: false,
+          }),
         'Location',
       ),
       this.ensureGameIdsExist(gameLocationIds, userId),
       this.ensureIdsExist(
         input.scoringSchemaIds,
-        (ids) => this.scoringSchemaGateway.getByIds(ids, userId, false),
+        (ids) =>
+          this.scoringSchemaGateway.getByIds(ids, {
+            userId,
+            hasCollectionSuperuserPermission: false,
+          }),
         'Scoring schema',
       ),
       this.ensureIdsExist(
         input.helperIds,
-        (ids) => this.helperGateway.getByIds(ids, userId, false),
+        (ids) =>
+          this.helperGateway.getByIds(ids, {
+            userId,
+            hasCollectionSuperuserPermission: false,
+          }),
         'Helper',
       ),
     ]);
@@ -254,7 +275,10 @@ export class GameService implements GameGateway {
       .filter((location) => !location.isGameId)
       .map((location) => location.locationId);
     const locationResponses = locationIds.length
-      ? await this.locationGateway.getByIds(locationIds, game.ownerId, false)
+      ? await this.locationGateway.getByIds(locationIds, {
+          userId: game.ownerId,
+          hasCollectionSuperuserPermission: false,
+        })
       : [];
     const locations = (game.locations ?? []).map((location) => {
       const locationResponse = locationResponses.find(
@@ -271,7 +295,10 @@ export class GameService implements GameGateway {
       return { ...responseGame, locations, tags: [] };
     }
 
-    const tags = await this.tagGateway.getByIds(tagIds, game.ownerId, false);
+    const tags = await this.tagGateway.getByIds(tagIds, {
+      userId: game.ownerId,
+      hasCollectionSuperuserPermission: false,
+    });
     return {
       ...responseGame,
       locations,
@@ -285,15 +312,10 @@ export class GameService implements GameGateway {
 
   private async getByIdWithAccess(
     id: string,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<GameDto> {
     try {
-      const game = await this.gameRepository.getGameById(
-        id,
-        userId,
-        hasCollectionSuperuserPermission,
-      );
+      const game = await this.gameRepository.getGameById(id, itemOwnership);
       if (!game) {
         this.logger.error(`Could not find game with ID "${id}"`);
         throw new CustomNotFoundError(`game with ID "${id}"`);
@@ -312,21 +334,17 @@ export class GameService implements GameGateway {
 
   public async getById(
     id: string,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<GameDto> {
-    return this.getByIdWithAccess(id, userId, hasCollectionSuperuserPermission);
+    return this.getByIdWithAccess(id, itemOwnership);
   }
 
   public async getByIds(
     ids: string[],
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<GameDto[]> {
     const games = await Promise.all(
-      ids.map((id) =>
-        this.getById(id, userId, hasCollectionSuperuserPermission),
-      ),
+      ids.map((id) => this.getById(id, itemOwnership)),
     );
     return games;
   }
@@ -347,11 +365,7 @@ export class GameService implements GameGateway {
     }
   }
 
-  public async create(
-    input: CreateGameDto,
-    userId?: string,
-    hasCollectionSuperuserPermission = false,
-  ): Promise<GameDto> {
+  public async create(input: CreateGameDto, userId?: string): Promise<GameDto> {
     if (!userId) {
       throw new CustomInternalError('creating the game');
     }
@@ -372,22 +386,25 @@ export class GameService implements GameGateway {
   public async update(
     id: string,
     input: UpdateGameDto,
-    userId?: string,
-    hasCollectionSuperuserPermission = false,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<GameDto> {
+    const userId = itemOwnership?.userId;
     if (!userId) {
       throw new CustomInternalError('updating the game');
     }
 
     validateUpdateDtoNotEmpty(input);
     try {
-      const currentGame = await this.getById(id, userId, false);
+      const writeOwnership = {
+        userId,
+        hasCollectionSuperuserPermission: false,
+      };
+      const currentGame = await this.getById(id, writeOwnership);
       await this.validateInput(input, userId, id, currentGame);
       const updated = await this.gameRepository.updateGame(
         id,
         input,
-        userId,
-        false,
+        writeOwnership,
       );
       return this.mapGameResponse(updated);
     } catch (error) {
@@ -404,16 +421,20 @@ export class GameService implements GameGateway {
 
   public async delete(
     id: string,
-    userId?: string,
-    hasCollectionSuperuserPermission = false,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<GameDto> {
+    const userId = itemOwnership?.userId;
     if (!userId) {
       throw new CustomInternalError('deleting the game');
     }
 
     try {
-      await this.getById(id, userId, false);
-      const deleted = await this.gameRepository.deleteGame(id, userId, false);
+      const writeOwnership = {
+        userId,
+        hasCollectionSuperuserPermission: false,
+      };
+      await this.getById(id, writeOwnership);
+      const deleted = await this.gameRepository.deleteGame(id, writeOwnership);
       return this.mapGameResponse(deleted);
     } catch (error) {
       if (error instanceof CustomNotFoundError) {

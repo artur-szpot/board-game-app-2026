@@ -1,4 +1,7 @@
-import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
+import {
+    GetManyItemsDto,
+    ItemOwnershipDto,
+} from '@common/dto/in/get-many-items.dto';
 
 import { CreateGameDto } from '../../games/games/dto/in/create-game.dto';
 import { GameDto } from '../../games/games/dto/in/game.dto';
@@ -7,8 +10,7 @@ import { UpdateGameDto } from '../../games/games/dto/in/update-game.dto';
 export interface GameRepository {
   getGameById(
     gameId: string,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<GameDto | null>;
   getGameByName(name: string, ownerId: string): Promise<GameDto | null>;
   getManyGames(dto?: GetManyItemsDto): Promise<GameDto[]>;
@@ -17,13 +19,11 @@ export interface GameRepository {
   updateGame(
     gameId: string,
     input: UpdateGameDto,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<GameDto>;
   deleteGame(
     gameId: string,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<GameDto>;
 }
 

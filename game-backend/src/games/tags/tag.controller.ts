@@ -66,11 +66,12 @@ export class TagController {
     @UserId() userId: string,
     @Req() req: { user: JwtDto },
   ): Promise<TagResponse> {
-    return this.gateway.getById(
-      params.id,
+    return this.gateway.getById(params.id, {
       userId,
-      hasCollectionSuperuserPermission(req.user.permissions),
-    );
+      hasCollectionSuperuserPermission: hasCollectionSuperuserPermission(
+        req.user.permissions,
+      ),
+    });
   }
 
   @Post()
@@ -97,7 +98,10 @@ export class TagController {
     @Body() body: UpdateTagDto,
     @UserId() userId: string,
   ): Promise<TagResponse> {
-    return this.gateway.update(params.id, body, userId);
+    return this.gateway.update(params.id, body, {
+      userId,
+      hasCollectionSuperuserPermission: false,
+    });
   }
 
   @Delete('/:id')
@@ -110,6 +114,9 @@ export class TagController {
     @Param() params: GetEntityByIdDto,
     @UserId() userId: string,
   ): Promise<TagResponse> {
-    return this.gateway.delete(params.id, userId);
+    return this.gateway.delete(params.id, {
+      userId,
+      hasCollectionSuperuserPermission: false,
+    });
   }
 }

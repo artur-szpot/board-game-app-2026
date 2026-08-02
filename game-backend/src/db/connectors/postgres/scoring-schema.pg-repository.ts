@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { createId } from '@paralleldrive/cuid2';
 
-import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
+import {
+    GetManyItemsDto,
+    ItemOwnershipDto,
+} from '@common/dto/in/get-many-items.dto';
 import { CustomNotFoundError } from '@common/errors/service-errors';
 
 import { ScoringSchemaDto } from '../../../games/scoring-schemas/dto/in/scoring-schema.dto';
@@ -120,9 +123,9 @@ export class PostgresScoringSchemaRepository implements ScoringSchemaRepository 
 
   public async getScoringSchemaById(
     id: string,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<ScoringSchemaDto | null> {
+    const { userId, hasCollectionSuperuserPermission } = itemOwnership ?? {};
     const args: string[] = [id];
     let where = 'id = $1';
 
@@ -139,9 +142,9 @@ export class PostgresScoringSchemaRepository implements ScoringSchemaRepository 
 
   public async getScoringSchemaByIds(
     ids: string[],
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<ScoringSchemaDto[]> {
+    const { userId, hasCollectionSuperuserPermission } = itemOwnership ?? {};
     if (ids.length === 0) {
       return [];
     }
@@ -203,14 +206,9 @@ export class PostgresScoringSchemaRepository implements ScoringSchemaRepository 
   public async updateScoringSchema(
     id: string,
     input: UpdateScoringSchemaDto,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<ScoringSchemaDto> {
-    const existing = await this.getScoringSchemaById(
-      id,
-      userId,
-      hasCollectionSuperuserPermission,
-    );
+    const existing = await this.getScoringSchemaById(id, itemOwnership);
 
     if (!existing) {
       throw new CustomNotFoundError(`scoring schema with ID "${id}"`);
@@ -237,14 +235,9 @@ export class PostgresScoringSchemaRepository implements ScoringSchemaRepository 
 
   public async deleteScoringSchema(
     id: string,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<ScoringSchemaDto> {
-    const existing = await this.getScoringSchemaById(
-      id,
-      userId,
-      hasCollectionSuperuserPermission,
-    );
+    const existing = await this.getScoringSchemaById(id, itemOwnership);
 
     if (!existing) {
       throw new CustomNotFoundError(`scoring schema with ID "${id}"`);

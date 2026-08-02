@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { createId } from '@paralleldrive/cuid2';
 
-import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
+import {
+    GetManyItemsDto,
+    ItemOwnershipDto,
+} from '@common/dto/in/get-many-items.dto';
 import { CustomNotFoundError } from '@common/errors/service-errors';
 
 import { CreateLocationDto } from '../../../games/locations/dto/in/create-location.dto';
@@ -198,9 +201,9 @@ export class PostgresLocationRepository implements LocationRepository {
 
   public async getLocationById(
     locationId: string,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<LocationDto | null> {
+    const { userId, hasCollectionSuperuserPermission } = itemOwnership ?? {};
     const args: string[] = [locationId];
     let where = 'id = $1';
 
@@ -217,9 +220,9 @@ export class PostgresLocationRepository implements LocationRepository {
 
   public async getLocationsByIds(
     locationIds: string[],
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<LocationDto[]> {
+    const { userId, hasCollectionSuperuserPermission } = itemOwnership ?? {};
     if (locationIds.length === 0) {
       return [];
     }
@@ -297,13 +300,11 @@ export class PostgresLocationRepository implements LocationRepository {
   public async updateLocation(
     locationId: string,
     input: UpdateLocationDto,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<LocationDto> {
     const currentLocation = await this.getLocationById(
       locationId,
-      userId,
-      hasCollectionSuperuserPermission,
+      itemOwnership,
     );
     if (!currentLocation) {
       throw new CustomNotFoundError(`location with ID "${locationId}"`);
@@ -344,14 +345,9 @@ export class PostgresLocationRepository implements LocationRepository {
 
   public async deleteLocation(
     locationId: string,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<LocationDto> {
-    const existing = await this.getLocationById(
-      locationId,
-      userId,
-      hasCollectionSuperuserPermission,
-    );
+    const existing = await this.getLocationById(locationId, itemOwnership);
 
     if (!existing) {
       throw new CustomNotFoundError(`location with ID "${locationId}"`);

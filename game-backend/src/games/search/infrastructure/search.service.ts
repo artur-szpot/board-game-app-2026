@@ -1,6 +1,9 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 
-import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
+import {
+    GetManyItemsDto,
+    ItemOwnershipDto,
+} from '@common/dto/in/get-many-items.dto';
 import { CustomInternalError } from '@common/errors/service-errors';
 import { paginationMapper } from '@common/pagination/mapper/pagination.mapper';
 
@@ -98,30 +101,20 @@ export class SearchService implements SearchGateway {
 
   public async search(
     query: SearchQueryDto,
-    userId?: string,
-    hasCollectionSuperuserPermission?: boolean,
+    itemOwnership?: ItemOwnershipDto,
   ): Promise<SearchResponse> {
     const { searchTerm, filters, sort, includeDetail } = query;
     const pageWindow = this.getPageWindow(query);
     const results: SearchResponse['results'] = [];
     let total = 0;
     let typeStart = 0;
-    const baseDto: GetManyItemsDto =
-      userId !== undefined || hasCollectionSuperuserPermission !== undefined
-        ? {
-            searchTerm,
-            filters,
-            sort,
-            includeDetail,
-            userId,
-            hasCollectionSuperuserPermission,
-          }
-        : {
-            searchTerm,
-            filters,
-            sort,
-            includeDetail,
-          };
+    const baseDto: GetManyItemsDto = {
+      searchTerm,
+      filters,
+      sort,
+      includeDetail,
+      ...itemOwnership,
+    };
 
     try {
       for (const type of query.types) {

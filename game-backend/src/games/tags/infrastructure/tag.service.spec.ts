@@ -13,6 +13,10 @@ import { TagService } from './tag.service';
 describe('TagService', () => {
   let mockRepository: jest.Mocked<TagRepository>;
   let service: TagService;
+  const writeOwnership = {
+    userId: '123-abc',
+    hasCollectionSuperuserPermission: false,
+  };
 
   const testTagDto: TagDto = {
     id: 'tag-1',
@@ -47,7 +51,6 @@ describe('TagService', () => {
       expect(mockRepository.getTagById).toHaveBeenCalledWith(
         testTagDto.id,
         undefined,
-        undefined,
       );
       expect(result).toStrictEqual({
         id: testTagDto.id,
@@ -70,7 +73,6 @@ describe('TagService', () => {
       expect(mockRepository.getTagById).toHaveBeenCalledWith(
         testTagDto.id,
         undefined,
-        undefined,
       );
     });
 
@@ -82,7 +84,6 @@ describe('TagService', () => {
       );
       expect(mockRepository.getTagById).toHaveBeenCalledWith(
         testTagDto.id,
-        undefined,
         undefined,
       );
     });
@@ -183,13 +184,12 @@ describe('TagService', () => {
       const result = await service.update(
         testTagDto.id,
         updateTagDto,
-        '123-abc',
+        writeOwnership,
       );
 
       expect(mockRepository.getTagById).toHaveBeenCalledWith(
         testTagDto.id,
-        '123-abc',
-        false,
+        writeOwnership,
       );
       expect(mockRepository.getTagByName).toHaveBeenCalledWith(
         updateTagDto.name,
@@ -198,8 +198,7 @@ describe('TagService', () => {
       expect(mockRepository.updateTag).toHaveBeenCalledWith(
         testTagDto.id,
         updateTagDto,
-        '123-abc',
-        false,
+        writeOwnership,
       );
       expect(result).toStrictEqual({
         id: updatedTagDto.id,
@@ -217,12 +216,11 @@ describe('TagService', () => {
       mockRepository.getTagById.mockResolvedValueOnce(null);
 
       await expect(
-        service.update(testTagDto.id, { name: 'New Name' }, '123-abc'),
+        service.update(testTagDto.id, { name: 'New Name' }, writeOwnership),
       ).rejects.toBeInstanceOf(CustomNotFoundError);
       expect(mockRepository.getTagById).toHaveBeenCalledWith(
         testTagDto.id,
-        '123-abc',
-        false,
+        writeOwnership,
       );
     });
 
@@ -230,7 +228,11 @@ describe('TagService', () => {
       mockRepository.getTagById.mockResolvedValueOnce(testTagDto);
 
       await expect(
-        service.update(testTagDto.id, { parentId: testTagDto.id }, '123-abc'),
+        service.update(
+          testTagDto.id,
+          { parentId: testTagDto.id },
+          writeOwnership,
+        ),
       ).rejects.toThrow('Tag cannot be its own parent');
 
       expect(mockRepository.updateTag).not.toHaveBeenCalled();
@@ -251,7 +253,7 @@ describe('TagService', () => {
         });
 
       await expect(
-        service.update('tag-1', { parentId: 'tag-2' }, '123-abc'),
+        service.update('tag-1', { parentId: 'tag-2' }, writeOwnership),
       ).rejects.toThrow('Tag parent relationship would create a cycle');
 
       expect(mockRepository.updateTag).not.toHaveBeenCalled();
@@ -263,17 +265,15 @@ describe('TagService', () => {
       mockRepository.getTagById.mockResolvedValueOnce(testTagDto);
       mockRepository.deleteTag.mockResolvedValueOnce(testTagDto);
 
-      const result = await service.delete(testTagDto.id, '123-abc');
+      const result = await service.delete(testTagDto.id, writeOwnership);
 
       expect(mockRepository.getTagById).toHaveBeenCalledWith(
         testTagDto.id,
-        '123-abc',
-        false,
+        writeOwnership,
       );
       expect(mockRepository.deleteTag).toHaveBeenCalledWith(
         testTagDto.id,
-        '123-abc',
-        false,
+        writeOwnership,
       );
       expect(result).toStrictEqual({
         id: testTagDto.id,
@@ -291,12 +291,11 @@ describe('TagService', () => {
       mockRepository.getTagById.mockResolvedValueOnce(null);
 
       await expect(
-        service.delete(testTagDto.id, '123-abc'),
+        service.delete(testTagDto.id, writeOwnership),
       ).rejects.toBeInstanceOf(CustomNotFoundError);
       expect(mockRepository.getTagById).toHaveBeenCalledWith(
         testTagDto.id,
-        '123-abc',
-        false,
+        writeOwnership,
       );
     });
   });

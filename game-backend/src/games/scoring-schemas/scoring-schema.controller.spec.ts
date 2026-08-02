@@ -114,6 +114,9 @@ describe('ScoringSchemaController', () => {
     expect(payload).toEqual(
       expect.objectContaining({ id: 'schema-1', name: 'Default' }),
     );
-    expect(gateway.getById).toHaveBeenCalledWith('schema-1', '123-abc', false);
+    expect(gateway.getById).toHaveBeenCalledWith('schema-1', {
+      userId: '123-abc',
+      hasCollectionSuperuserPermission: false,
+    });
   });
 });

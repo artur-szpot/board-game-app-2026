@@ -14,6 +14,10 @@ import { ScoringSchemaService } from './scoring-schema.service';
 describe('ScoringSchemaService', () => {
   let mockRepository: jest.Mocked<ScoringSchemaRepository>;
   let service: ScoringSchemaService;
+  const writeOwnership = {
+    userId: 'user-1',
+    hasCollectionSuperuserPermission: false,
+  };
 
   const testDto: ScoringSchemaDto = {
     id: 'schema-1',
@@ -57,7 +61,6 @@ describe('ScoringSchemaService', () => {
       expect(mockRepository.getScoringSchemaById).toHaveBeenCalledWith(
         testDto.id,
         undefined,
-        undefined,
       );
       expect(result).toStrictEqual({
         id: testDto.id,
@@ -80,7 +83,6 @@ describe('ScoringSchemaService', () => {
       expect(mockRepository.getScoringSchemaById).toHaveBeenCalledWith(
         testDto.id,
         undefined,
-        undefined,
       );
     });
 
@@ -94,7 +96,6 @@ describe('ScoringSchemaService', () => {
       );
       expect(mockRepository.getScoringSchemaById).toHaveBeenCalledWith(
         testDto.id,
-        undefined,
         undefined,
       );
     });
@@ -210,12 +211,15 @@ describe('ScoringSchemaService', () => {
       mockRepository.getScoringSchemaByName.mockResolvedValueOnce(null);
       mockRepository.updateScoringSchema.mockResolvedValueOnce(updated);
 
-      const result = await service.update(testDto.id, updateDto, 'user-1');
+      const result = await service.update(
+        testDto.id,
+        updateDto,
+        writeOwnership,
+      );
 
       expect(mockRepository.getScoringSchemaById).toHaveBeenCalledWith(
         testDto.id,
-        'user-1',
-        false,
+        writeOwnership,
       );
       expect(mockRepository.getScoringSchemaByName).toHaveBeenCalledWith(
         updateDto.name,
@@ -224,8 +228,7 @@ describe('ScoringSchemaService', () => {
       expect(mockRepository.updateScoringSchema).toHaveBeenCalledWith(
         testDto.id,
         updateDto,
-        'user-1',
-        false,
+        writeOwnership,
       );
       expect(result.name).toBe(updated.name);
     });
@@ -234,12 +237,11 @@ describe('ScoringSchemaService', () => {
       mockRepository.getScoringSchemaById.mockResolvedValueOnce(null);
 
       await expect(
-        service.update(testDto.id, { name: 'x' }, 'user-1'),
+        service.update(testDto.id, { name: 'x' }, writeOwnership),
       ).rejects.toBeInstanceOf(CustomNotFoundError);
       expect(mockRepository.getScoringSchemaById).toHaveBeenCalledWith(
         testDto.id,
-        'user-1',
-        false,
+        writeOwnership,
       );
     });
   });
@@ -249,17 +251,15 @@ describe('ScoringSchemaService', () => {
       mockRepository.getScoringSchemaById.mockResolvedValueOnce(testDto);
       mockRepository.deleteScoringSchema.mockResolvedValueOnce(testDto);
 
-      const result = await service.delete(testDto.id, 'user-1');
+      const result = await service.delete(testDto.id, writeOwnership);
 
       expect(mockRepository.getScoringSchemaById).toHaveBeenCalledWith(
         testDto.id,
-        'user-1',
-        false,
+        writeOwnership,
       );
       expect(mockRepository.deleteScoringSchema).toHaveBeenCalledWith(
         testDto.id,
-        'user-1',
-        false,
+        writeOwnership,
       );
       expect(result.id).toBe(testDto.id);
     });
@@ -267,13 +267,12 @@ describe('ScoringSchemaService', () => {
     it('throws CustomNotFoundError when missing', async () => {
       mockRepository.getScoringSchemaById.mockResolvedValueOnce(null);
 
-      await expect(service.delete(testDto.id, 'user-1')).rejects.toBeInstanceOf(
-        CustomNotFoundError,
-      );
+      await expect(
+        service.delete(testDto.id, writeOwnership),
+      ).rejects.toBeInstanceOf(CustomNotFoundError);
       expect(mockRepository.getScoringSchemaById).toHaveBeenCalledWith(
         testDto.id,
-        'user-1',
-        false,
+        writeOwnership,
       );
     });
   });

@@ -64,11 +64,12 @@ export class HelperController {
     @UserId() userId: string,
     @Req() req: { user: JwtDto },
   ): Promise<HelperResponse> {
-    return this.helperGateway.getById(
-      id,
+    return this.helperGateway.getById(id, {
       userId,
-      hasCollectionSuperuserPermission(req.user.permissions),
-    );
+      hasCollectionSuperuserPermission: hasCollectionSuperuserPermission(
+        req.user.permissions,
+      ),
+    });
   }
 
   @Post()
@@ -95,7 +96,10 @@ export class HelperController {
     @Body() input: UpdateHelperDto,
     @UserId() userId: string,
   ): Promise<HelperResponse> {
-    return this.helperGateway.update(id, input, userId);
+    return this.helperGateway.update(id, input, {
+      userId,
+      hasCollectionSuperuserPermission: false,
+    });
   }
 
   @Delete(':id')
@@ -108,6 +112,9 @@ export class HelperController {
     @Param('id') id: string,
     @UserId() userId: string,
   ): Promise<HelperResponse> {
-    return this.helperGateway.delete(id, userId);
+    return this.helperGateway.delete(id, {
+      userId,
+      hasCollectionSuperuserPermission: false,
+    });
   }
 }

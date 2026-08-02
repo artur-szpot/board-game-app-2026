@@ -103,6 +103,9 @@ describe('LocationController (e2e)', () => {
     expect(payload).toEqual(
       expect.objectContaining({ id: 'loc-1', name: 'Forest' }),
     );
-    expect(gateway.getById).toHaveBeenCalledWith('loc-1', '123-abc', false);
+    expect(gateway.getById).toHaveBeenCalledWith('loc-1', {
+      userId: '123-abc',
+      hasCollectionSuperuserPermission: false,
+    });
   });
 });
