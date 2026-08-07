@@ -1,11 +1,15 @@
 /* eslint-disable no-case-declarations */
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import {
-  Alert,
-  Box,
-  ButtonBase,
-  Paper,
-  Stack,
-  Typography,
+    Alert,
+    Box,
+    IconButton,
+    Paper,
+    Stack,
+    Tooltip,
+    Typography,
 } from "@mui/material";
 
 import type { GameBadgeProps } from "../../components/screens/GameBadge";
@@ -20,13 +24,23 @@ type EntityPanelContentProps<Category extends string, Item> = {
   items: Item[];
   loading: boolean;
   error?: string;
-  onViewItem?: (item: Item) => void;
+  onViewItem: (item: Item) => void;
+  canViewItem: (item: Item) => boolean;
+  onEditItem: (item: Item) => void;
+  canEditItem: (item: Item) => boolean;
+  onDeleteItem: (item: Item) => void;
+  canDeleteItem: (item: Item) => boolean;
 };
 
 const renderItem = <Item,>(
   item: Item,
   category: string,
-  onViewItem?: (item: Item) => void,
+  onViewItem: (item: Item) => void,
+  canViewItem: (item: Item) => boolean,
+  onEditItem: (item: Item) => void,
+  canEditItem: (item: Item) => boolean,
+  onDeleteItem: (item: Item) => void,
+  canDeleteItem: (item: Item) => boolean,
 ) => {
   const record = (item ?? {}) as Record<string, unknown>;
   let name =
@@ -87,44 +101,83 @@ const renderItem = <Item,>(
       break;
   }
 
+  const canView = canViewItem(item);
+  const canEdit = canEditItem(item);
+  const canDelete = canDeleteItem(item);
+
   return (
     <Paper className="entity-panel-item" elevation={2}>
-      {onViewItem ? (
-        <ButtonBase
-          className="entity-panel-item-title-action"
-          onClick={() => onViewItem(item)}
-        >
+      <Box className="entity-panel-item-layout">
+        <Box className="entity-panel-item-main">
           <Typography component="h3" variant="h6">
             {name}
           </Typography>
-        </ButtonBase>
-      ) : (
-        <Typography component="h3" variant="h6">
-          {name}
-        </Typography>
-      )}
-      {description !== undefined && description.length > 0 && (
-        <Typography component="p" variant="body2">
-          {description}
-        </Typography>
-      )}
-      {category === "location" &&
-        locationPath !== undefined &&
-        locationPath.length > 0 && (
-          <Typography color="text.secondary" component="p" variant="body2">
-            {locationPath}
-          </Typography>
-        )}
-      {badges.length > 0 && (
-        <Box className="entity-panel-badges">
-          {badges.map((badge, index) => (
-            <GameBadge
-              key={`${badge.type}-${badge.value}-${index.toString()}`}
-              {...badge}
-            />
-          ))}
+          {description !== undefined && description.length > 0 && (
+            <Typography component="p" variant="body2">
+              {description}
+            </Typography>
+          )}
+          {category === "location" &&
+            locationPath !== undefined &&
+            locationPath.length > 0 && (
+              <Typography color="text.secondary" component="p" variant="body2">
+                {locationPath}
+              </Typography>
+            )}
+          {badges.length > 0 && (
+            <Box className="entity-panel-badges">
+              {badges.map((badge, index) => (
+                <GameBadge
+                  key={`${badge.type}-${badge.value}-${index.toString()}`}
+                  {...badge}
+                />
+              ))}
+            </Box>
+          )}
         </Box>
-      )}
+        <Stack
+          className="entity-panel-item-actions"
+          direction="row"
+          spacing={0.5}
+        >
+          <Tooltip title="View">
+            <span>
+              <IconButton
+                aria-label="View item"
+                size="small"
+                onClick={() => onViewItem(item)}
+                disabled={!canView}
+              >
+                <VisibilityIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Tooltip title="Edit">
+            <span>
+              <IconButton
+                aria-label="Edit item"
+                size="small"
+                onClick={() => onEditItem(item)}
+                disabled={!canEdit}
+              >
+                <EditIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Tooltip title="Delete">
+            <span>
+              <IconButton
+                aria-label="Delete item"
+                size="small"
+                onClick={() => onDeleteItem(item)}
+                disabled={!canDelete}
+              >
+                <DeleteIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+        </Stack>
+      </Box>
     </Paper>
   );
 };
@@ -135,6 +188,11 @@ export const EntityPanelContent = <Category extends string, Item>({
   loading,
   error,
   onViewItem,
+  canViewItem,
+  onEditItem,
+  canEditItem,
+  onDeleteItem,
+  canDeleteItem,
 }: EntityPanelContentProps<Category, Item>) => {
   if (!tab) {
     return <Alert severity="error">404</Alert>;
@@ -158,7 +216,16 @@ export const EntityPanelContent = <Category extends string, Item>({
     <Stack className="entity-panel-items" component="ul" spacing={1.5}>
       {items.map((item, index) => (
         <Box key={index} component="li">
-          {renderItem(item, tab.category, onViewItem)}
+          {renderItem(
+            item,
+            tab.category,
+            onViewItem,
+            canViewItem,
+            onEditItem,
+            canEditItem,
+            onDeleteItem,
+            canDeleteItem,
+          )}
         </Box>
       ))}
     </Stack>

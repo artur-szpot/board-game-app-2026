@@ -60,6 +60,8 @@ export type LocationResponseDto = {
 
 export type HelperResponseDto = {
   id: string;
+  ownerId: string;
+  private: boolean;
   name: string;
   logic: Record<string, unknown>;
   createdOn: string;
@@ -68,6 +70,8 @@ export type HelperResponseDto = {
 
 export type ScoringSchemaResponseDto = {
   id: string;
+  ownerId: string;
+  private: boolean;
   name: string;
   description?: string;
   schema: Record<string, unknown>;
