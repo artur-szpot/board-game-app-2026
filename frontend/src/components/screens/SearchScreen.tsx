@@ -185,9 +185,9 @@ export const SearchScreen: FC<SearchScreenPropsFull> = ({
                   {strategy.strategy ===
                     SelectionStrategyEnum.SELECT_MULTIPLE &&
                   chosen.some(c => isSameSelectionResult(c, result)) ? (
-                    <CheckCircleIcon color="secondary" sx={{ mr: 1 }} />
+                    <CheckCircleIcon color="inherit" sx={{ mr: 1 }} />
                   ) : (
-                    <RadioButtonUnchecked color="secondary" sx={{ mr: 1 }} />
+                    <RadioButtonUnchecked color="inherit" sx={{ mr: 1 }} />
                   )}
                   <ListItemIcon sx={{ minWidth: 30, color: "inherit" }}>
                     {typeIcon(result.type)}

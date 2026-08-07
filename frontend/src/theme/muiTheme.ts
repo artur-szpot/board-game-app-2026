@@ -53,13 +53,17 @@ export const muiTheme = createTheme({
           color: alpha("#ffffff", 0.65),
         },
         ".data-item": {
-          border: `1px solid ${alpha("#ffffff", 0.24)}`,
-          backgroundColor: alpha("#0f1d3f", 0.78),
-          color: "#f4f8ff",
-        },
-        ".data-item .data-item-base button": {
-          backgroundColor: "#1d3c88",
+          border: `1px solid ${alpha("#ffffff", 0.18)}`,
+          backgroundColor: alpha("#ffffff", 0.08),
           color: "#ffffff",
+        },
+        ".data-item .data-item-base .MuiIconButton-root": {
+          color: alpha("#ffffff", 0.88),
+          border: `1px solid ${alpha("#ffffff", 0.2)}`,
+          borderRadius: 8,
+        },
+        ".data-item .data-item-base .MuiIconButton-root:hover": {
+          backgroundColor: alpha("#ffffff", 0.14),
         },
         ".navbar.MuiAppBar-root": {
           backgroundColor: "#1a2f6f",
