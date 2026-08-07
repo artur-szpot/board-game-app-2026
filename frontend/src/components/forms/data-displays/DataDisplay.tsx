@@ -1,11 +1,13 @@
+import ClearIcon from "@mui/icons-material/Clear";
+import { IconButton } from "@mui/material";
 import type { FC } from "react";
 
 import type { SelectionResult } from "../../screens/selection-strategies";
 import { FormCheckboxField } from "../FormCheckboxField";
 import { FormTextField } from "../FormTextField";
 import type {
-    AdditionalFieldChangeReceiver,
-    AdditionalStringFieldChangeReceiver,
+  AdditionalFieldChangeReceiver,
+  AdditionalStringFieldChangeReceiver,
 } from "../selection-field-props";
 
 export type DataDisplayProps = {
@@ -36,9 +38,14 @@ export const DataDisplay: FC<DataDisplayProps> = (props: DataDisplayProps) => {
     <div className={`data-item data-${type}`}>
       <div className="data-item-base">
         <p>{name}</p>
-        <button type="button" onClick={() => removeItem(item)}>
-          {"[x]"}
-        </button>
+        <IconButton
+          aria-label={`Remove ${name}`}
+          onClick={() => removeItem(item)}
+          edge="end"
+          size="small"
+        >
+          <ClearIcon fontSize="small" />
+        </IconButton>
       </div>
       {Object.entries(textFieldConfigs).map(([fieldName, field]) => {
         return (

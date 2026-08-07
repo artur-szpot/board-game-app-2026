@@ -1,5 +1,4 @@
 - same X button from inputs on chosen items in search screen
-- confirmation popup for deletion
 - edit forms to match add forms
 - ability to create SYSTEM-owned tags from the form (check user permission to show the option)
 - change auth forms to use FormScreen
