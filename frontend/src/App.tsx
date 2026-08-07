@@ -10,6 +10,8 @@ import { Signout } from "./routes/auth/Signout";
 import { Signup } from "./routes/auth/Signup";
 import { CollectionPanel } from "./routes/collection-panel/CollectionPanel";
 import { GameDetails } from "./routes/game-details/GameDetails";
+import { LocationDetails } from "./routes/location-details/LocationDetails";
+import { TagDetails } from "./routes/tag-details/TagDetails";
 
 import "./css/index.scss";
 
@@ -51,10 +53,12 @@ export const App = () => {
               path="tags"
               element={<CollectionPanel content={GameDataType.TAG} />}
             />
+            <Route path="tags/:id" element={<TagDetails />} />
             <Route
               path="locations"
               element={<CollectionPanel content={GameDataType.LOCATION} />}
             />
+            <Route path="locations/:id" element={<LocationDetails />} />
             <Route
               path="helpers"
               element={<CollectionPanel content={GameDataType.HELPER} />}

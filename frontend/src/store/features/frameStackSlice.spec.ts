@@ -20,8 +20,10 @@ import {
     FrameTypeEnum,
     openFormFrame,
     openGameDetailsFrame,
+    openLocationDetailsFrame,
     openOptionsFrame,
     openSearchFrame,
+    openTagDetailsFrame,
     resetToBottomFrame,
     sameFrameResult,
 } from "./frameStackSlice";
@@ -107,6 +109,40 @@ describe("frameStackSlice", () => {
       frameType: FrameTypeEnum.GAME_DETAILS,
       params: {
         gameId: "game-1",
+        openedAsFrame: true,
+      },
+      callbackReceiverId: undefined,
+    });
+  });
+
+  it("should open a tag details frame", () => {
+    const nextState = frameStackSlice.reducer(
+      initialState,
+      openTagDetailsFrame({ params: { tagId: "tag-1" } }),
+    );
+
+    expect(nextState.stack).toHaveLength(2);
+    expect(nextState.stack[1]).toMatchObject({
+      frameType: FrameTypeEnum.TAG_DETAILS,
+      params: {
+        tagId: "tag-1",
+        openedAsFrame: true,
+      },
+      callbackReceiverId: undefined,
+    });
+  });
+
+  it("should open a location details frame", () => {
+    const nextState = frameStackSlice.reducer(
+      initialState,
+      openLocationDetailsFrame({ params: { locationId: "location-1" } }),
+    );
+
+    expect(nextState.stack).toHaveLength(2);
+    expect(nextState.stack[1]).toMatchObject({
+      frameType: FrameTypeEnum.LOCATION_DETAILS,
+      params: {
+        locationId: "location-1",
         openedAsFrame: true,
       },
       callbackReceiverId: undefined,

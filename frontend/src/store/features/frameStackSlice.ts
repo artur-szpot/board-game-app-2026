@@ -1,24 +1,26 @@
 import type { PayloadAction } from "@reduxjs/toolkit";
 
 import type {
-  FormScreenProps,
-  FormScreenPropsFull,
+    FormScreenProps,
+    FormScreenPropsFull,
 } from "../../components/screens/FormScreenProps";
 import type { GameDetailsScreenProps } from "../../components/screens/GameDetailsScreenProps";
+import type { LocationDetailsScreenProps } from "../../components/screens/LocationDetailsScreenProps";
 import type {
-  OptionsScreenProps,
-  OptionsScreenPropsFull,
+    OptionsScreenProps,
+    OptionsScreenPropsFull,
 } from "../../components/screens/OptionsScreenProps";
 import type {
-  SearchScreenProps,
-  SearchScreenPropsFull,
+    SearchScreenProps,
+    SearchScreenPropsFull,
 } from "../../components/screens/SearchScreenProps";
+import type { TagDetailsScreenProps } from "../../components/screens/TagDetailsScreenProps";
 import { createAppSlice } from "../createAppSlice";
 import { registerFormScreenCustomMappings } from "./formScreenCustomMappingRegistry";
 import type { ActionEnum } from "./frame-actions";
 import {
-  registerFrameCallback,
-  type FrameCallbackToken,
+    registerFrameCallback,
+    type FrameCallbackToken,
 } from "./frameCallbackRegistry";
 
 export type FrameCallbackContent = {
@@ -32,6 +34,8 @@ export enum FrameTypeEnum {
   SEARCH = "SEARCH",
   FORM = "FORM",
   GAME_DETAILS = "GAME_DETAILS",
+  TAG_DETAILS = "TAG_DETAILS",
+  LOCATION_DETAILS = "LOCATION_DETAILS",
 }
 
 export type FrameCallbackReceiver = (result: FrameCallbackContent) => void;
@@ -48,6 +52,8 @@ export type FrameStackItem = {
     | SearchScreenPropsFull
     | FormScreenPropsFull
     | GameDetailsScreenProps
+    | TagDetailsScreenProps
+    | LocationDetailsScreenProps
     | undefined;
 };
 
@@ -259,6 +265,70 @@ export const frameStackSlice = createAppSlice({
         );
       },
     ),
+    openTagDetailsFrame: create.preparedReducer(
+      (payload: FrameStackDto<TagDetailsScreenProps>) => ({
+        payload: {
+          params: payload.params,
+          callbackReceiverId: payload.callbackReceiver
+            ? registerFrameCallback(payload.callbackReceiver)
+            : undefined,
+          callbackEmitterId: payload.callbackEmitter
+            ? registerFrameCallback(payload.callbackEmitter)
+            : undefined,
+        },
+      }),
+      (
+        state: FrameStackState,
+        action: PayloadAction<FrameStackReducerDto<TagDetailsScreenProps>>,
+      ) => {
+        const id = crypto.randomUUID();
+        state.stack.push(
+          createFrame(
+            id,
+            FrameTypeEnum.TAG_DETAILS,
+            {
+              ...action.payload.params,
+              openedAsFrame: true,
+              frameId: id,
+            },
+            action.payload.callbackReceiverId,
+            action.payload.callbackEmitterId,
+          ),
+        );
+      },
+    ),
+    openLocationDetailsFrame: create.preparedReducer(
+      (payload: FrameStackDto<LocationDetailsScreenProps>) => ({
+        payload: {
+          params: payload.params,
+          callbackReceiverId: payload.callbackReceiver
+            ? registerFrameCallback(payload.callbackReceiver)
+            : undefined,
+          callbackEmitterId: payload.callbackEmitter
+            ? registerFrameCallback(payload.callbackEmitter)
+            : undefined,
+        },
+      }),
+      (
+        state: FrameStackState,
+        action: PayloadAction<FrameStackReducerDto<LocationDetailsScreenProps>>,
+      ) => {
+        const id = crypto.randomUUID();
+        state.stack.push(
+          createFrame(
+            id,
+            FrameTypeEnum.LOCATION_DETAILS,
+            {
+              ...action.payload.params,
+              openedAsFrame: true,
+              frameId: id,
+            },
+            action.payload.callbackReceiverId,
+            action.payload.callbackEmitterId,
+          ),
+        );
+      },
+    ),
     closeFrame: create.reducer(
       (
         state,
@@ -340,6 +410,8 @@ export const {
   openSearchFrame,
   openFormFrame,
   openGameDetailsFrame,
+  openTagDetailsFrame,
+  openLocationDetailsFrame,
   closeFrame,
   sameFrameResult,
   resetToBottomFrame,
