@@ -1,5 +1,8 @@
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import ClearIcon from "@mui/icons-material/Clear";
 import {
-  Chip,
+  IconButton,
+  InputAdornment,
   List,
   ListItem,
   ListItemButton,
@@ -13,6 +16,7 @@ import axios from "axios";
 import type { ChangeEvent, FC } from "react";
 import { useEffect, useState } from "react";
 
+import { RadioButtonUnchecked } from "@mui/icons-material";
 import { selectAccessToken } from "../../store/features/currentUserSlice";
 import { buildChoiceMadeFromItems } from "../../store/features/frame-actions";
 import { closeFrame } from "../../store/features/frameStackSlice";
@@ -142,6 +146,23 @@ export const SearchScreen: FC<SearchScreenPropsFull> = ({
             label="Search term"
             value={searchTerm}
             onChange={handleChange}
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="Clear search"
+                      onClick={() => setSearchTerm("")}
+                      edge="end"
+                      size="small"
+                      disabled={searchTerm.length === 0}
+                    >
+                      <ClearIcon fontSize="small" />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
+            }}
           />
           <List>
             {results.length === 0 && (
@@ -159,36 +180,19 @@ export const SearchScreen: FC<SearchScreenPropsFull> = ({
               <ListItem key={`${result.type}:${result.value}`} disablePadding>
                 <ListItemButton
                   onClick={() => onOptionClick(result)}
-                  aria-label={`${
-                    strategy.strategy ===
-                      SelectionStrategyEnum.SELECT_MULTIPLE &&
-                    chosen.some(c => isSameSelectionResult(c, result))
-                      ? "[CHOSEN]"
-                      : ""
-                  }${result.name}`}
+                  aria-label={result.name}
                 >
                   {strategy.strategy ===
                     SelectionStrategyEnum.SELECT_MULTIPLE &&
-                    chosen.some(c => isSameSelectionResult(c, result)) && (
-                      <Chip
-                        label="CHOSEN"
-                        color="secondary"
-                        size="small"
-                        sx={{ mr: 1 }}
-                      />
-                    )}
+                  chosen.some(c => isSameSelectionResult(c, result)) ? (
+                    <CheckCircleIcon color="secondary" sx={{ mr: 1 }} />
+                  ) : (
+                    <RadioButtonUnchecked color="secondary" sx={{ mr: 1 }} />
+                  )}
                   <ListItemIcon sx={{ minWidth: 30, color: "inherit" }}>
                     {typeIcon(result.type)}
                   </ListItemIcon>
-                  <ListItemText
-                    primary={`${
-                      strategy.strategy ===
-                        SelectionStrategyEnum.SELECT_MULTIPLE &&
-                      chosen.some(c => isSameSelectionResult(c, result))
-                        ? "[CHOSEN]"
-                        : ""
-                    }${result.name}`}
-                  />
+                  <ListItemText primary={result.name} />
                 </ListItemButton>
               </ListItem>
             ))}

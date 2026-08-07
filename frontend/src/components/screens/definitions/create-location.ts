@@ -11,7 +11,7 @@ import {
 export const createLocationScreen: FormScreenProps = {
   method: "POST",
   action: "game-api/locations",
-  title: "Add new location",
+  title: "Add a new location",
   fields: [
     formText({
       name: "name",

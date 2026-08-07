@@ -6,31 +6,32 @@ import { useCallback, useEffect, useState } from "react";
 import { getFormScreenCustomMappings } from "../../store/features/formScreenCustomMappingRegistry";
 import { resultMapper } from "../../store/features/frame-actions";
 import type {
-    FrameCallbackContent,
-    FrameCallbackReceiver,
+  FrameCallbackContent,
+  FrameCallbackReceiver,
 } from "../../store/features/frameStackSlice";
 import {
-    addCallbackReceiverToTopFrame,
-    closeFrame,
+  addCallbackReceiverToTopFrame,
+  closeFrame,
 } from "../../store/features/frameStackSlice";
 import { useAppDispatch } from "../../store/hooks";
 import { FormFieldType } from "../forms/common";
 import { FormCheckboxField } from "../forms/FormCheckboxField";
+import { FormFieldNumericInput } from "../forms/FormFieldNumericInput";
 import { FormOptionsField } from "../forms/FormOptionsField";
 import { FormSearchField } from "../forms/FormSearchField";
 import { FormTextField } from "../forms/FormTextField";
 import { MainActions } from "../MainActions";
 import {
-    mapFormValuesToResults,
-    type FormScreenField,
-    type FormScreenPropsFull,
-    type FormScreenValues,
+  mapFormValuesToResults,
+  type FormScreenField,
+  type FormScreenPropsFull,
+  type FormScreenValues,
 } from "./FormScreenProps";
 import {
-    isSameSelectionResult,
-    isSelectionCorrect,
-    type SelectionResult,
-    type SelectionScreenProps,
+  isSameSelectionResult,
+  isSelectionCorrect,
+  type SelectionResult,
+  type SelectionScreenProps,
 } from "./selection-strategies";
 
 const formScreenDraftCache = new Map<string, FormScreenValues>();
@@ -83,6 +84,13 @@ const buildInitialStringValues = (fields: FormScreenField[]) =>
     fields
       .filter(field => field.kind === FormFieldType.TEXT)
       .map(field => [field.name, field.initialValue ?? ""]),
+  );
+
+const buildInitialNumericValues = (fields: FormScreenField[]) =>
+  Object.fromEntries(
+    fields
+      .filter(field => field.kind === FormFieldType.NUMERIC)
+      .map(field => [field.name, field.initialValue ?? null]),
   );
 
 const buildInitialBooleanValues = (fields: FormScreenField[]) =>
@@ -138,6 +146,9 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
   const [stringValues, setStringValues] = useState<Record<string, string>>(
     draft?.stringValues ?? buildInitialStringValues(fields),
   );
+  const [numericValues, setNumericValues] = useState<
+    Record<string, number | null>
+  >(draft?.numericValues ?? buildInitialNumericValues(fields));
   const [booleanValues, setBooleanValues] = useState<Record<string, boolean>>(
     draft?.booleanValues ?? buildInitialBooleanValues(fields),
   );
@@ -150,6 +161,7 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
     if (!formScreenDraftCache.has(frameId)) {
       formScreenDraftCache.set(frameId, {
         stringValues,
+        numericValues,
         booleanValues,
         selectionValues,
       });
@@ -157,17 +169,35 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [frameId]);
 
+  const updateStringValue = (name: string, value: string) => {
+    setStringValues(current => {
+      const next = { ...current, [name]: value };
+      formScreenDraftCache.set(frameId, {
+        stringValues: next,
+        numericValues,
+        booleanValues,
+        selectionValues,
+      });
+      return next;
+    });
+  };
+
+  const updateNumericValue = (name: string, value: number | null) => {
+    setNumericValues(current => {
+      const next = { ...current, [name]: value };
+      formScreenDraftCache.set(frameId, {
+        stringValues,
+        numericValues: next,
+        booleanValues,
+        selectionValues,
+      });
+      return next;
+    });
+  };
+
   const handleStringChange =
     (name: string) => (event: ChangeEvent<HTMLInputElement>) => {
-      setStringValues(current => {
-        const next = { ...current, [name]: event.target.value };
-        formScreenDraftCache.set(frameId, {
-          stringValues: next,
-          booleanValues,
-          selectionValues,
-        });
-        return next;
-      });
+      updateStringValue(name, event.target.value);
     };
 
   const handleBooleanChange =
@@ -179,6 +209,7 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
         };
         formScreenDraftCache.set(frameId, {
           stringValues,
+          numericValues,
           booleanValues: next,
           selectionValues,
         });
@@ -188,8 +219,7 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
 
   const handleAdditionalStringFieldChange =
     (fieldName: string, item: SelectionResult, additionalFieldName: string) =>
-    (event: ChangeEvent<HTMLInputElement>) => {
-      const nextValue = event.target.value;
+    (nextValue: string) => {
       setSelectionValues(current => {
         const currentFieldSelections = current[fieldName] ?? [];
         const nextFieldSelections = currentFieldSelections.map(selection => {
@@ -210,6 +240,7 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
         };
         formScreenDraftCache.set(frameId, {
           stringValues,
+          numericValues,
           booleanValues,
           selectionValues: nextSelectionValues,
         });
@@ -241,6 +272,7 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
         };
         formScreenDraftCache.set(frameId, {
           stringValues,
+          numericValues,
           booleanValues,
           selectionValues: nextSelectionValues,
         });
@@ -308,6 +340,8 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
         return true;
       case FormFieldType.TEXT:
         return !field.required || stringValues[field.name].length;
+      case FormFieldType.NUMERIC:
+        return !field.required || numericValues[field.name] !== null;
       case FormFieldType.OPTIONS:
       case FormFieldType.SEARCH:
         return isSelectionCorrect(
@@ -369,6 +403,16 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
                       {...field}
                       value={stringValues[field.name]}
                       onChange={handleStringChange(field.name)}
+                      onClear={() => updateStringValue(field.name, "")}
+                    />
+                  );
+                case FormFieldType.NUMERIC:
+                  return (
+                    <FormFieldNumericInput
+                      key={field.name}
+                      {...field}
+                      value={numericValues[field.name]}
+                      onChange={value => updateNumericValue(field.name, value)}
                     />
                   );
                 case FormFieldType.OPTIONS:
@@ -383,13 +427,13 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
                       onAdditionalStringFieldChange={(
                         item,
                         additionalFieldName,
-                        event,
+                        value,
                       ) =>
                         handleAdditionalStringFieldChange(
                           field.name,
                           item,
                           additionalFieldName,
-                        )(event)
+                        )(value)
                       }
                       onAdditionalBooleanFieldChange={(
                         item,
@@ -427,13 +471,13 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
                       onAdditionalStringFieldChange={(
                         item,
                         additionalFieldName,
-                        event,
+                        value,
                       ) =>
                         handleAdditionalStringFieldChange(
                           field.name,
                           item,
                           additionalFieldName,
-                        )(event)
+                        )(value)
                       }
                       onAdditionalBooleanFieldChange={(
                         item,
@@ -468,6 +512,7 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
               confirmCallback={() => {
                 void dispatchResults({
                   stringValues,
+                  numericValues,
                   booleanValues,
                   selectionValues,
                 });

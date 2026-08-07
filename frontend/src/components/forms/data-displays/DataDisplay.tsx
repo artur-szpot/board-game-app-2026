@@ -3,12 +3,15 @@ import type { FC } from "react";
 import type { SelectionResult } from "../../screens/selection-strategies";
 import { FormCheckboxField } from "../FormCheckboxField";
 import { FormTextField } from "../FormTextField";
-import type { AdditionalFieldChangeReceiver } from "../selection-field-props";
+import type {
+    AdditionalFieldChangeReceiver,
+    AdditionalStringFieldChangeReceiver,
+} from "../selection-field-props";
 
 export type DataDisplayProps = {
   item: SelectionResult;
   removeItem: (item: SelectionResult) => void;
-  onAdditionalStringFieldChange: AdditionalFieldChangeReceiver;
+  onAdditionalStringFieldChange: AdditionalStringFieldChangeReceiver;
   onAdditionalBooleanFieldChange: AdditionalFieldChangeReceiver;
 };
 
@@ -44,8 +47,9 @@ export const DataDisplay: FC<DataDisplayProps> = (props: DataDisplayProps) => {
             key={fieldName}
             value={textFieldValues[fieldName] ?? field.initialValue ?? ""}
             onChange={event =>
-              onAdditionalStringFieldChange(item, fieldName, event)
+              onAdditionalStringFieldChange(item, fieldName, event.target.value)
             }
+            onClear={() => onAdditionalStringFieldChange(item, fieldName, "")}
           />
         );
       })}

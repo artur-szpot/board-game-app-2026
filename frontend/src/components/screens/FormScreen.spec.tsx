@@ -6,23 +6,21 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { buildChoiceMadeFromItems } from "../../store/features/frame-actions";
 import { invokeFrameCallback } from "../../store/features/frameCallbackRegistry";
 import {
-  closeFrame,
-  openOptionsFrame,
-  openSearchFrame,
+    closeFrame,
+    openOptionsFrame,
+    openSearchFrame,
 } from "../../store/features/frameStackSlice";
 import { formCheckbox } from "../forms/FormCheckboxField";
+import { formNumber } from "../forms/FormFieldNumericInput";
 import { formOptions } from "../forms/FormOptionsField";
 import { formSearch } from "../forms/FormSearchField";
-import {
-  formNumber,
-  formText
-} from "../forms/FormTextField";
+import { formText } from "../forms/FormTextField";
 import { FormScreen } from "./FormScreen";
 import type { FormScreenPropsFull } from "./FormScreenProps";
 import {
-  GameDataType,
-  ResultMappingStrategy,
-  selectionStrategySelectNumber,
+    GameDataType,
+    ResultMappingStrategy,
+    selectionStrategySelectNumber,
 } from "./selection-strategies";
 
 vi.mock("axios");
@@ -66,6 +64,14 @@ const getCallbackEmitterId = (action: unknown): string | undefined => {
   }
 
   return undefined;
+};
+
+const getNumericInput = (name: string): HTMLInputElement => {
+  const input = document.getElementById(`${name}-numeric-input`);
+  if (!(input instanceof HTMLInputElement)) {
+    throw new Error(`Expected numeric input for field ${name}`);
+  }
+  return input;
 };
 
 describe("FormScreen", () => {
@@ -125,8 +131,7 @@ describe("FormScreen", () => {
     expect(confirmButton).toBeDisabled();
 
     await user.type(screen.getByLabelText("Title"), "Brass");
-    const minPlayersInput = screen.getByLabelText("Minimum players");
-    expect(minPlayersInput).toHaveAttribute("type", "number");
+    const minPlayersInput = getNumericInput("minPlayers");
     await user.type(minPlayersInput, "4");
     await user.click(screen.getByLabelText("Published"));
     await user.click(screen.getByRole("button", { name: "Choose" }));
@@ -183,6 +188,72 @@ describe("FormScreen", () => {
         id: "form-1",
       }),
     );
+  });
+
+  it("clears text fields and caches the cleared values", async () => {
+    const user = userEvent.setup();
+    const props: FormScreenPropsFull = {
+      frameId: "clearable-form",
+      title: "Edit game",
+      action: "some/url",
+      method: "POST",
+      fields: [
+        formText({
+          name: "title",
+          label: "Title",
+          required: true,
+          initialValue: "Brass",
+        }),
+        formNumber({
+          name: "minPlayers",
+          label: "Minimum players",
+          required: true,
+          initialValue: 4,
+        }),
+      ],
+    };
+
+    const firstRender = render(<FormScreen {...props} />);
+
+    expect(screen.getByRole("button", { name: "Confirm" })).toBeEnabled();
+
+    await user.click(screen.getByRole("button", { name: "Clear Title" }));
+
+    expect(screen.getByLabelText("Title")).toHaveValue("");
+    expect(screen.getByRole("button", { name: "Clear Title" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Confirm" })).toBeDisabled();
+
+    firstRender.unmount();
+    render(<FormScreen {...props} />);
+
+    expect(screen.getByLabelText("Title")).toHaveValue("");
+    expect(getNumericInput("minPlayers")).toHaveValue("4");
+  });
+
+  it("increments numeric input values via spinner controls", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <FormScreen
+        frameId="invalid-number-form"
+        title="Edit game"
+        action="some/url"
+        method="POST"
+        fields={[
+          formNumber({
+            name: "minPlayers",
+            label: "Minimum players",
+            required: true,
+            initialValue: 4,
+          }),
+        ]}
+      />,
+    );
+
+    const increaseButton = screen.getByRole("button", { name: "Increase" });
+    await user.click(increaseButton);
+
+    expect(getNumericInput("minPlayers")).toHaveValue("5");
   });
 
   it("restores cached draft state when reopened with the same frame id", async () => {

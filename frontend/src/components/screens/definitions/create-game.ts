@@ -1,10 +1,8 @@
 import { GameLength } from "../../../dto/game-length.enum";
+import { formNumber } from "../../forms/FormFieldNumericInput";
 import { formOptions } from "../../forms/FormOptionsField";
 import { formSearch } from "../../forms/FormSearchField";
-import {
-  formNumber,
-  formText
-} from "../../forms/FormTextField";
+import { formText } from "../../forms/FormTextField";
 import type { FormScreenProps } from "../FormScreenProps";
 import type { SelectionResult } from "../selection-strategies";
 import {
@@ -17,7 +15,7 @@ import {
 export const createGameScreen: FormScreenProps = {
   method: "POST",
   action: "game-api/games",
-  title: "Add new game",
+  title: "Add a new game",
   fields: [
     formText({
       name: "name",
@@ -32,11 +30,15 @@ export const createGameScreen: FormScreenProps = {
       name: "minPlayers",
       label: "Minimum players",
       initialValue: 2,
+      min: 1,
+      max: 99,
     }),
     formNumber({
       name: "maxPlayers",
       label: "Maximum players",
       initialValue: 4,
+      min: 1,
+      max: 99,
     }),
     formOptions({
       name: "length",
