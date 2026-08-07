@@ -1,6 +1,3 @@
-- tag view screen
-- location view screen
-- view/edit/delete button in DataDisplay
 - same X button from inputs on chosen items in search screen
 - confirmation popup for deletion
 - edit forms to match add forms

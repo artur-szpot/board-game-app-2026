@@ -4,7 +4,11 @@ import { createGameScreen } from "../../components/screens/definitions/create-ga
 import { createLocationScreen } from "../../components/screens/definitions/create-location";
 import { createTagScreen } from "../../components/screens/definitions/create-tag";
 import { GameDataType } from "../../components/screens/selection-strategies";
-import { openGameDetailsFrame } from "../../store/features/frameStackSlice";
+import {
+  openGameDetailsFrame,
+  openLocationDetailsFrame,
+  openTagDetailsFrame,
+} from "../../store/features/frameStackSlice";
 import type { EntityPanelTab } from "../entity-panel/entity-panel-types";
 import { EntityPanel } from "../entity-panel/EntityPanel";
 import type {
@@ -31,6 +35,7 @@ const COLLECTION_TABS: EntityPanelTab<
     routeSegment: "tags",
     label: "Tags",
     createScreen: createTagScreen,
+    viewScreen: item => openTagDetailsFrame({ params: { tagId: item.id } }),
     deleteEndpoint: (item: CollectionPanelItem) => `game-api/tags/${item.id}`,
   },
   {
@@ -38,6 +43,8 @@ const COLLECTION_TABS: EntityPanelTab<
     routeSegment: "locations",
     label: "Locations",
     createScreen: createLocationScreen,
+    viewScreen: item =>
+      openLocationDetailsFrame({ params: { locationId: item.id } }),
     deleteEndpoint: (item: CollectionPanelItem) =>
       `game-api/locations/${item.id}`,
   },

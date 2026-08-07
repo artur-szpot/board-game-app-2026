@@ -14,8 +14,11 @@ Source: frontend/src/App.tsx
 - /admin/roles
 - /admin/users
 - /collection/games
+- /collection/games/:id
 - /collection/tags
+- /collection/tags/:id
 - /collection/locations
+- /collection/locations/:id
 - /collection/helpers
 - /collection/scoring-schemas
 
