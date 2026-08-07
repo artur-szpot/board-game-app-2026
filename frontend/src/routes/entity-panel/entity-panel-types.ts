@@ -8,6 +8,8 @@ export type EntityPanelTab<Category extends string, Item> = {
   routeSegment?: string;
   createScreen?: FormScreenProps;
   viewScreen?: (item: Item) => UnknownAction;
+  editScreen?: (item: Item) => UnknownAction;
+  deleteEndpoint?: (item: Item) => string;
 };
 
 type SearchResultWithDetail<Type extends string, Detail> = {

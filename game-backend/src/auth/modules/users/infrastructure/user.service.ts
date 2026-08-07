@@ -1,19 +1,19 @@
 import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  Logger,
+    BadRequestException,
+    Inject,
+    Injectable,
+    Logger,
 } from '@nestjs/common';
 
 import {
-  CustomInternalError,
-  CustomNotFoundError,
+    CustomInternalError,
+    CustomNotFoundError,
 } from '@common/errors/service-errors';
 import { validateUpdateDtoNotEmpty } from '@common/helpers/validate-update-dto-not-empty';
 import { Paginated } from '@common/pagination/Paginated';
 import {
-  USER_REPOSITORY,
-  UserRepository,
+    USER_REPOSITORY,
+    UserRepository,
 } from '@db/repositories/user.repository';
 
 import { permissionMapper } from '@auth/modules/permissions/mappers/permission.mapper';
@@ -63,13 +63,14 @@ export class UserService implements UserGateway {
   public async getMe(userId: string): Promise<MeResponse> {
     const user = await this.getUser(userId);
     user.sanitize();
-    const { username } = user.getProps();
+    const { id, username } = user.getProps();
     const permissions = user
       .getPermissions()
       .map((permission) =>
         permissionMapper.fromDefinition.toResponse(permission),
       );
     return {
+      id,
       username,
       permissions,
     };

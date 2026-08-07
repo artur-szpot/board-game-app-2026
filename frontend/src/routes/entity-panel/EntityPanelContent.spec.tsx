@@ -6,7 +6,9 @@ import { GameDataType } from "../../components/screens/selection-strategies";
 import { EntityPanelContent } from "./EntityPanelContent";
 
 describe("EntityPanelContent", () => {
-  it("opens the configured view action when the item name is clicked", async () => {
+  const noop = () => undefined;
+
+  it("opens the configured view action when the view button is clicked", async () => {
     const user = userEvent.setup();
     const onViewItem = vi.fn();
 
@@ -26,17 +28,22 @@ describe("EntityPanelContent", () => {
         ]}
         loading={false}
         onViewItem={onViewItem}
+        canViewItem={() => true}
+        onEditItem={noop}
+        canEditItem={() => false}
+        onDeleteItem={noop}
+        canDeleteItem={() => false}
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: "Brass" }));
+    await user.click(screen.getByRole("button", { name: "View item" }));
 
     expect(onViewItem).toHaveBeenCalledWith(
       expect.objectContaining({ id: "game-1", name: "Brass" }),
     );
   });
 
-  it("renders a plain heading when no view action is configured", () => {
+  it("keeps action buttons visible while disabled when actions are not available", () => {
     render(
       <EntityPanelContent
         tab={{ category: GameDataType.TAG, label: "Tags" }}
@@ -48,15 +55,46 @@ describe("EntityPanelContent", () => {
           },
         ]}
         loading={false}
+        onViewItem={noop}
+        canViewItem={() => false}
+        onEditItem={noop}
+        canEditItem={() => false}
+        onDeleteItem={noop}
+        canDeleteItem={() => false}
       />,
     );
 
     expect(
-      screen.queryByRole("button", { name: "Strategy" }),
-    ).not.toBeInTheDocument();
-    expect(
       screen.getByRole("heading", { name: "Strategy" }),
     ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "View item" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Edit item" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Delete item" })).toBeDisabled();
+  });
+
+  it("disables role delete action for protected roles", () => {
+    render(
+      <EntityPanelContent
+        tab={{ category: "role", label: "Roles" }}
+        items={[
+          {
+            id: "role-1",
+            name: "Admin",
+            protectedRole: true,
+            permissions: [],
+          },
+        ]}
+        loading={false}
+        onViewItem={noop}
+        canViewItem={() => false}
+        onEditItem={noop}
+        canEditItem={() => false}
+        onDeleteItem={noop}
+        canDeleteItem={() => false}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "Delete item" })).toBeDisabled();
   });
 
   it("renders location path under description for location items", () => {
@@ -76,6 +114,12 @@ describe("EntityPanelContent", () => {
           },
         ]}
         loading={false}
+        onViewItem={noop}
+        canViewItem={() => false}
+        onEditItem={noop}
+        canEditItem={() => false}
+        onDeleteItem={noop}
+        canDeleteItem={() => false}
       />,
     );
 
@@ -96,6 +140,12 @@ describe("EntityPanelContent", () => {
           },
         ]}
         loading={false}
+        onViewItem={noop}
+        canViewItem={() => false}
+        onEditItem={noop}
+        canEditItem={() => false}
+        onDeleteItem={noop}
+        canDeleteItem={() => false}
       />,
     );
 

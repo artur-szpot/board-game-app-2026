@@ -102,11 +102,35 @@
 div.entity-panel-item {
   padding: 1rem;
 
-  button.entity-panel-item-title-action {
-    align-items: flex-start;
-    display: inline-flex;
-    justify-content: flex-start;
-    text-align: left;
+  .entity-panel-item-layout {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .entity-panel-item-main {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .entity-panel-item-actions {
+    flex-shrink: 0;
+
+    .MuiIconButton-root {
+      width: 3.5rem;
+      height: 3.5rem;
+      border: 1px solid rgb(255 255 255 / 20%);
+      border-radius: 8px;
+
+      &:not(.Mui-disabled):hover {
+        background-color: rgb(255 255 255 / 16%);
+      }
+
+      &:not(.Mui-disabled):active {
+        background-color: rgb(255 255 255 / 24%);
+      }
+    }
   }
 
   h3 {
@@ -152,5 +176,16 @@ div.entity-panel-item {
   .entity-panel-pagination-summary,
   .entity-panel-page-size-controls {
     justify-self: center;
+  }
+
+  div.entity-panel-item {
+    .entity-panel-item-layout {
+      flex-direction: column;
+    }
+
+    .entity-panel-item-actions {
+      width: 100%;
+      justify-content: flex-end;
+    }
   }
 }

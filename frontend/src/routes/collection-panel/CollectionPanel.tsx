@@ -8,10 +8,10 @@ import { openGameDetailsFrame } from "../../store/features/frameStackSlice";
 import type { EntityPanelTab } from "../entity-panel/entity-panel-types";
 import { EntityPanel } from "../entity-panel/EntityPanel";
 import type {
-    CollectionPanelCategory,
-    CollectionPanelDetailsByType,
-    CollectionPanelItem,
-    CollectionPanelProps,
+  CollectionPanelCategory,
+  CollectionPanelDetailsByType,
+  CollectionPanelItem,
+  CollectionPanelProps,
 } from "./collection-types";
 
 const COLLECTION_TABS: EntityPanelTab<
@@ -24,28 +24,36 @@ const COLLECTION_TABS: EntityPanelTab<
     label: "Games",
     createScreen: createGameScreen,
     viewScreen: item => openGameDetailsFrame({ params: { gameId: item.id } }),
+    deleteEndpoint: (item: CollectionPanelItem) => `game-api/games/${item.id}`,
   },
   {
     category: GameDataType.TAG,
     routeSegment: "tags",
     label: "Tags",
     createScreen: createTagScreen,
+    deleteEndpoint: (item: CollectionPanelItem) => `game-api/tags/${item.id}`,
   },
   {
     category: GameDataType.LOCATION,
     routeSegment: "locations",
     label: "Locations",
     createScreen: createLocationScreen,
+    deleteEndpoint: (item: CollectionPanelItem) =>
+      `game-api/locations/${item.id}`,
   },
   {
     category: GameDataType.HELPER,
     routeSegment: "helpers",
     label: "Helpers",
+    deleteEndpoint: (item: CollectionPanelItem) =>
+      `game-api/helpers/${item.id}`,
   },
   {
     category: GameDataType.SCORING_SCHEMA,
     routeSegment: "scoring-schemas",
     label: "Scoring Schemas",
+    deleteEndpoint: (item: CollectionPanelItem) =>
+      `game-api/scoring-schemas/${item.id}`,
   },
 ];
 

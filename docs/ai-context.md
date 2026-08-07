@@ -39,6 +39,8 @@ Use this file to capture operational context, decisions, and any remaining unkno
 - Shared collection visibility: authenticated users can read their own and `SYSTEM`-owned tags, helpers, and scoring schemas; `private` remains ignored for read authorization.
 - Shared collection creation: `POST /game-api/tags/system`, `/game-api/helpers/system`, and `/game-api/scoring-schemas/system` require `SYSTEM_COLLECTION:FULL` and force `ownerId = SYSTEM` and `private = false`.
 - Shared collection mutation: existing PUT/PATCH/DELETE routes still require `GAME_COLLECTIONS:FULL`; a `SYSTEM`-owned target additionally requires `SYSTEM_COLLECTION:FULL` and otherwise returns 403.
+- EntityPanel item actions are now always-visible icon buttons (View, Edit, Delete) on each item card; buttons stay visible but are disabled when no action is configured or ownership/permission rules do not allow the action.
+- EntityPanel ownership gate for Edit/Delete: user-owned items are mutable; `SYSTEM`-owned items require `SYSTEM_COLLECTION:FULL`; roles additionally disable Edit/Delete when `protectedRole = true`.
 
 ## Frontend Frame Stack Notes
 

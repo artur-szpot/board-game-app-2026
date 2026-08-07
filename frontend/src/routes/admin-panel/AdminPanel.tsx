@@ -11,8 +11,22 @@ import type {
 
 const ADMIN_TABS: EntityPanelTab<AdminDataType, AdminPanelItem>[] = [
   { category: AdminDataType.PERMISSION, routeSegment: "permissions" },
-  { category: AdminDataType.ROLE, routeSegment: "roles" },
-  { category: AdminDataType.USER, routeSegment: "users" },
+  {
+    category: AdminDataType.ROLE,
+    routeSegment: "roles",
+    deleteEndpoint: item => {
+      const record = item as { id?: string };
+      return `roles/${record.id ?? ""}`;
+    },
+  },
+  {
+    category: AdminDataType.USER,
+    routeSegment: "users",
+    deleteEndpoint: item => {
+      const record = item as { id?: string };
+      return `users/${record.id ?? ""}`;
+    },
+  },
 ];
 
 const mapAdminItemsFromResponse = (data: {

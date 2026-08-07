@@ -3475,6 +3475,10 @@
       "MeResponse": {
         "type": "object",
         "properties": {
+          "id": {
+            "type": "string",
+            "example": "50ab6fc0-07de-4e2f-a2a7-3342ec722f5a"
+          },
           "username": {
             "type": "string",
             "example": "test-user"
@@ -3487,6 +3491,7 @@
           }
         },
         "required": [
+          "id",
           "username",
           "permissions"
         ]
