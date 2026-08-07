@@ -92,6 +92,54 @@ describe("SearchScreen", () => {
     );
   });
 
+  it("clears the search term and cancels the pending debounced request", async () => {
+    const postSpy = vi.spyOn(axios, "post");
+    postSpy.mockResolvedValue({
+      data: { results: [], total: 0 },
+    } as Awaited<ReturnType<typeof axios.post>>);
+
+    render(
+      <SearchScreen
+        frameId="search-clear"
+        initialSearchTerm="Brass"
+        title="Find game"
+        dataTypes={[GameDataType.GAME]}
+        strategy={selectionStrategyChooseOne()}
+      />,
+    );
+
+    const clearButton = screen.getByRole("button", { name: "Clear search" });
+    expect(clearButton).toBeEnabled();
+
+    fireEvent.click(clearButton);
+
+    expect(screen.getByLabelText("Search term")).toHaveValue("");
+    expect(clearButton).toBeDisabled();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    expect(postSpy).toHaveBeenCalledTimes(1);
+    expect(postSpy).toHaveBeenCalledWith(
+      expect.stringContaining("/game-api/search"),
+      {
+        types: [GameDataType.GAME],
+        searchTerm: "",
+      },
+      {
+        headers: {
+          Authorization: "Bearer access-token",
+        },
+      },
+    );
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(500);
+    });
+    expect(postSpy).toHaveBeenCalledTimes(1);
+  });
+
   it("enables confirm for valid multi-select search results", async () => {
     const postSpy = vi.spyOn(axios, "post");
     postSpy.mockResolvedValue({

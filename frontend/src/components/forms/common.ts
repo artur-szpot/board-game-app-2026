@@ -1,5 +1,6 @@
 export enum FormFieldType {
   TEXT,
+  NUMERIC,
   SEARCH,
   OPTIONS,
   CHECKBOX,

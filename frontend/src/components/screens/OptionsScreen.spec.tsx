@@ -1,29 +1,29 @@
-import { render, screen } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { buildChoiceMadeFromItems } from "../../store/features/frame-actions"
-import { closeFrame } from "../../store/features/frameStackSlice"
-import { OptionsScreen } from "./OptionsScreen"
+import { buildChoiceMadeFromItems } from "../../store/features/frame-actions";
+import { closeFrame } from "../../store/features/frameStackSlice";
+import { OptionsScreen } from "./OptionsScreen";
 import {
   GameDataType,
   selectionStrategyChooseOne,
   selectionStrategySelectNumber,
-} from "./selection-strategies"
+} from "./selection-strategies";
 
-const mockDispatch = vi.fn()
+const mockDispatch = vi.fn();
 
 vi.mock("../../store/hooks", () => ({
   useAppDispatch: () => mockDispatch,
-}))
+}));
 
 describe("OptionsScreen", () => {
   beforeEach(() => {
-    mockDispatch.mockReset()
-  })
+    mockDispatch.mockReset();
+  });
 
   it("closes immediately with one chosen option for choose-one strategy", async () => {
-    const user = userEvent.setup()
+    const user = userEvent.setup();
 
     render(
       <OptionsScreen
@@ -36,9 +36,9 @@ describe("OptionsScreen", () => {
           { label: "Family", value: "tag-2" },
         ]}
       />,
-    )
+    );
 
-    await user.click(screen.getByRole("button", { name: "Family" }))
+    await user.click(screen.getByRole("button", { name: "Family" }));
 
     expect(mockDispatch).toHaveBeenCalledWith(
       closeFrame({
@@ -47,12 +47,14 @@ describe("OptionsScreen", () => {
           { type: GameDataType.TAG, value: "tag-2", name: "Family" },
         ]),
       }),
-    )
-    expect(screen.queryByRole("button", { name: "Confirm" })).not.toBeInTheDocument()
-  })
+    );
+    expect(
+      screen.queryByRole("button", { name: "Confirm" }),
+    ).not.toBeInTheDocument();
+  });
 
   it("tracks multi-select state and only enables confirm when selection is valid", async () => {
-    const user = userEvent.setup()
+    const user = userEvent.setup();
 
     render(
       <OptionsScreen
@@ -66,25 +68,25 @@ describe("OptionsScreen", () => {
           { label: "Cafe", value: "loc-3" },
         ]}
       />,
-    )
+    );
 
-    const confirmButton = screen.getByRole("button", { name: "Confirm" })
-    expect(confirmButton).toBeDisabled()
+    const confirmButton = screen.getByRole("button", { name: "Confirm" });
+    expect(confirmButton).toBeDisabled();
     expect(
-      screen.getByRole("button", { name: /^\[CHOSEN\]\s*Table$/ }),
-    ).toBeInTheDocument()
+      screen.getByRole("button", { name: /^\s*Table$/ }),
+    ).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Shelf" }))
+    await user.click(screen.getByRole("button", { name: "Shelf" }));
 
-    expect(confirmButton).toBeEnabled()
+    expect(confirmButton).toBeEnabled();
     expect(
-      screen.getByRole("button", { name: /^\[CHOSEN\]\s*Table$/ }),
-    ).toBeInTheDocument()
+      screen.getByRole("button", { name: /^\s*Table$/ }),
+    ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /^\[CHOSEN\]\s*Shelf$/ }),
-    ).toBeInTheDocument()
+      screen.getByRole("button", { name: /^\s*Shelf$/ }),
+    ).toBeInTheDocument();
 
-    await user.click(confirmButton)
+    await user.click(confirmButton);
 
     expect(mockDispatch).toHaveBeenCalledWith(
       closeFrame({
@@ -94,6 +96,6 @@ describe("OptionsScreen", () => {
           { type: GameDataType.LOCATION, value: "loc-2", name: "Shelf" },
         ]),
       }),
-    )
-  })
-})
+    );
+  });
+});

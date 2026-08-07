@@ -1,17 +1,16 @@
 import type { FrameProps } from "../../store/features/frame-actions";
 import { FormFieldType } from "../forms/common";
 import type { FormFieldCheckboxProps } from "../forms/FormCheckboxField";
+import type { FormFieldNumericInputProps } from "../forms/FormFieldNumericInput";
 import type { FormFieldOptionsProps } from "../forms/FormOptionsField";
 import type { FormFieldSearchProps } from "../forms/FormSearchField";
-import {
-  FormTextResultMappingStrategy,
-  type FormFieldTextProps,
-} from "../forms/FormTextField";
+import type { FormFieldTextProps } from "../forms/FormTextField";
 import type { SelectionResult } from "./selection-strategies";
 import { ResultMappingStrategy } from "./selection-strategies";
 
 export type FormScreenValues = {
   stringValues: Record<string, string>;
+  numericValues: Record<string, number | null>;
   booleanValues: Record<string, boolean>;
   selectionValues: Record<string, SelectionResult[]>;
 };
@@ -44,15 +43,20 @@ export const mapFormValuesToResults = (
       if (value === undefined) {
         return;
       }
-      switch (field.resultMapping) {
-        case FormTextResultMappingStrategy.NUMBER:
-          mapped[field.name] = value.trim().length > 0 ? Number(value) : 0;
-          break;
-        case FormTextResultMappingStrategy.STRING:
-        default:
-          mapped[field.name] = value;
-          break;
+      mapped[field.name] = value;
+    });
+  fields
+    .filter(
+      (field): field is FormFieldNumericInputProps =>
+        field.kind === FormFieldType.NUMERIC,
+    )
+    .forEach(field => {
+      const value = values.numericValues[field.name];
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      if (value === undefined) {
+        return;
       }
+      mapped[field.name] = value ?? 0;
     });
   Object.entries(values.booleanValues).forEach(
     ([name, value]) => (mapped[name] = value),
@@ -113,6 +117,7 @@ export type FormScreenField =
   | FormFieldOptionsProps
   | FormFieldSearchProps
   | FormFieldTextProps
+  | FormFieldNumericInputProps
   | FormFieldCheckboxProps;
 
 export type FormScreenProps = {

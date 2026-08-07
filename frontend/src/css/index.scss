@@ -42,6 +42,7 @@ div.form-screen-card {
 }
 
 div.form-text,
+div.form-numeric-input,
 div.form-checkbox,
 div.form-options,
 div.form-search {
@@ -89,6 +90,10 @@ div.data-item {
   padding: 0.65rem;
 
   div.form-text {
+    min-width: 0;
+  }
+
+  div.form-numeric-input {
     min-width: 0;
   }
 

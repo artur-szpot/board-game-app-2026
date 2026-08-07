@@ -1,12 +1,12 @@
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import {
-    Chip,
-    List,
-    ListItem,
-    ListItemButton,
-    ListItemIcon,
-    ListItemText,
-    Stack,
-    Typography,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Stack,
+  Typography,
 } from "@mui/material";
 import { useState, type FC } from "react";
 
@@ -15,22 +15,21 @@ import { closeFrame } from "../../store/features/frameStackSlice";
 import { useAppDispatch } from "../../store/hooks";
 import { MainActions } from "../MainActions";
 import {
-    mapOptionToSelectionResult,
-    type OptionProps,
-    type OptionsScreenPropsFull,
+  mapOptionToSelectionResult,
+  type OptionProps,
+  type OptionsScreenPropsFull,
 } from "./OptionsScreenProps";
 import type {
-    SelectionResult,
-    SelectionStrategy,
+  SelectionResult,
+  SelectionStrategy,
 } from "./selection-strategies";
 import {
-    isConfirmAllowed,
-    isSelectionCorrect,
-    SelectionStrategyEnum,
+  isConfirmAllowed,
+  isSelectionCorrect,
+  SelectionStrategyEnum,
 } from "./selection-strategies";
 import { typeIcon } from "./type-icon";
 
-// "[CHOSEN]" //TODO: make this an icon
 export const OptionsScreen: FC<OptionsScreenPropsFull> = ({
   frameId,
   dataType,
@@ -84,36 +83,17 @@ export const OptionsScreen: FC<OptionsScreenPropsFull> = ({
               <ListItem key={option.value} disablePadding>
                 <ListItemButton
                   onClick={() => onOptionClick(option)}
-                  aria-label={`${
-                    strategy.strategy ===
-                      SelectionStrategyEnum.SELECT_MULTIPLE &&
-                    chosen.some(c => c.value === option.value)
-                      ? "[CHOSEN]"
-                      : ""
-                  }${option.label}`}
+                  aria-label={option.label}
                 >
                   {strategy.strategy ===
                     SelectionStrategyEnum.SELECT_MULTIPLE &&
                     chosen.some(c => c.value === option.value) && (
-                      <Chip
-                        label="CHOSEN"
-                        color="secondary"
-                        size="small"
-                        sx={{ mr: 1 }}
-                      />
+                      <CheckCircleIcon color="secondary" sx={{ mr: 1 }} />
                     )}
                   <ListItemIcon sx={{ minWidth: 30, color: "inherit" }}>
                     {typeIcon(dataType)}
                   </ListItemIcon>
-                  <ListItemText
-                    primary={`${
-                      strategy.strategy ===
-                        SelectionStrategyEnum.SELECT_MULTIPLE &&
-                      chosen.some(c => c.value === option.value)
-                        ? "[CHOSEN]"
-                        : ""
-                    }${option.label}`}
-                  />
+                  <ListItemText primary={option.label} />
                 </ListItemButton>
               </ListItem>
             ))}

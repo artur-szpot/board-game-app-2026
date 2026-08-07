@@ -19,9 +19,15 @@ export type AdditionalFieldChangeReceiver = (
   event: ChangeEvent<HTMLInputElement>,
 ) => void;
 
+export type AdditionalStringFieldChangeReceiver = (
+  item: SelectionResult,
+  fieldName: string,
+  value: string,
+) => void;
+
 export type FormFieldSelectionHandlerProps = {
   selectionChangeEmitter: FrameCallbackReceiver;
   currentSelection: SelectionResult[];
-  onAdditionalStringFieldChange: AdditionalFieldChangeReceiver;
+  onAdditionalStringFieldChange: AdditionalStringFieldChangeReceiver;
   onAdditionalBooleanFieldChange: AdditionalFieldChangeReceiver;
 };

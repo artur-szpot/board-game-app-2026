@@ -11,7 +11,7 @@ import {
 export const createTagScreen: FormScreenProps = {
   method: "POST",
   action: "game-api/tags",
-  title: "Add new tag",
+  title: "Add a new tag",
   fields: [
     formText({
       name: "name",
