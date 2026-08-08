@@ -4044,10 +4044,22 @@
               "type": "string"
             }
           },
+          "scoringSchemas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScoringSchemaResponse"
+            }
+          },
           "helperIds": {
             "type": "array",
             "items": {
               "type": "string"
+            }
+          },
+          "helpers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HelperResponse"
             }
           },
           "createdOn": {
@@ -4070,7 +4082,9 @@
           "tags",
           "locations",
           "scoringSchemaIds",
+          "scoringSchemas",
           "helperIds",
+          "helpers",
           "createdOn",
           "updatedOn"
         ]

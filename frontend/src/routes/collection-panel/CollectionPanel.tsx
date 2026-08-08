@@ -3,19 +3,28 @@ import type React from "react";
 import { createGameScreen } from "../../components/screens/definitions/create-game";
 import { createLocationScreen } from "../../components/screens/definitions/create-location";
 import { createTagScreen } from "../../components/screens/definitions/create-tag";
+import { buildEditGameScreen } from "../../components/screens/definitions/edit-game";
+import { buildEditLocationScreen } from "../../components/screens/definitions/edit-location";
+import { buildEditTagScreen } from "../../components/screens/definitions/edit-tag";
 import { GameDataType } from "../../components/screens/selection-strategies";
+import type {
+    GameResponseDto,
+    LocationResponseDto,
+    TagResponseDto,
+} from "../../dto/collection-items.dto";
 import {
-  openGameDetailsFrame,
-  openLocationDetailsFrame,
-  openTagDetailsFrame,
+    openFormFrame,
+    openGameDetailsFrame,
+    openLocationDetailsFrame,
+    openTagDetailsFrame,
 } from "../../store/features/frameStackSlice";
 import type { EntityPanelTab } from "../entity-panel/entity-panel-types";
 import { EntityPanel } from "../entity-panel/EntityPanel";
 import type {
-  CollectionPanelCategory,
-  CollectionPanelDetailsByType,
-  CollectionPanelItem,
-  CollectionPanelProps,
+    CollectionPanelCategory,
+    CollectionPanelDetailsByType,
+    CollectionPanelItem,
+    CollectionPanelProps,
 } from "./collection-types";
 
 const COLLECTION_TABS: EntityPanelTab<
@@ -27,6 +36,8 @@ const COLLECTION_TABS: EntityPanelTab<
     routeSegment: "games",
     label: "Games",
     createScreen: createGameScreen,
+    editScreen: item =>
+      openFormFrame({ params: buildEditGameScreen(item as GameResponseDto) }),
     viewScreen: item => openGameDetailsFrame({ params: { gameId: item.id } }),
     deleteEndpoint: (item: CollectionPanelItem) => `game-api/games/${item.id}`,
   },
@@ -35,6 +46,8 @@ const COLLECTION_TABS: EntityPanelTab<
     routeSegment: "tags",
     label: "Tags",
     createScreen: createTagScreen,
+    editScreen: item =>
+      openFormFrame({ params: buildEditTagScreen(item as TagResponseDto) }),
     viewScreen: item => openTagDetailsFrame({ params: { tagId: item.id } }),
     deleteEndpoint: (item: CollectionPanelItem) => `game-api/tags/${item.id}`,
   },
@@ -43,6 +56,10 @@ const COLLECTION_TABS: EntityPanelTab<
     routeSegment: "locations",
     label: "Locations",
     createScreen: createLocationScreen,
+    editScreen: item =>
+      openFormFrame({
+        params: buildEditLocationScreen(item as LocationResponseDto),
+      }),
     viewScreen: item =>
       openLocationDetailsFrame({ params: { locationId: item.id } }),
     deleteEndpoint: (item: CollectionPanelItem) =>

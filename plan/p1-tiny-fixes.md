@@ -1,8 +1,7 @@
-- same X button from inputs on chosen items in search screen
 - edit forms to match add forms
+- is there extra padding at the bottom of input fields?
 - ability to create SYSTEM-owned tags from the form (check user permission to show the option)
 - change auth forms to use FormScreen
-- make the chosen icons in search screen white
 - show current chosen in options
 - some responsiveness? (min+max on one row, change+clear on one row)
 - change behavior for single-select options

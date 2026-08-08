@@ -3,17 +3,18 @@ import axios from "axios";
 import type { ChangeEvent, FC } from "react";
 import { useCallback, useEffect, useState } from "react";
 
+import { selectAccessToken } from "../../store/features/currentUserSlice";
 import { getFormScreenCustomMappings } from "../../store/features/formScreenCustomMappingRegistry";
 import { resultMapper } from "../../store/features/frame-actions";
 import type {
-  FrameCallbackContent,
-  FrameCallbackReceiver,
+    FrameCallbackContent,
+    FrameCallbackReceiver,
 } from "../../store/features/frameStackSlice";
 import {
-  addCallbackReceiverToTopFrame,
-  closeFrame,
+    addCallbackReceiverToTopFrame,
+    closeFrame,
 } from "../../store/features/frameStackSlice";
-import { useAppDispatch } from "../../store/hooks";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { FormFieldType } from "../forms/common";
 import { FormCheckboxField } from "../forms/FormCheckboxField";
 import { FormFieldNumericInput } from "../forms/FormFieldNumericInput";
@@ -22,16 +23,16 @@ import { FormSearchField } from "../forms/FormSearchField";
 import { FormTextField } from "../forms/FormTextField";
 import { MainActions } from "../MainActions";
 import {
-  mapFormValuesToResults,
-  type FormScreenField,
-  type FormScreenPropsFull,
-  type FormScreenValues,
+    mapFormValuesToResults,
+    type FormScreenField,
+    type FormScreenPropsFull,
+    type FormScreenValues,
 } from "./FormScreenProps";
 import {
-  isSameSelectionResult,
-  isSelectionCorrect,
-  type SelectionResult,
-  type SelectionScreenProps,
+    isSameSelectionResult,
+    isSelectionCorrect,
+    type SelectionResult,
+    type SelectionScreenProps,
 } from "./selection-strategies";
 
 const formScreenDraftCache = new Map<string, FormScreenValues>();
@@ -141,6 +142,7 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
   action,
   method,
 }: FormScreenPropsFull) => {
+  const accessToken = useAppSelector(selectAccessToken);
   const draft = formScreenDraftCache.get(frameId);
 
   const [stringValues, setStringValues] = useState<Record<string, string>>(
@@ -371,6 +373,11 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
         method,
         url: `${import.meta.env.VITE_API_URL as string}/${action}`,
         data: result,
+        headers: accessToken
+          ? {
+              Authorization: `Bearer ${accessToken}`,
+            }
+          : undefined,
       });
     } catch (error) {
       // TODO: make pretty error display

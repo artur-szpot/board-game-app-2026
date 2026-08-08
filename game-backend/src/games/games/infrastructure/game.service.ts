@@ -1,36 +1,36 @@
 import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  Logger,
+    BadRequestException,
+    Inject,
+    Injectable,
+    Logger,
 } from '@nestjs/common';
 
 import {
-  GetManyItemsDto,
-  ItemOwnershipDto,
+    GetManyItemsDto,
+    ItemOwnershipDto,
 } from '@common/dto/in/get-many-items.dto';
 import {
-  CustomInternalError,
-  CustomNotFoundError,
+    CustomInternalError,
+    CustomNotFoundError,
 } from '@common/errors/service-errors';
 import { validateUpdateDtoNotEmpty } from '@common/helpers/validate-update-dto-not-empty';
 import { Paginated } from '@common/pagination/Paginated';
 import {
-  GAME_REPOSITORY,
-  GameRepository,
+    GAME_REPOSITORY,
+    GameRepository,
 } from '@db/repositories/game.repository';
 
 import {
-  HELPER_GATEWAY,
-  HelperGateway,
+    HELPER_GATEWAY,
+    HelperGateway,
 } from '../../helpers/infrastructure/helper.gateway';
 import {
-  LOCATION_GATEWAY,
-  LocationGateway,
+    LOCATION_GATEWAY,
+    LocationGateway,
 } from '../../locations/infrastructure/location.gateway';
 import {
-  SCORING_SCHEMA_GATEWAY,
-  ScoringSchemaGateway,
+    SCORING_SCHEMA_GATEWAY,
+    ScoringSchemaGateway,
 } from '../../scoring-schemas/infrastructure/scoring-schema.gateway';
 import { TAG_GATEWAY, TagGateway } from '../../tags/infrastructure/tag.gateway';
 import { CreateGameDto } from '../dto/in/create-game.dto';
@@ -271,6 +271,8 @@ export class GameService implements GameGateway {
     };
 
     const tagIds = (game as GameDto & { tagIds?: string[] }).tagIds ?? [];
+    const scoringSchemaIds = game.scoringSchemaIds ?? [];
+    const helperIds = game.helperIds ?? [];
     const locationIds = (game.locations ?? [])
       .filter((location) => !location.isGameId)
       .map((location) => location.locationId);
@@ -291,14 +293,26 @@ export class GameService implements GameGateway {
       };
     });
 
-    if (tagIds.length === 0) {
-      return { ...responseGame, locations, tags: [] };
-    }
-
-    const tags = await this.tagGateway.getByIds(tagIds, {
-      userId: game.ownerId,
-      hasCollectionSuperuserPermission: false,
-    });
+    const [tags, scoringSchemas, helpers] = await Promise.all([
+      tagIds.length
+        ? this.tagGateway.getByIds(tagIds, {
+            userId: game.ownerId,
+            hasCollectionSuperuserPermission: false,
+          })
+        : [],
+      scoringSchemaIds.length
+        ? this.scoringSchemaGateway.getByIds(scoringSchemaIds, {
+            userId: game.ownerId,
+            hasCollectionSuperuserPermission: false,
+          })
+        : [],
+      helperIds.length
+        ? this.helperGateway.getByIds(helperIds, {
+            userId: game.ownerId,
+            hasCollectionSuperuserPermission: false,
+          })
+        : [],
+    ]);
     return {
       ...responseGame,
       locations,
@@ -307,6 +321,8 @@ export class GameService implements GameGateway {
         name: tag.name,
         description: tag.description,
       })),
+      scoringSchemas,
+      helpers,
     };
   }
 
