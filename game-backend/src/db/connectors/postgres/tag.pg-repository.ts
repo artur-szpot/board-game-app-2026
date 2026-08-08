@@ -68,6 +68,16 @@ export class PostgresTagRepository implements TagRepository {
     RETURNING id, owner_id AS "ownerId", private, name, description, parent_id AS "parentId", created_on AS "createdOn", updated_on AS "updatedOn";
   `;
 
+  private readonly MAKE_TAG_SYSTEM_OWNED_SQL = `
+   UPDATE tags
+   SET
+      owner_id = $2,
+      private = false,
+      updated_on = CURRENT_TIMESTAMP
+   WHERE id = $1
+   RETURNING id, owner_id AS "ownerId", private, name, description, parent_id AS "parentId", created_on AS "createdOn", updated_on AS "updatedOn";
+  `;
+
   constructor(private readonly connector: PostgresConnector) {}
 
   private buildOrderBy(sort?: GetManyItemsDto['sort']): string {
@@ -260,5 +270,21 @@ export class PostgresTagRepository implements TagRepository {
     }
 
     return this.connector.getOne<TagDto>(this.DELETE_TAG_SQL, [tagId]);
+  }
+
+  public async makeTagSystemOwned(
+    tagId: string,
+    itemOwnership?: ItemOwnershipDto,
+  ): Promise<TagDto> {
+    const existing = await this.getTagById(tagId, itemOwnership);
+
+    if (!existing) {
+      throw new CustomNotFoundError(`tag with ID "${tagId}"`);
+    }
+
+    return this.connector.getOne<TagDto>(this.MAKE_TAG_SYSTEM_OWNED_SQL, [
+      tagId,
+      SYSTEM_OWNER_ID,
+    ]);
   }
 }

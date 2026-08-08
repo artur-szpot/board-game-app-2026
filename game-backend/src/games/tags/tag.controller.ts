@@ -1,26 +1,26 @@
 import {
-    Body,
-    Controller,
-    Delete,
-    Get,
-    Inject,
-    Param,
-    Patch,
-    Post,
-    Req,
-    UseGuards,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Inject,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import {
-    ApiBadRequestResponse,
-    ApiBearerAuth,
-    ApiBody,
-    ApiForbiddenResponse,
-    ApiNotFoundResponse,
-    ApiOkResponse,
-    ApiOperation,
-    ApiParam,
-    ApiTags,
-    ApiUnauthorizedResponse,
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiBody,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 
 import { RequirePermissions } from '@auth/decorators/permissions.decorator';
@@ -34,8 +34,8 @@ import { PermissionType } from '@auth/modules/permissions/enums/permission-type.
 import { UserId } from '@common/decorators/user-id.decorator';
 import { GetEntityByIdDto } from '@common/dto/in/get-entity-by-id.dto';
 import {
-    HttpErrorResponseDto,
-    ValidationErrorResponseDto,
+  HttpErrorResponseDto,
+  ValidationErrorResponseDto,
 } from '@common/openapi/error-response.dto';
 
 import { CreateTagDto } from './dto/in/create-tag.dto';
@@ -112,6 +112,26 @@ export class TagController {
     @Req() req: { user: JwtDto },
   ): Promise<TagResponse> {
     return this.gateway.update(params.id, body, {
+      userId,
+      hasCollectionSuperuserPermission: false,
+      hasSystemCollectionFullPermission: hasSystemCollectionFullPermission(
+        req.user.permissions,
+      ),
+    });
+  }
+
+  @Patch('/:id/system')
+  @ApiOperation({ summary: 'Make tag SYSTEM-owned' })
+  @ApiParam({ name: 'id', type: String })
+  @ApiOkResponse({ type: TagResponse })
+  @ApiNotFoundResponse({ type: HttpErrorResponseDto })
+  @RequirePermissions([PermissionType.SYSTEM_COLLECTION, PermissionLevel.FULL])
+  public async makeSystemOwnedTag(
+    @Param() params: GetEntityByIdDto,
+    @UserId() userId: string,
+    @Req() req: { user: JwtDto },
+  ): Promise<TagResponse> {
+    return this.gateway.makeSystemOwned(params.id, {
       userId,
       hasCollectionSuperuserPermission: false,
       hasSystemCollectionFullPermission: hasSystemCollectionFullPermission(

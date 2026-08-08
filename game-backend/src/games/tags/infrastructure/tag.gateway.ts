@@ -22,6 +22,10 @@ export interface TagGateway {
     input: UpdateTagDto,
     itemOwnership?: ItemOwnershipDto,
   ): Promise<TagResponse>;
+  makeSystemOwned(
+    id: string,
+    itemOwnership?: ItemOwnershipDto,
+  ): Promise<TagResponse>;
   delete(id: string, itemOwnership?: ItemOwnershipDto): Promise<TagResponse>;
 }
 

@@ -88,4 +88,22 @@ describe('PostgresTagRepository', () => {
       pagination: { pageSize: 20, pageNumber: 0 },
     });
   });
+
+  it('transfers a tag to SYSTEM ownership and marks it public', async () => {
+    connector.getOne
+      .mockResolvedValueOnce({ id: 'tag-1', ownerId: 'user-1' })
+      .mockResolvedValueOnce({
+        id: 'tag-1',
+        ownerId: 'SYSTEM',
+        private: false,
+      });
+
+    await repository.makeTagSystemOwned('tag-1', { userId: 'user-1' });
+
+    expect(connector.getOne).toHaveBeenNthCalledWith(
+      2,
+      expect.stringContaining('owner_id = $2'),
+      ['tag-1', 'SYSTEM'],
+    );
+  });
 });
