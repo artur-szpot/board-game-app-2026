@@ -14,6 +14,8 @@ import {
     ValidateNested,
 } from 'class-validator';
 
+import { HelperResponse } from '../../../helpers/dto/out/helper.response';
+import { ScoringSchemaResponse } from '../../../scoring-schemas/dto/out/scoring-schema.response';
 import { GameLength } from './game-length.enum';
 
 export class GameLocationPathDto {
@@ -107,8 +109,18 @@ export class GameDto {
   scoringSchemaIds: string[];
 
   @IsArray()
+  @Type(() => ScoringSchemaResponse)
+  @ValidateNested({ each: true })
+  scoringSchemas: ScoringSchemaResponse[];
+
+  @IsArray()
   @IsString({ each: true })
   helperIds: string[];
+
+  @IsArray()
+  @Type(() => HelperResponse)
+  @ValidateNested({ each: true })
+  helpers: HelperResponse[];
 
   @IsDate()
   createdOn: Date;

@@ -348,6 +348,29 @@ describe('GameService', () => {
         path: [{ name: 'Test Location', id: 'location-1' }],
       },
     ]);
+    scoringSchemaGateway.getByIds = jest.fn().mockResolvedValue([
+      {
+        id: 'schema-1',
+        ownerId: '123-abc',
+        private: true,
+        name: 'Schema 1',
+        description: 'Schema description',
+        schema: {},
+        createdOn: '2026-01-01T00:00:00.000Z',
+        updatedOn: '2026-01-02T00:00:00.000Z',
+      },
+    ]);
+    helperGateway.getByIds = jest.fn().mockResolvedValue([
+      {
+        id: 'helper-1',
+        ownerId: '123-abc',
+        private: true,
+        name: 'Helper 1',
+        logic: {},
+        createdOn: '2026-01-01T00:00:00.000Z',
+        updatedOn: '2026-01-02T00:00:00.000Z',
+      },
+    ]);
     repository.getGameById.mockResolvedValue({
       id: 'game-1',
       ownerId: '123-abc',
@@ -362,9 +385,31 @@ describe('GameService', () => {
         { locationId: 'location-1', note: 'top shelf', isGameId: false },
         { locationId: 'game-2', note: 'stored with base game', isGameId: true },
       ],
-      locationIds: ['location-1'],
       scoringSchemaIds: ['schema-1'],
+      scoringSchemas: [
+        {
+          id: 'schema-1',
+          ownerId: '123-abc',
+          private: true,
+          name: 'Schema 1',
+          description: 'Schema description',
+          schema: {},
+          createdOn: '2026-01-01T00:00:00.000Z',
+          updatedOn: '2026-01-02T00:00:00.000Z',
+        },
+      ],
       helperIds: ['helper-1'],
+      helpers: [
+        {
+          id: 'helper-1',
+          ownerId: '123-abc',
+          private: true,
+          name: 'Helper 1',
+          logic: {},
+          createdOn: '2026-01-01T00:00:00.000Z',
+          updatedOn: '2026-01-02T00:00:00.000Z',
+        },
+      ],
       createdOn: new Date('2026-01-01T00:00:00.000Z'),
       updatedOn: new Date('2026-01-02T00:00:00.000Z'),
     });
@@ -400,13 +445,43 @@ describe('GameService', () => {
           path: [],
         },
       ],
-      locationIds: ['location-1'],
       scoringSchemaIds: ['schema-1'],
+      scoringSchemas: [
+        {
+          id: 'schema-1',
+          ownerId: '123-abc',
+          private: true,
+          name: 'Schema 1',
+          description: 'Schema description',
+          schema: {},
+          createdOn: '2026-01-01T00:00:00.000Z',
+          updatedOn: '2026-01-02T00:00:00.000Z',
+        },
+      ],
       helperIds: ['helper-1'],
+      helpers: [
+        {
+          id: 'helper-1',
+          ownerId: '123-abc',
+          private: true,
+          name: 'Helper 1',
+          logic: {},
+          createdOn: '2026-01-01T00:00:00.000Z',
+          updatedOn: '2026-01-02T00:00:00.000Z',
+        },
+      ],
       createdOn: new Date('2026-01-01T00:00:00.000Z'),
       updatedOn: new Date('2026-01-02T00:00:00.000Z'),
     });
     expect(locationGateway.getByIds).toHaveBeenCalledWith(['location-1'], {
+      userId: '123-abc',
+      hasCollectionSuperuserPermission: false,
+    });
+    expect(scoringSchemaGateway.getByIds).toHaveBeenCalledWith(['schema-1'], {
+      userId: '123-abc',
+      hasCollectionSuperuserPermission: false,
+    });
+    expect(helperGateway.getByIds).toHaveBeenCalledWith(['helper-1'], {
       userId: '123-abc',
       hasCollectionSuperuserPermission: false,
     });

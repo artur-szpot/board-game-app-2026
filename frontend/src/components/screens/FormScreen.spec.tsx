@@ -30,6 +30,7 @@ const mockDispatch = vi.fn();
 
 vi.mock("../../store/hooks", () => ({
   useAppDispatch: () => mockDispatch,
+  useAppSelector: () => "test-token",
 }));
 
 const isOptionsAction = (

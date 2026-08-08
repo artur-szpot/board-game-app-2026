@@ -18,6 +18,27 @@ export type GameTagResponseDto = {
   description?: string;
 };
 
+export type HelperResponseDto = {
+  id: string;
+  ownerId: string;
+  private: boolean;
+  name: string;
+  logic: Record<string, unknown>;
+  createdOn: string;
+  updatedOn: string;
+};
+
+export type ScoringSchemaResponseDto = {
+  id: string;
+  ownerId: string;
+  private: boolean;
+  name: string;
+  description?: string;
+  schema: Record<string, unknown>;
+  createdOn: string;
+  updatedOn: string;
+};
+
 export type GameResponseDto = {
   id: string;
   ownerId: string;
@@ -30,7 +51,9 @@ export type GameResponseDto = {
   tags: GameTagResponseDto[];
   locations: GameLocationDto[];
   scoringSchemaIds: string[];
+  scoringSchemas: ScoringSchemaResponseDto[];
   helperIds: string[];
+  helpers: HelperResponseDto[];
   createdOn: string;
   updatedOn: string;
 };
@@ -54,27 +77,6 @@ export type LocationResponseDto = {
   description?: string;
   parentId?: string;
   path: GameLocationPathDto[];
-  createdOn: string;
-  updatedOn: string;
-};
-
-export type HelperResponseDto = {
-  id: string;
-  ownerId: string;
-  private: boolean;
-  name: string;
-  logic: Record<string, unknown>;
-  createdOn: string;
-  updatedOn: string;
-};
-
-export type ScoringSchemaResponseDto = {
-  id: string;
-  ownerId: string;
-  private: boolean;
-  name: string;
-  description?: string;
-  schema: Record<string, unknown>;
   createdOn: string;
   updatedOn: string;
 };
