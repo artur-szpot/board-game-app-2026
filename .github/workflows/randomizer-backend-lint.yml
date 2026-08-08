@@ -2,15 +2,9 @@ name: PR CI / Randomizer backend lint
 
 on:
   pull_request:
-    paths:
-      - "randomizer-backend/**"
-      - ".github/workflows/randomizer-backend-lint.yml"
   push:
     branches:
       - main
-    paths:
-      - "randomizer-backend/**"
-      - ".github/workflows/randomizer-backend-lint.yml"
 
 jobs:
   lint:

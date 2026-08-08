@@ -2,15 +2,9 @@ name: PR CI / Game backend lint
 
 on:
   pull_request:
-    paths:
-      - "game-backend/**"
-      - ".github/workflows/backend-lint.yml"
   push:
     branches:
       - main
-    paths:
-      - "game-backend/**"
-      - ".github/workflows/backend-lint.yml"
 
 jobs:
   lint:

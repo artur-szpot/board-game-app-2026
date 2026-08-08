@@ -2,15 +2,9 @@ name: PR CI / Frontend lint
 
 on:
   pull_request:
-    paths:
-      - 'frontend/**'
-      - '.github/workflows/frontend-lint.yml'
   push:
     branches:
       - main
-    paths:
-      - 'frontend/**'
-      - '.github/workflows/frontend-lint.yml'
 
 jobs:
   lint:
@@ -36,3 +30,6 @@ jobs:
 
       - name: Run frontend lint
         run: npm run lint -- --max-warnings=0
+
+      - name: Run frontend type check
+        run: npm run type-check
