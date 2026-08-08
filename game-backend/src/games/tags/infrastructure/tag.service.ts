@@ -281,6 +281,49 @@ export class TagService implements TagGateway {
     }
   }
 
+  public async makeSystemOwned(
+    id: string,
+    itemOwnership?: ItemOwnershipDto,
+  ): Promise<TagResponse> {
+    const userId = itemOwnership?.userId;
+    if (!userId) {
+      throw new CustomInternalError('making the tag public');
+    }
+
+    if (!itemOwnership?.hasSystemCollectionFullPermission) {
+      throw new ForbiddenException(
+        'SYSTEM_COLLECTION FULL permission is required',
+      );
+    }
+
+    try {
+      const visibleOwnership = {
+        userId,
+        hasCollectionSuperuserPermission: false,
+      };
+      const existingTag = await this.getTag(id, visibleOwnership);
+
+      if (existingTag.ownerId !== userId) {
+        throw new ForbiddenException('Only the owner can make this tag public');
+      }
+
+      const systemTag = await this.tagRepository.makeTagSystemOwned(
+        id,
+        visibleOwnership,
+      );
+      return this.mapToResponse(systemTag);
+    } catch (error) {
+      if (
+        error instanceof ForbiddenException ||
+        error instanceof CustomNotFoundError
+      ) {
+        throw error;
+      }
+      this.logger.error(`Unexpected error while making tag public: ${error}`);
+      throw new CustomInternalError('making the tag public');
+    }
+  }
+
   public async delete(
     id: string,
     itemOwnership?: ItemOwnershipDto,

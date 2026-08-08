@@ -13,7 +13,9 @@ describe('TagController', () => {
     getById: jest.fn(),
     getMany: jest.fn(),
     create: jest.fn(),
+    createSystem: jest.fn(),
     update: jest.fn(),
+    makeSystemOwned: jest.fn(),
     delete: jest.fn(),
   };
 
@@ -104,6 +106,33 @@ describe('TagController', () => {
     expect(gateway.getById).toHaveBeenCalledWith('tag-1', {
       userId: '123-abc',
       hasCollectionSuperuserPermission: false,
+    });
+  });
+
+  it('makes a tag SYSTEM-owned endpoint', async () => {
+    gateway.makeSystemOwned.mockResolvedValue({
+      id: 'tag-1',
+      ownerId: 'SYSTEM',
+      private: false,
+      name: 'Strategy',
+      parentId: null,
+      createdOn: new Date(),
+      updatedOn: new Date(),
+    });
+
+    const response = await fetch(`${baseUrl}/game-api/tags/tag-1/system`, {
+      method: 'PATCH',
+    });
+
+    expect(response.status).toBe(200);
+    const payload = await response.json();
+    expect(payload).toEqual(
+      expect.objectContaining({ id: 'tag-1', ownerId: 'SYSTEM' }),
+    );
+    expect(gateway.makeSystemOwned).toHaveBeenCalledWith('tag-1', {
+      userId: '123-abc',
+      hasCollectionSuperuserPermission: false,
+      hasSystemCollectionFullPermission: false,
     });
   });
 });

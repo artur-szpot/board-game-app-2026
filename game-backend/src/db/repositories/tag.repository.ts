@@ -29,6 +29,10 @@ export interface TagRepository {
     input: UpdateTagDto,
     itemOwnership?: ItemOwnershipDto,
   ): Promise<TagDto>;
+  makeTagSystemOwned(
+    tagId: string,
+    itemOwnership?: ItemOwnershipDto,
+  ): Promise<TagDto>;
   deleteTag(tagId: string, itemOwnership?: ItemOwnershipDto): Promise<TagDto>;
 }
 

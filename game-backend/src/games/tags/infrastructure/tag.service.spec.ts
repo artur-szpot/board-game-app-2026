@@ -37,6 +37,7 @@ describe('TagService', () => {
       getTagsCount: jest.fn(),
       createTag: jest.fn(),
       updateTag: jest.fn(),
+      makeTagSystemOwned: jest.fn(),
       deleteTag: jest.fn(),
     } as unknown as jest.Mocked<TagRepository>;
 
@@ -358,6 +359,64 @@ describe('TagService', () => {
         testTagDto.id,
         writeOwnership,
       );
+    });
+  });
+
+  describe('makeSystemOwned', () => {
+    it('should transfer an owned tag to SYSTEM and mark it public', async () => {
+      mockRepository.getTagById.mockResolvedValueOnce(testTagDto);
+      mockRepository.makeTagSystemOwned.mockResolvedValueOnce({
+        ...testTagDto,
+        ownerId: SYSTEM_OWNER_ID,
+        private: false,
+      });
+
+      const result = await service.makeSystemOwned(testTagDto.id, {
+        ...writeOwnership,
+        hasSystemCollectionFullPermission: true,
+      });
+
+      expect(mockRepository.getTagById).toHaveBeenCalledWith(testTagDto.id, {
+        userId: writeOwnership.userId,
+        hasCollectionSuperuserPermission: false,
+      });
+      expect(mockRepository.makeTagSystemOwned).toHaveBeenCalledWith(
+        testTagDto.id,
+        {
+          userId: writeOwnership.userId,
+          hasCollectionSuperuserPermission: false,
+        },
+      );
+      expect(result).toEqual(
+        expect.objectContaining({
+          ownerId: SYSTEM_OWNER_ID,
+          private: false,
+        }),
+      );
+    });
+
+    it('should deny makeSystemOwned without SYSTEM_COLLECTION FULL', async () => {
+      await expect(
+        service.makeSystemOwned(testTagDto.id, writeOwnership),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+      expect(mockRepository.getTagById).not.toHaveBeenCalled();
+      expect(mockRepository.makeTagSystemOwned).not.toHaveBeenCalled();
+    });
+
+    it('should deny makeSystemOwned when caller does not own the tag', async () => {
+      mockRepository.getTagById.mockResolvedValueOnce({
+        ...testTagDto,
+        ownerId: SYSTEM_OWNER_ID,
+      });
+
+      await expect(
+        service.makeSystemOwned(testTagDto.id, {
+          ...writeOwnership,
+          hasSystemCollectionFullPermission: true,
+        }),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+
+      expect(mockRepository.makeTagSystemOwned).not.toHaveBeenCalled();
     });
   });
 });

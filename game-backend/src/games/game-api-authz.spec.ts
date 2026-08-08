@@ -191,6 +191,12 @@ describe('Game API auth/permissions metadata', () => {
       PermissionType.SYSTEM_COLLECTION,
     );
     expectRequiredPermission(
+      TagController.prototype,
+      'makeSystemOwnedTag',
+      PermissionLevel.FULL,
+      PermissionType.SYSTEM_COLLECTION,
+    );
+    expectRequiredPermission(
       HelperController.prototype,
       'createSystem',
       PermissionLevel.FULL,
