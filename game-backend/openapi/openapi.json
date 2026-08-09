@@ -1706,83 +1706,6 @@
         ]
       }
     },
-    "/game-api/tags/system": {
-      "post": {
-        "operationId": "TagController_createSystemTag",
-        "summary": "Create a SYSTEM-owned tag",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateTagDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TagResponse"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TagResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ValidationErrorResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HttpErrorResponseDto"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HttpErrorResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Tags"
-        ],
-        "security": [
-          {
-            "access-token": []
-          }
-        ]
-      }
-    },
     "/game-api/tags/{id}/system": {
       "patch": {
         "operationId": "TagController_makeSystemOwnedTag",
@@ -3865,6 +3788,9 @@
           },
           "parentId": {
             "type": "string"
+          },
+          "public": {
+            "type": "boolean"
           }
         },
         "required": [

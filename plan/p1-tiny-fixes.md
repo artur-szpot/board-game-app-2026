@@ -1,6 +1,5 @@
-- ability to create SYSTEM-owned tags from the form (check user permission to show the option)
-- show if a tag is SYSTEM-owned as a badge; show ancestor as another badge
 - change auth forms to use FormScreen
 - show current chosen in options
 - some responsiveness? (min+max on one row, change+clear on one row)
 - change behavior for single-select options
+- allow alt names for games

@@ -2,6 +2,7 @@ import ClearIcon from "@mui/icons-material/Clear";
 import { IconButton, InputAdornment, TextField } from "@mui/material";
 import { useEffect, useState, type ChangeEvent, type FC } from "react";
 
+import { useHasRequiredPermissions } from "../../utils/useHasRequiredPermissions";
 import type { FormFieldProps } from "./common";
 import { FormFieldType } from "./common";
 
@@ -42,7 +43,10 @@ export const FormTextField: FC<FormFieldTextPropsFull> = ({
   onChange,
   onClear,
   value,
+  requiredPermissions,
 }: FormFieldTextPropsFull) => {
+  const hasRequiredPermissions = useHasRequiredPermissions(requiredPermissions);
+
   const [isClearable, setIsClearable] = useState(Boolean(value));
 
   useEffect(() => {
@@ -61,7 +65,7 @@ export const FormTextField: FC<FormFieldTextPropsFull> = ({
   };
 
   return (
-    <div className="form-text">
+    <div className="form-text" hidden={!hasRequiredPermissions}>
       <TextField
         fullWidth
         id={name}

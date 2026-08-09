@@ -6,7 +6,16 @@ export type PermissionType =
   | "SYSTEM_COLLECTION"
   | "ADMIN_PANEL";
 
-export type PermissionLevel = "READ" | "FULL";
+export enum PermissionLevel {
+  READ = "READ",
+  FULL = "FULL",
+}
+
+export const PermissionPrecedence = [
+  undefined,
+  PermissionLevel.READ,
+  PermissionLevel.FULL,
+];
 
 export type PermissionShortDto = {
   permissionType: PermissionType;

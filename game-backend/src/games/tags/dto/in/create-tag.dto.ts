@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateTagDto {
   @IsString()
@@ -13,4 +13,8 @@ export class CreateTagDto {
   @IsNotEmpty()
   @IsOptional()
   parentId?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  public?: boolean;
 }

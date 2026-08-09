@@ -9,6 +9,7 @@ import FormLabel from "@mui/material/FormLabel";
 import OutlinedInput from "@mui/material/OutlinedInput";
 import type { FC } from "react";
 
+import { useHasRequiredPermissions } from "../../utils/useHasRequiredPermissions";
 import type { FormFieldProps } from "./common";
 import { FormFieldType } from "./common";
 
@@ -62,11 +63,14 @@ export const FormFieldNumericInput: FC<FormFieldNumericInputPropsFull> = ({
   step,
   value,
   onChange,
+  requiredPermissions,
 }: FormFieldNumericInputPropsFull) => {
+  const hasRequiredPermissions = useHasRequiredPermissions(requiredPermissions);
+
   const id = `${name}-numeric-input`;
 
   return (
-    <div className="form-numeric-input">
+    <div className="form-numeric-input" hidden={!hasRequiredPermissions}>
       <BaseNumberField.Root
         value={value}
         onValueChange={onChange}

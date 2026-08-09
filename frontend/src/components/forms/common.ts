@@ -1,3 +1,5 @@
+import type { PermissionLevel, PermissionType } from "../../dto/user-data.dto";
+
 export enum FormFieldType {
   TEXT,
   NUMERIC,
@@ -9,4 +11,5 @@ export enum FormFieldType {
 export type FormFieldProps = {
   name: string;
   label: string;
+  requiredPermissions?: Record<PermissionType, PermissionLevel>;
 };

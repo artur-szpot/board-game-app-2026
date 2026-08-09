@@ -37,7 +37,7 @@ Use this file to capture operational context, decisions, and any remaining unkno
 - Collection ownership scoping baseline: games, tags, locations, helpers, scoring schemas, and game scores are owner-scoped for non-superusers on reads; writes remain owner-bound.
 - Shared collection ownership: `SYSTEM` is a reserved, non-login user ID used as the immutable owner of shared tags, helpers, and scoring schemas.
 - Shared collection visibility: authenticated users can read their own and `SYSTEM`-owned tags, helpers, and scoring schemas; `private` remains ignored for read authorization.
-- Shared collection creation: `POST /game-api/tags/system`, `/game-api/helpers/system`, and `/game-api/scoring-schemas/system` require `SYSTEM_COLLECTION:FULL` and force `ownerId = SYSTEM` and `private = false`.
+- Shared collection creation: the standard tag create route now accepts a `public` flag to create a SYSTEM-owned public tag; `/game-api/helpers/system` and `/game-api/scoring-schemas/system` remain dedicated SYSTEM-only creation routes that require `SYSTEM_COLLECTION:FULL` and force `ownerId = SYSTEM` and `private = false`.
 - Shared collection mutation: existing PUT/PATCH/DELETE routes still require `GAME_COLLECTIONS:FULL`; a `SYSTEM`-owned target additionally requires `SYSTEM_COLLECTION:FULL` and otherwise returns 403.
 - Tag make-public flow: `PATCH /game-api/tags/:id/system` requires `SYSTEM_COLLECTION:FULL` and caller ownership of the tag; successful mutation transfers `ownerId` to `SYSTEM` and makes the tag public.
 - EntityPanel item actions are now always-visible icon buttons (View, Edit, Delete) on each item card; buttons stay visible but are disabled when no action is configured or ownership/permission rules do not allow the action.

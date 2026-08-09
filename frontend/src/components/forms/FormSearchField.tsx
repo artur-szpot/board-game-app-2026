@@ -3,21 +3,22 @@ import type { FC } from "react";
 
 import { buildChoiceMadeFromItems } from "../../store/features/frame-actions";
 import {
-    openSearchFrame,
-    sameFrameResult,
+  openSearchFrame,
+  sameFrameResult,
 } from "../../store/features/frameStackSlice";
 import { useAppDispatch } from "../../store/hooks";
+import { useHasRequiredPermissions } from "../../utils/useHasRequiredPermissions";
 import type { FormScreenResult } from "../screens/FormScreenProps";
 import type { SearchScreenProps } from "../screens/SearchScreenProps";
 import type {
-    ResultMappingStrategy,
-    SelectionResult,
+  ResultMappingStrategy,
+  SelectionResult,
 } from "../screens/selection-strategies";
 import { FormFieldType } from "./common";
 import { DataDisplay } from "./data-displays/DataDisplay";
 import type {
-    FormFieldSelectionHandlerProps,
-    FormFieldSelectionProps,
+  FormFieldSelectionHandlerProps,
+  FormFieldSelectionProps,
 } from "./selection-field-props";
 
 export type FormFieldSearchProps = FormFieldSelectionProps & {
@@ -56,7 +57,10 @@ export const FormSearchField: FC<FormFieldSearchPropsFull> = ({
   selectionChangeEmitter,
   onAdditionalStringFieldChange,
   onAdditionalBooleanFieldChange,
+  requiredPermissions,
 }: FormFieldSearchPropsFull) => {
+  const hasRequiredPermissions = useHasRequiredPermissions(requiredPermissions);
+
   const dispatch = useAppDispatch();
   const chosen = params.currentSelection ?? [];
   const removeItem = (selected: SelectionResult) => {
@@ -71,7 +75,7 @@ export const FormSearchField: FC<FormFieldSearchPropsFull> = ({
   };
 
   return (
-    <div className="form-search">
+    <div className="form-search" hidden={!hasRequiredPermissions}>
       <Stack spacing={1.25}>
         <Typography component="p" className="form-field-label">
           {label}
