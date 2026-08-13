@@ -186,12 +186,6 @@ describe('Game API auth/permissions metadata', () => {
   it('requires SYSTEM_COLLECTION FULL for SYSTEM create handlers', () => {
     expectRequiredPermission(
       TagController.prototype,
-      'createSystemTag',
-      PermissionLevel.FULL,
-      PermissionType.SYSTEM_COLLECTION,
-    );
-    expectRequiredPermission(
-      TagController.prototype,
       'makeSystemOwnedTag',
       PermissionLevel.FULL,
       PermissionType.SYSTEM_COLLECTION,

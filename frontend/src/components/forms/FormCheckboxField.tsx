@@ -2,8 +2,8 @@ import { Checkbox, FormControlLabel } from "@mui/material";
 import { type ChangeEvent, type FC } from "react";
 
 import {
-  type PermissionLevel,
-  type PermissionType,
+    type PermissionLevel,
+    type PermissionType,
 } from "../../dto/user-data.dto";
 import { useHasRequiredPermissions } from "../../utils/useHasRequiredPermissions";
 import { FormFieldType, type FormFieldProps } from "./common";

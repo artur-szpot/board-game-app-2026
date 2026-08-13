@@ -1,10 +1,10 @@
 import { useMemo } from "react";
 
 import {
-    PermissionPrecedence,
-    type PermissionLevel,
-    type PermissionShortDto,
-    type PermissionType,
+  PermissionPrecedence,
+  type PermissionLevel,
+  type PermissionShortDto,
+  type PermissionType,
 } from "../dto/user-data.dto";
 import { selectPermissions } from "../store/features/currentUserSlice";
 import { useAppSelector } from "../store/hooks";
@@ -25,7 +25,8 @@ export const hasRequiredPermissions = (
   return Object.entries(requiredPermissions).every(
     ([permissionType, requiredLevel]) => {
       const matchingPermission = (permissions ?? []).find(
-        permission => permission.permissionType === permissionType,
+        permission =>
+          permission.permissionType === (permissionType as PermissionType),
       );
 
       if (!matchingPermission?.permissionLevel) {

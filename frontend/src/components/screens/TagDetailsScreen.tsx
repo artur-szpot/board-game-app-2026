@@ -20,6 +20,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 
 import type { TagResponseDto } from "../../dto/collection-items.dto";
+import { PermissionLevel, PermissionType } from "../../dto/user-data.dto";
 import {
   selectAccessToken,
   selectPermissions,
@@ -55,8 +56,8 @@ export const TagDetailsScreen = ({
     () =>
       (permissions ?? []).some(
         permission =>
-          permission.permissionType === "SYSTEM_COLLECTION" &&
-          permission.permissionLevel === "FULL",
+          permission.permissionType === PermissionType.SYSTEM_COLLECTION &&
+          permission.permissionLevel === PermissionLevel.FULL,
       ),
     [permissions],
   );
