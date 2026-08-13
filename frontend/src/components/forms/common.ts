@@ -11,5 +11,6 @@ export enum FormFieldType {
 export type FormFieldProps = {
   name: string;
   label: string;
-  requiredPermissions?: Record<PermissionType, PermissionLevel>;
+  requiredPermissions?: Partial<Record<PermissionType, PermissionLevel>>;
+  disabled?: boolean;
 };

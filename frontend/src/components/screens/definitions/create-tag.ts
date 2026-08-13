@@ -1,3 +1,4 @@
+import { PermissionLevel, PermissionType } from "../../../dto/user-data.dto";
 import { formCheckbox } from "../../forms/FormCheckboxField";
 import { formSearch } from "../../forms/FormSearchField";
 import { formText } from "../../forms/FormTextField";
@@ -27,6 +28,9 @@ export const createTagScreen: FormScreenProps = {
       name: "public",
       label: "Public tag",
       checked: false,
+      requiredPermissions: {
+        [PermissionType.SYSTEM_COLLECTION]: PermissionLevel.FULL,
+      },
     }),
     formSearch({
       name: "parentId",

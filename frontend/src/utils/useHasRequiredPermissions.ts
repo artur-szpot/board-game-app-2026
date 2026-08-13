@@ -9,7 +9,7 @@ import {
 import { selectPermissions } from "../store/features/currentUserSlice";
 import { useAppSelector } from "../store/hooks";
 
-type RequiredPermissions = Record<PermissionType, PermissionLevel>;
+type RequiredPermissions = Partial<Record<PermissionType, PermissionLevel>>;
 
 const getPermissionRank = (permissionLevel?: PermissionLevel): number =>
   PermissionPrecedence.indexOf(permissionLevel);

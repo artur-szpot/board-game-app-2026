@@ -21,17 +21,20 @@ export const formCheckbox = ({
   name,
   label,
   checked,
+  disabled,
   requiredPermissions,
 }: {
   name: string;
   label: string;
   checked: boolean;
-  requiredPermissions?: Record<PermissionType, PermissionLevel>;
+  disabled?: boolean;
+  requiredPermissions?: Partial<Record<PermissionType, PermissionLevel>>;
 }): FormFieldCheckboxProps => ({
   kind: FormFieldType.CHECKBOX,
   label,
   name,
   checked,
+  disabled,
   requiredPermissions,
 });
 
@@ -39,6 +42,7 @@ export const FormCheckboxField: FC<FormFieldCheckboxPropsFull> = ({
   name,
   label,
   checked,
+  disabled,
   requiredPermissions,
   onChange,
 }: FormFieldCheckboxPropsFull) => {
@@ -52,6 +56,7 @@ export const FormCheckboxField: FC<FormFieldCheckboxPropsFull> = ({
             id={name}
             name={name}
             checked={checked}
+            disabled={disabled}
             onChange={onChange}
           />
         }

@@ -1,4 +1,5 @@
 import type { TagResponseDto } from "../../../dto/collection-items.dto";
+import { formCheckbox } from "../../forms/FormCheckboxField";
 import { formSearch } from "../../forms/FormSearchField";
 import { formText } from "../../forms/FormTextField";
 import type { FormScreenProps } from "../FormScreenProps";
@@ -24,6 +25,12 @@ export const buildEditTagScreen = (tag: TagResponseDto): FormScreenProps => ({
       name: "description",
       label: "Description",
       initialValue: tag.description ?? "",
+    }),
+    formCheckbox({
+      name: "public",
+      label: "Public tag",
+      checked: !tag.private,
+      disabled: true,
     }),
     formSearch({
       name: "parentId",

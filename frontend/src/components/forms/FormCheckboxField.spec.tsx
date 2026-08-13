@@ -1,7 +1,12 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { PermissionShortDto } from "../../dto/user-data.dto";
+import {
+  PermissionLevel,
+  type PermissionShortDto,
+  PermissionType,
+} from "../../dto/user-data.dto";
+import { FormFieldType } from "./common";
 import { FormCheckboxField } from "./FormCheckboxField";
 
 const mockState = {
@@ -25,17 +30,20 @@ describe("FormCheckboxField", () => {
   it("hides the checkbox when the current user lacks the required permission", () => {
     mockState.currentUser.permissions = [
       {
-        permissionType: "SYSTEM_COLLECTION",
-        permissionLevel: "READ",
+        permissionType: PermissionType.SYSTEM_COLLECTION,
+        permissionLevel: PermissionLevel.READ,
       },
     ];
 
     render(
       <FormCheckboxField
+        kind={FormFieldType.CHECKBOX}
         name="published"
         label="Published"
         checked={false}
-        requiredPermissions={{ SYSTEM_COLLECTION: "FULL" }}
+        requiredPermissions={{
+          [PermissionType.SYSTEM_COLLECTION]: PermissionLevel.FULL,
+        }}
         onChange={() => undefined}
       />,
     );
