@@ -4,31 +4,32 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import {
-    Alert,
-    Box,
-    Button,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    Paper,
-    Stack,
-    Typography,
+  Alert,
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Paper,
+  Stack,
+  Typography,
 } from "@mui/material";
 import axios from "axios";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 
 import type { GameResponseDto } from "../../dto/collection-items.dto";
+import { PermissionLevel, PermissionType } from "../../dto/user-data.dto";
 import {
-    selectAccessToken,
-    selectPermissions,
-    selectUserId,
+  selectAccessToken,
+  selectPermissions,
+  selectUserId,
 } from "../../store/features/currentUserSlice";
 import {
-    closeFrame,
-    openFormFrame,
+  closeFrame,
+  openFormFrame,
 } from "../../store/features/frameStackSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { buildEditGameScreen } from "./definitions/edit-game";
@@ -56,8 +57,8 @@ export const GameDetailsScreen = ({
     () =>
       (permissions ?? []).some(
         permission =>
-          permission.permissionType === "SYSTEM_COLLECTION" &&
-          permission.permissionLevel === "FULL",
+          permission.permissionType === PermissionType.SYSTEM_COLLECTION &&
+          permission.permissionLevel === PermissionLevel.FULL,
       ),
     [permissions],
   );

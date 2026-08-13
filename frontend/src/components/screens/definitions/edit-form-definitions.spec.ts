@@ -5,6 +5,7 @@ import type {
     LocationResponseDto,
     TagResponseDto,
 } from "../../../dto/collection-items.dto";
+import { FormFieldType } from "../../forms/common";
 import { GameDataType } from "../selection-strategies";
 import { buildEditGameScreen } from "./edit-game";
 import { buildEditLocationScreen } from "./edit-location";
@@ -118,6 +119,9 @@ describe("edit form definitions", () => {
     const tagParentField = tagScreen.fields.find(
       field => field.name === "parentId",
     );
+    const publicTagField = tagScreen.fields.find(
+      field => field.name === "public",
+    );
     const locationParentField = locationScreen.fields.find(
       field => field.name === "parentId",
     );
@@ -136,6 +140,13 @@ describe("edit form definitions", () => {
         name: "tag-9",
       }),
     ]);
+    expect(publicTagField).toEqual(
+      expect.objectContaining({
+        kind: FormFieldType.CHECKBOX,
+        checked: false,
+        disabled: true,
+      }),
+    );
     expect(
       (locationParentField as { params?: { currentSelection?: unknown[] } })
         .params?.currentSelection,

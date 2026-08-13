@@ -1,12 +1,22 @@
-export type PermissionType =
-  | "USERS"
-  | "PERMISSIONS"
-  | "ROLES"
-  | "GAME_COLLECTIONS"
-  | "SYSTEM_COLLECTION"
-  | "ADMIN_PANEL";
+export enum PermissionType {
+  "USERS" = "USERS",
+  "PERMISSIONS" = "PERMISSIONS",
+  "ROLES" = "ROLES",
+  "GAME_COLLECTIONS" = "GAME_COLLECTIONS",
+  "SYSTEM_COLLECTION" = "SYSTEM_COLLECTION",
+  "ADMIN_PANEL" = "ADMIN_PANEL",
+}
 
-export type PermissionLevel = "READ" | "FULL";
+export enum PermissionLevel {
+  READ = "READ",
+  FULL = "FULL",
+}
+
+export const PermissionPrecedence = [
+  undefined,
+  PermissionLevel.READ,
+  PermissionLevel.FULL,
+];
 
 export type PermissionShortDto = {
   permissionType: PermissionType;

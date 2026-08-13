@@ -44,6 +44,7 @@ import type {
 } from "./entity-panel-types";
 import { DEFAULT_PAGE_SIZE } from "./entity-panel-types";
 
+import { PermissionLevel, PermissionType } from "../../dto/user-data.dto";
 import "./entity-panel.scss";
 
 const INPUT_STABILITY_IN_MS = 500;
@@ -110,8 +111,8 @@ export const EntityPanel = <
     () =>
       (permissions ?? []).some(
         permission =>
-          permission.permissionType === "SYSTEM_COLLECTION" &&
-          permission.permissionLevel === "FULL",
+          permission.permissionType === PermissionType.SYSTEM_COLLECTION &&
+          permission.permissionLevel === PermissionLevel.FULL,
       ),
     [permissions],
   );

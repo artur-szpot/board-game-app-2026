@@ -87,17 +87,6 @@ export class TagController {
     return this.gateway.create(body, userId);
   }
 
-  @Post('/system')
-  @ApiOperation({ summary: 'Create a SYSTEM-owned tag' })
-  @ApiBody({ type: CreateTagDto })
-  @ApiOkResponse({ type: TagResponse })
-  @RequirePermissions([PermissionType.SYSTEM_COLLECTION, PermissionLevel.FULL])
-  public async createSystemTag(
-    @Body() body: CreateTagDto,
-  ): Promise<TagResponse> {
-    return this.gateway.createSystem(body);
-  }
-
   @Patch('/:id')
   @ApiOperation({ summary: 'Update tag by ID' })
   @ApiParam({ name: 'id', type: String })

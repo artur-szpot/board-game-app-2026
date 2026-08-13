@@ -3,21 +3,22 @@ import type { FC } from "react";
 
 import { buildChoiceMadeFromItems } from "../../store/features/frame-actions";
 import {
-    openOptionsFrame,
-    sameFrameResult,
+  openOptionsFrame,
+  sameFrameResult,
 } from "../../store/features/frameStackSlice";
 import { useAppDispatch } from "../../store/hooks";
+import { useHasRequiredPermissions } from "../../utils/useHasRequiredPermissions";
 import type { FormScreenResult } from "../screens/FormScreenProps";
 import { type OptionsScreenProps } from "../screens/OptionsScreenProps";
 import type {
-    ResultMappingStrategy,
-    SelectionResult,
+  ResultMappingStrategy,
+  SelectionResult,
 } from "../screens/selection-strategies";
 import { FormFieldType } from "./common";
 import { DataDisplay } from "./data-displays/DataDisplay";
 import type {
-    FormFieldSelectionHandlerProps,
-    FormFieldSelectionProps,
+  FormFieldSelectionHandlerProps,
+  FormFieldSelectionProps,
 } from "./selection-field-props";
 
 export type FormFieldOptionsProps = FormFieldSelectionProps & {
@@ -57,7 +58,10 @@ export const FormOptionsField: FC<FormFieldOptionsPropsFull> = ({
   currentSelection,
   onAdditionalStringFieldChange,
   onAdditionalBooleanFieldChange,
+  requiredPermissions,
 }: FormFieldOptionsPropsFull) => {
+  const hasRequiredPermissions = useHasRequiredPermissions(requiredPermissions);
+
   const dispatch = useAppDispatch();
   const chosen = currentSelection;
   const removeItem = (selected: SelectionResult) =>
@@ -74,7 +78,7 @@ export const FormOptionsField: FC<FormFieldOptionsPropsFull> = ({
     );
 
   return (
-    <div className="form-options">
+    <div className="form-options" hidden={!hasRequiredPermissions}>
       <Stack spacing={1.25}>
         <Typography component="p" className="form-field-label">
           {label}

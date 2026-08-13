@@ -144,6 +144,7 @@ describe('TagService', () => {
       expect(mockRepository.createTag).toHaveBeenCalledWith(
         createTagDto,
         '123-abc',
+        true,
       );
       expect(result).toStrictEqual({
         id: testTagDto.id,
@@ -155,6 +156,29 @@ describe('TagService', () => {
         createdOn: testTagDto.createdOn,
         updatedOn: testTagDto.updatedOn,
       });
+    });
+
+    it('should create a public SYSTEM-owned tag via the standard create flow', async () => {
+      const createTagDto: CreateTagDto = { name: 'Shared Tag', public: true };
+      const systemTag = {
+        ...testTagDto,
+        ownerId: SYSTEM_OWNER_ID,
+        private: false,
+      };
+      mockRepository.getTagByName.mockResolvedValueOnce(null);
+      mockRepository.createTag.mockResolvedValueOnce(systemTag);
+
+      await expect(
+        service.create(createTagDto, '123-abc'),
+      ).resolves.toMatchObject({
+        ownerId: SYSTEM_OWNER_ID,
+        private: false,
+      });
+      expect(mockRepository.createTag).toHaveBeenCalledWith(
+        createTagDto,
+        SYSTEM_OWNER_ID,
+        false,
+      );
     });
 
     it('should create a public SYSTEM-owned tag', async () => {
@@ -172,7 +196,7 @@ describe('TagService', () => {
         private: false,
       });
       expect(mockRepository.createTag).toHaveBeenCalledWith(
-        createTagDto,
+        { ...createTagDto, public: true },
         SYSTEM_OWNER_ID,
         false,
       );

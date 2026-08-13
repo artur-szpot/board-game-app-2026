@@ -201,9 +201,15 @@ export class TagService implements TagGateway {
       throw new CustomInternalError('creating the tag');
     }
 
+    const ownerId = input.public ? SYSTEM_OWNER_ID : userId;
+
     try {
-      await this.validateCreateInput(input, userId);
-      const createdTag = await this.tagRepository.createTag(input, userId);
+      await this.validateCreateInput(input, ownerId);
+      const createdTag = await this.tagRepository.createTag(
+        input,
+        ownerId,
+        !input.public,
+      );
       return this.mapToResponse(createdTag);
     } catch (error) {
       if (error instanceof BadRequestException) {
@@ -215,21 +221,7 @@ export class TagService implements TagGateway {
   }
 
   public async createSystem(input: CreateTagDto): Promise<TagResponse> {
-    try {
-      await this.validateCreateInput(input, SYSTEM_OWNER_ID);
-      const createdTag = await this.tagRepository.createTag(
-        input,
-        SYSTEM_OWNER_ID,
-        false,
-      );
-      return this.mapToResponse(createdTag);
-    } catch (error) {
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
-      this.logger.error(`Unexpected error while creating system tag: ${error}`);
-      throw new CustomInternalError('creating the system tag');
-    }
+    return this.create({ ...input, public: true }, SYSTEM_OWNER_ID);
   }
 
   public async update(

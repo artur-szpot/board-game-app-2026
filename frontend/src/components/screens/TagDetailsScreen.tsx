@@ -3,31 +3,32 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import PublicIcon from "@mui/icons-material/Public";
 import {
-    Alert,
-    Box,
-    Button,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    Paper,
-    Stack,
-    Typography,
+  Alert,
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Paper,
+  Stack,
+  Typography,
 } from "@mui/material";
 import axios from "axios";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 
 import type { TagResponseDto } from "../../dto/collection-items.dto";
+import { PermissionLevel, PermissionType } from "../../dto/user-data.dto";
 import {
-    selectAccessToken,
-    selectPermissions,
-    selectUserId,
+  selectAccessToken,
+  selectPermissions,
+  selectUserId,
 } from "../../store/features/currentUserSlice";
 import {
-    closeFrame,
-    openFormFrame,
+  closeFrame,
+  openFormFrame,
 } from "../../store/features/frameStackSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { buildEditTagScreen } from "./definitions/edit-tag";
@@ -55,8 +56,8 @@ export const TagDetailsScreen = ({
     () =>
       (permissions ?? []).some(
         permission =>
-          permission.permissionType === "SYSTEM_COLLECTION" &&
-          permission.permissionLevel === "FULL",
+          permission.permissionType === PermissionType.SYSTEM_COLLECTION &&
+          permission.permissionLevel === PermissionLevel.FULL,
       ),
     [permissions],
   );
@@ -365,7 +366,7 @@ export const TagDetailsScreen = ({
         >
           <DialogContentText>
             Are you sure you want to make {tag ? `"${tag.name}"` : "this tag"}{" "}
-            public and transfer ownership to SYSTEM?
+            public?
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ px: "calc(16px + 10px)", pb: "calc(8px + 10px)" }}>

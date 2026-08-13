@@ -117,7 +117,7 @@
 
 - `SYSTEM` is a reserved user row so shared records retain the existing collection owner foreign keys.
 - Ordinary collection reads include records owned by the current user and records owned by `SYSTEM`.
-- Resource-local `/system` POST routes create public SYSTEM records; existing mutation routes enforce the additional SYSTEM permission based on the loaded record owner.
+- Resource-local `/system` POST routes create public SYSTEM records for helpers and scoring schemas; tags now use the standard create route with a `public` flag to create a public SYSTEM-owned record. Existing mutation routes still enforce the additional SYSTEM permission based on the loaded record owner.
 
 ## AI-agent implementation checklist
 

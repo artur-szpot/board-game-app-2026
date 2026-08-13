@@ -70,7 +70,7 @@ describe('TagController', () => {
     const response = await fetch(`${baseUrl}/game-api/tags`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'Strategy', parentId: null }),
+      body: JSON.stringify({ name: 'Strategy', parentId: null, public: true }),
     });
 
     expect(response.status).toBe(201);
@@ -82,6 +82,7 @@ describe('TagController', () => {
       {
         name: 'Strategy',
         parentId: null,
+        public: true,
       },
       '123-abc',
     );

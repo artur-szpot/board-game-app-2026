@@ -3,12 +3,13 @@ import type React from "react";
 import { Link as RouterLink } from "react-router";
 
 import {
-    selectAccessToken,
-    selectPermissions,
+  selectAccessToken,
+  selectPermissions,
 } from "../../store/features/currentUserSlice";
 import { resetToBottomFrame } from "../../store/features/frameStackSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 
+import { PermissionType } from "../../dto/user-data.dto";
 import "./bars.scss";
 
 export const Navbar: React.FC = () => {
@@ -28,7 +29,8 @@ export const Navbar: React.FC = () => {
           {accessToken ? (
             <>
               {permissions?.some(
-                permission => permission.permissionType === "ADMIN_PANEL",
+                permission =>
+                  permission.permissionType === PermissionType.ADMIN_PANEL,
               ) && (
                 <Button
                   component={RouterLink}

@@ -58,9 +58,22 @@ export const mapFormValuesToResults = (
       }
       mapped[field.name] = value ?? 0;
     });
-  Object.entries(values.booleanValues).forEach(
-    ([name, value]) => (mapped[name] = value),
-  );
+  fields
+    .filter(
+      (field): field is FormFieldCheckboxProps =>
+        field.kind === FormFieldType.CHECKBOX,
+    )
+    .forEach(field => {
+      if (field.disabled) {
+        return;
+      }
+      const value = values.booleanValues[field.name];
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      if (value === undefined) {
+        return;
+      }
+      mapped[field.name] = value;
+    });
   Object.entries(values.selectionValues).forEach(([name, values]) => {
     const field = fields
       .filter(
