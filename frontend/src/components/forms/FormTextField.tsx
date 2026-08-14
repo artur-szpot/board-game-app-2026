@@ -6,6 +6,7 @@ import { useHasRequiredPermissions } from "../../utils/useHasRequiredPermissions
 import type { FormFieldProps } from "./common";
 import { FormFieldType, hasVisibleErrors } from "./common";
 import { FormFieldErrors } from "./FormFieldErrors";
+import type { FieldValidator } from "./validators";
 
 export type FormFieldTextProps = FormFieldProps & {
   kind: FormFieldType.TEXT;
@@ -24,17 +25,20 @@ export const formText = ({
   label,
   required,
   initialValue,
+  validators,
 }: {
   name: string;
   label: string;
   required?: boolean;
   initialValue?: string;
+  validators?: FieldValidator[];
 }): FormFieldTextProps => ({
   kind: FormFieldType.TEXT,
   label,
   name,
   required,
   initialValue,
+  validators,
 });
 
 export const FormTextField: FC<FormFieldTextPropsFull> = ({

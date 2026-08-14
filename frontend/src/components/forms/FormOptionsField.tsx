@@ -21,6 +21,7 @@ import type {
   FormFieldSelectionHandlerProps,
   FormFieldSelectionProps,
 } from "./selection-field-props";
+import type { FieldValidator } from "./validators";
 
 export type FormFieldOptionsProps = FormFieldSelectionProps & {
   kind: FormFieldType.OPTIONS;
@@ -33,12 +34,14 @@ export const formOptions = ({
   params,
   resultMapping,
   customMapping,
+  validators,
 }: {
   name: string;
   label: string;
   params: OptionsScreenProps;
   resultMapping: ResultMappingStrategy;
   customMapping?: (item: SelectionResult) => FormScreenResult;
+  validators?: FieldValidator[];
 }): FormFieldOptionsProps => ({
   kind: FormFieldType.OPTIONS,
   label,
@@ -46,6 +49,7 @@ export const formOptions = ({
   params,
   resultMapping,
   customMapping,
+  validators,
 });
 
 export type FormFieldOptionsPropsFull = FormFieldOptionsProps &

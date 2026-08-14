@@ -21,6 +21,7 @@ import type {
   FormFieldSelectionHandlerProps,
   FormFieldSelectionProps,
 } from "./selection-field-props";
+import type { FieldValidator } from "./validators";
 
 export type FormFieldSearchProps = FormFieldSelectionProps & {
   kind: FormFieldType.SEARCH;
@@ -36,12 +37,14 @@ export const formSearch = ({
   params,
   resultMapping,
   customMapping,
+  validators,
 }: {
   name: string;
   label: string;
   params: SearchScreenProps;
   resultMapping: ResultMappingStrategy;
   customMapping?: (item: SelectionResult) => FormScreenResult;
+  validators?: FieldValidator[];
 }): FormFieldSearchProps => ({
   kind: FormFieldType.SEARCH,
   label,
@@ -49,6 +52,7 @@ export const formSearch = ({
   params,
   resultMapping,
   customMapping,
+  validators,
 });
 
 export const FormSearchField: FC<FormFieldSearchPropsFull> = ({
