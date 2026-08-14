@@ -3,13 +3,13 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import {
-    Alert,
-    Box,
-    IconButton,
-    Paper,
-    Stack,
-    Tooltip,
-    Typography,
+  Alert,
+  Box,
+  IconButton,
+  Paper,
+  Stack,
+  Tooltip,
+  Typography,
 } from "@mui/material";
 
 import type { GameBadgeProps } from "../../components/screens/GameBadge";
@@ -128,8 +128,8 @@ const renderItem = <Item,>(
             <Box className="entity-panel-badges">
               {badges.map((badge, index) => (
                 <GameBadge
-                  key={`${badge.type}-${badge.value}-${index.toString()}`}
                   {...badge}
+                  key={`${badge.type}-${badge.value}-${index.toString()}`}
                 />
               ))}
             </Box>

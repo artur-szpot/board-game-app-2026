@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import type {
-    GameResponseDto,
-    LocationResponseDto,
-    TagResponseDto,
+  GameResponseDto,
+  LocationResponseDto,
+  TagResponseDto,
 } from "../../../dto/collection-items.dto";
 import { FormFieldType } from "../../forms/common";
 import { GameDataType } from "../selection-strategies";

@@ -7,10 +7,10 @@ import { isGreaterThanOrEqual } from "../../forms/validators";
 import type { FormScreenProps } from "../FormScreenProps";
 import type { SelectionResult } from "../selection-strategies";
 import {
-    GameDataType,
-    ResultMappingStrategy,
-    selectionStrategyChooseOne,
-    selectionStrategySelectAnyNumber,
+  GameDataType,
+  ResultMappingStrategy,
+  selectionStrategyChooseOne,
+  selectionStrategySelectAnyNumber,
 } from "../selection-strategies";
 
 export const createGameScreen: FormScreenProps = {

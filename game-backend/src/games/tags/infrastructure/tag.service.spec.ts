@@ -216,6 +216,53 @@ describe('TagService', () => {
     });
   });
 
+  describe('checkName', () => {
+    it('should pass when the name is free for the user', async () => {
+      mockRepository.getTagByName.mockResolvedValueOnce(null);
+
+      const result = await service.checkName({ name: 'Free' }, '123-abc');
+
+      expect(mockRepository.getTagByName).toHaveBeenCalledWith(
+        'Free',
+        '123-abc',
+      );
+      expect(result).toStrictEqual({ checkPassed: true });
+    });
+
+    it('should fail when the name is taken', async () => {
+      mockRepository.getTagByName.mockResolvedValueOnce(testTagDto);
+
+      const result = await service.checkName(
+        { name: testTagDto.name },
+        '123-abc',
+      );
+
+      expect(result).toStrictEqual({ checkPassed: false });
+    });
+
+    it('should pass when the only match is the excluded tag', async () => {
+      mockRepository.getTagByName.mockResolvedValueOnce(testTagDto);
+
+      const result = await service.checkName(
+        { name: testTagDto.name, id: testTagDto.id },
+        '123-abc',
+      );
+
+      expect(result).toStrictEqual({ checkPassed: true });
+    });
+
+    it('should look up the SYSTEM owner for public tags', async () => {
+      mockRepository.getTagByName.mockResolvedValueOnce(null);
+
+      await service.checkName({ name: 'Free', public: true }, '123-abc');
+
+      expect(mockRepository.getTagByName).toHaveBeenCalledWith(
+        'Free',
+        SYSTEM_OWNER_ID,
+      );
+    });
+  });
+
   describe('update', () => {
     it('should update an existing tag with valid input', async () => {
       const updateTagDto: UpdateTagDto = { name: 'Updated Tag' };

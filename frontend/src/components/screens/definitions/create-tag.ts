@@ -4,10 +4,10 @@ import { formSearch } from "../../forms/FormSearchField";
 import { formText } from "../../forms/FormTextField";
 import type { FormScreenProps } from "../FormScreenProps";
 import {
-  GameDataType,
-  ResultMappingStrategy,
-  selectionStrategyChooseOne,
-  selectionStrategySelectNumber,
+    GameDataType,
+    ResultMappingStrategy,
+    selectionStrategyChooseOne,
+    selectionStrategySelectNumber,
 } from "../selection-strategies";
 
 export const createTagScreen: FormScreenProps = {
@@ -44,5 +44,18 @@ export const createTagScreen: FormScreenProps = {
       },
     }),
     // TODO: allow to add this to existing games as it's being created
+  ],
+  asyncValidators: [
+    {
+      name: "tagNameTaken",
+      url: "game-api/tags/check",
+      watchedFields: ["name", "public"],
+      targetField: "name",
+      errorMessage: "This tag name is already taken",
+      buildBody: values => ({
+        name: values.stringValues.name,
+        public: values.booleanValues.public,
+      }),
+    },
   ],
 };

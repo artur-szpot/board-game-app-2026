@@ -6,25 +6,25 @@ import { formSearch } from "../forms/FormSearchField";
 import { formText } from "../forms/FormTextField";
 import type { FieldValidator } from "../forms/validators";
 import {
-    isGreaterThan,
-    isGreaterThanOrEqual,
-    isLesserThan,
-    isLesserThanOrEqual,
+  isGreaterThan,
+  isGreaterThanOrEqual,
+  isLesserThan,
+  isLesserThanOrEqual,
 } from "../forms/validators";
 import {
-    countErrors,
-    describeSelectionStrategy,
-    validateField,
-    validateForm,
+  countErrors,
+  describeSelectionStrategy,
+  validateField,
+  validateForm,
 } from "./form-validation";
 import type { FormScreenField, FormScreenValues } from "./FormScreenProps";
 import type { SelectionStrategy } from "./selection-strategies";
 import {
-    GameDataType,
-    ResultMappingStrategy,
-    selectionStrategyChooseOne,
-    selectionStrategySelectAnyNumber,
-    selectionStrategySelectNumber,
+  GameDataType,
+  ResultMappingStrategy,
+  selectionStrategyChooseOne,
+  selectionStrategySelectAnyNumber,
+  selectionStrategySelectNumber,
 } from "./selection-strategies";
 
 const emptyValues: FormScreenValues = {

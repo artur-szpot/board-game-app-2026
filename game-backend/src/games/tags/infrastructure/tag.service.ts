@@ -20,8 +20,10 @@ import { Paginated } from '@common/pagination/Paginated';
 import { TAG_REPOSITORY, TagRepository } from '@db/repositories/tag.repository';
 
 import { CreateTagDto } from '../dto/in/create-tag.dto';
+import { CheckTagNameDto } from '../dto/in/check-tag-name.dto';
 import { TagDto } from '../dto/in/tag.dto';
 import { UpdateTagDto } from '../dto/in/update-tag.dto';
+import { CheckResultResponse } from '../dto/out/check-result.response';
 import { TagResponse } from '../dto/out/tag.response';
 import { TagGateway } from './tag.gateway';
 
@@ -59,15 +61,33 @@ export class TagService implements TagGateway {
     return tag;
   }
 
+  private async isNameAvailable(
+    name: string,
+    ownerId: string,
+    existingTagId?: string,
+  ): Promise<boolean> {
+    const existingTag = await this.tagRepository.getTagByName(name, ownerId);
+    return !existingTag || existingTag.id === existingTagId;
+  }
+
   private async ensureUniqueName(
     name: string,
     ownerId: string,
     existingTagId?: string,
   ) {
-    const existingTag = await this.tagRepository.getTagByName(name, ownerId);
-    if (existingTag && existingTag.id !== existingTagId) {
+    if (!(await this.isNameAvailable(name, ownerId, existingTagId))) {
       throw new BadRequestException(`Tag name "${name}" is already in use`);
     }
+  }
+
+  public async checkName(
+    input: CheckTagNameDto,
+    userId: string,
+  ): Promise<CheckResultResponse> {
+    const ownerId = input.public ? SYSTEM_OWNER_ID : userId;
+    return {
+      checkPassed: await this.isNameAvailable(input.name, ownerId, input.id),
+    };
   }
 
   private async ensureParentTagExists(

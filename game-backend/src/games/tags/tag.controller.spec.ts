@@ -14,6 +14,7 @@ describe('TagController', () => {
     getMany: jest.fn(),
     create: jest.fn(),
     createSystem: jest.fn(),
+    checkName: jest.fn(),
     update: jest.fn(),
     makeSystemOwned: jest.fn(),
     delete: jest.fn(),
@@ -86,6 +87,34 @@ describe('TagController', () => {
       },
       '123-abc',
     );
+  });
+
+  it('checks tag name availability endpoint', async () => {
+    gateway.checkName.mockResolvedValue({ checkPassed: false });
+
+    const response = await fetch(`${baseUrl}/game-api/tags/check`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Strategy', public: true }),
+    });
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ checkPassed: false });
+    expect(gateway.checkName).toHaveBeenCalledWith(
+      { name: 'Strategy', public: true },
+      '123-abc',
+    );
+  });
+
+  it('rejects a name check without a name', async () => {
+    const response = await fetch(`${baseUrl}/game-api/tags/check`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ public: true }),
+    });
+
+    expect(response.status).toBe(400);
+    expect(gateway.checkName).not.toHaveBeenCalled();
   });
 
   it('retrieves a tag by id endpoint', async () => {

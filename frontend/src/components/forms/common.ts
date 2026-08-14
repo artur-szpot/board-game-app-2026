@@ -18,6 +18,7 @@ export type FormFieldProps = {
   // Supplied at render time by the containing form, never by the field builders.
   showErrors?: boolean;
   errors?: string[];
+  isChecking?: boolean;
 };
 
 export const hasVisibleErrors = (props: {

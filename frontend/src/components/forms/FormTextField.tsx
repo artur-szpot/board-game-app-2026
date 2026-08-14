@@ -1,5 +1,10 @@
 import ClearIcon from "@mui/icons-material/Clear";
-import { IconButton, InputAdornment, TextField } from "@mui/material";
+import {
+    CircularProgress,
+    IconButton,
+    InputAdornment,
+    TextField,
+} from "@mui/material";
 import { useEffect, useState, type ChangeEvent, type FC } from "react";
 
 import { useHasRequiredPermissions } from "../../utils/useHasRequiredPermissions";
@@ -51,6 +56,7 @@ export const FormTextField: FC<FormFieldTextPropsFull> = ({
   requiredPermissions,
   showErrors,
   errors,
+  isChecking = false,
 }: FormFieldTextPropsFull) => {
   const hasRequiredPermissions = useHasRequiredPermissions(requiredPermissions);
   const isErrored = hasVisibleErrors({ showErrors, errors });
@@ -83,6 +89,9 @@ export const FormTextField: FC<FormFieldTextPropsFull> = ({
         value={value}
         onChange={handleChange}
         error={isErrored}
+        color={isChecking ? "info" : undefined}
+        focused={isChecking || undefined}
+        aria-busy={isChecking}
         slotProps={{
           htmlInput: {
             required,
@@ -90,6 +99,14 @@ export const FormTextField: FC<FormFieldTextPropsFull> = ({
           input: {
             endAdornment: (
               <InputAdornment position="end">
+                {isChecking && (
+                  <CircularProgress
+                    aria-label={`Checking ${label}`}
+                    color="info"
+                    size={18}
+                    sx={{ mr: 0.5 }}
+                  />
+                )}
                 <IconButton
                   aria-label={`Clear ${label}`}
                   onClick={handleClear}

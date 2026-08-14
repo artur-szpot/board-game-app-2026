@@ -53,4 +53,18 @@ export const buildEditTagScreen = (tag: TagResponseDto): FormScreenProps => ({
       },
     }),
   ],
+  asyncValidators: [
+    {
+      name: "tagNameTaken",
+      url: "game-api/tags/check",
+      watchedFields: ["name", "public"],
+      targetField: "name",
+      errorMessage: "This tag name is already taken",
+      buildBody: values => ({
+        name: values.stringValues.name,
+        public: values.booleanValues.public,
+        id: tag.id,
+      }),
+    },
+  ],
 });

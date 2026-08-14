@@ -4,8 +4,8 @@ import { ValidatorKind } from "../forms/validators";
 import type { FormScreenField, FormScreenValues } from "./FormScreenProps";
 import type { SelectionStrategy } from "./selection-strategies";
 import {
-    isSelectionCorrect,
-    SelectionStrategyEnum,
+  isSelectionCorrect,
+  SelectionStrategyEnum,
 } from "./selection-strategies";
 
 export type FormErrors = Record<string, string[]>;

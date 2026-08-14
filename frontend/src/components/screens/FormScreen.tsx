@@ -22,6 +22,7 @@ import { FormOptionsField } from "../forms/FormOptionsField";
 import { FormSearchField } from "../forms/FormSearchField";
 import { FormTextField } from "../forms/FormTextField";
 import { MainActions } from "../MainActions";
+import type { FormErrors } from "./form-validation";
 import { countErrors, validateForm } from "./form-validation";
 import {
   mapFormValuesToResults,
@@ -34,9 +35,19 @@ import {
   type SelectionResult,
   type SelectionScreenProps,
 } from "./selection-strategies";
+import { useFormAsyncValidators } from "./useFormAsyncValidators";
 
 const formScreenDraftCache = new Map<string, FormScreenValues>();
 const formScreenShowErrorsCache = new Map<string, boolean>();
+
+const mergeErrors = (left: FormErrors, right: FormErrors): FormErrors =>
+  Object.entries(right).reduce<FormErrors>(
+    (merged, [name, messages]) => ({
+      ...merged,
+      [name]: [...(merged[name] ?? []), ...messages],
+    }),
+    { ...left },
+  );
 
 const withSelectionAdditionalFields = (
   selected: SelectionResult,
@@ -345,12 +356,20 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
     [fields, frameId],
   );
 
-  const errors = validateForm(fields, {
+  const currentValues = {
     stringValues,
     numericValues,
     booleanValues,
     selectionValues,
-  });
+  };
+  const { asyncErrors, pendingFields } = useFormAsyncValidators(
+    frameId,
+    currentValues,
+    accessToken,
+    revealErrors,
+  );
+
+  const errors = mergeErrors(validateForm(fields, currentValues), asyncErrors);
   const errorCount = countErrors(errors);
 
   const dispatch = useAppDispatch();
@@ -409,6 +428,7 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
                       {...field}
                       showErrors={showErrors}
                       errors={fieldErrors}
+                      isChecking={pendingFields.has(field.name)}
                       value={stringValues[field.name]}
                       onChange={handleStringChange(field.name)}
                       onClear={() => updateStringValue(field.name, "")}
@@ -524,7 +544,7 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
               }
             })}
             <MainActions
-              confirmEnabled={errorCount === 0}
+              confirmEnabled={errorCount === 0 && pendingFields.size === 0}
               errorCount={errorCount}
               onShowErrors={() => {
                 revealErrors();

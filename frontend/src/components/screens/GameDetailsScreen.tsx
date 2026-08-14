@@ -264,8 +264,8 @@ export const GameDetailsScreen = ({
             <Box className="entity-panel-badges">
               {gameBadges.map((badge, index) => (
                 <GameBadge
-                  key={`${badge.type}-${badge.value}-${index.toString()}`}
                   {...badge}
+                  key={`${badge.type}-${badge.value}-${index.toString()}`}
                 />
               ))}
             </Box>
