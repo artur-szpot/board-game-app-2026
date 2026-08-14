@@ -13,6 +13,7 @@ import { useHasRequiredPermissions } from "../../utils/useHasRequiredPermissions
 import type { FormFieldProps } from "./common";
 import { FormFieldType, hasVisibleErrors } from "./common";
 import { FormFieldErrors } from "./FormFieldErrors";
+import type { FieldValidator } from "./validators";
 
 export type FormFieldNumericInputProps = FormFieldProps & {
   kind: FormFieldType.NUMERIC;
@@ -36,6 +37,7 @@ export const formNumber = ({
   min,
   max,
   step,
+  validators,
 }: {
   name: string;
   label: string;
@@ -44,6 +46,7 @@ export const formNumber = ({
   min?: number;
   max?: number;
   step?: number;
+  validators?: FieldValidator[];
 }): FormFieldNumericInputProps => ({
   kind: FormFieldType.NUMERIC,
   label,
@@ -53,6 +56,7 @@ export const formNumber = ({
   min,
   max,
   step,
+  validators,
 });
 
 export const FormFieldNumericInput: FC<FormFieldNumericInputPropsFull> = ({

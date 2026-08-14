@@ -4,13 +4,20 @@ import { formCheckbox } from "../forms/FormCheckboxField";
 import { formNumber } from "../forms/FormFieldNumericInput";
 import { formSearch } from "../forms/FormSearchField";
 import { formText } from "../forms/FormTextField";
+import type { FieldValidator } from "../forms/validators";
+import {
+    isGreaterThan,
+    isGreaterThanOrEqual,
+    isLesserThan,
+    isLesserThanOrEqual,
+} from "../forms/validators";
 import {
     countErrors,
     describeSelectionStrategy,
     validateField,
     validateForm,
 } from "./form-validation";
-import type { FormScreenValues } from "./FormScreenProps";
+import type { FormScreenField, FormScreenValues } from "./FormScreenProps";
 import type { SelectionStrategy } from "./selection-strategies";
 import {
     GameDataType,
@@ -94,33 +101,40 @@ describe("describeSelectionStrategy", () => {
 });
 
 describe("validateField", () => {
+  // Most cases involve a single field, so default the form to just that field.
+  const validate = (
+    field: FormScreenField,
+    values: FormScreenValues,
+    fields: FormScreenField[] = [field],
+  ) => validateField(field, values, fields);
+
   it("never reports checkbox fields", () => {
     const field = formCheckbox({
       name: "isPublic",
       label: "Public",
       checked: false,
     });
-    expect(validateField(field, emptyValues)).toEqual([]);
+    expect(validate(field, emptyValues)).toEqual([]);
   });
 
   it("reports a missing required text value", () => {
     const field = formText({ name: "name", label: "Name", required: true });
-    expect(
-      validateField(field, valuesWith({ stringValues: { name: "" } })),
-    ).toEqual(["Name is required"]);
+    expect(validate(field, valuesWith({ stringValues: { name: "" } }))).toEqual(
+      ["Name is required"],
+    );
   });
 
   it("accepts a filled required text value", () => {
     const field = formText({ name: "name", label: "Name", required: true });
     expect(
-      validateField(field, valuesWith({ stringValues: { name: "Chess" } })),
+      validate(field, valuesWith({ stringValues: { name: "Chess" } })),
     ).toEqual([]);
   });
 
   it("ignores an empty optional text value", () => {
     const field = formText({ name: "description", label: "Description" });
     expect(
-      validateField(field, valuesWith({ stringValues: { description: "" } })),
+      validate(field, valuesWith({ stringValues: { description: "" } })),
     ).toEqual([]);
   });
 
@@ -131,7 +145,7 @@ describe("validateField", () => {
       required: true,
     });
     expect(
-      validateField(field, valuesWith({ numericValues: { minPlayers: null } })),
+      validate(field, valuesWith({ numericValues: { minPlayers: null } })),
     ).toEqual(["Minimum players is required"]);
   });
 
@@ -142,14 +156,14 @@ describe("validateField", () => {
       required: true,
     });
     expect(
-      validateField(field, valuesWith({ numericValues: { minPlayers: 0 } })),
+      validate(field, valuesWith({ numericValues: { minPlayers: 0 } })),
     ).toEqual([]);
   });
 
   it("reports a selection breaking its strategy", () => {
     const field = searchField(selectionStrategySelectNumber({ min: 2 }));
     expect(
-      validateField(
+      validate(
         field,
         valuesWith({ selectionValues: { tags: selectionOf(1) } }),
       ),
@@ -159,7 +173,7 @@ describe("validateField", () => {
   it("accepts a selection satisfying its strategy", () => {
     const field = searchField(selectionStrategySelectNumber({ min: 2 }));
     expect(
-      validateField(
+      validate(
         field,
         valuesWith({ selectionValues: { tags: selectionOf(2) } }),
       ),
@@ -179,7 +193,7 @@ describe("validateField", () => {
       },
     });
     expect(
-      validateField(
+      validate(
         field,
         valuesWith({ selectionValues: { tags: selectionOf(1) } }),
       ),
@@ -188,9 +202,136 @@ describe("validateField", () => {
 
   it("treats a missing selection entry as empty", () => {
     const field = searchField(selectionStrategyChooseOne());
-    expect(validateField(field, emptyValues)).toEqual([
+    expect(validate(field, emptyValues)).toEqual([
       "Tags: choose exactly one option",
     ]);
+  });
+});
+
+describe("comparison validators", () => {
+  const minPlayers = formNumber({
+    name: "minPlayers",
+    label: "Minimum players",
+  });
+
+  const maxPlayersWith = (validator: FieldValidator) =>
+    formNumber({
+      name: "maxPlayers",
+      label: "Maximum players",
+      validators: [validator],
+    });
+
+  const validateMaxPlayers = (
+    validator: FieldValidator,
+    min: number | null,
+    max: number | null,
+  ) => {
+    const field = maxPlayersWith(validator);
+    return validateField(
+      field,
+      valuesWith({
+        numericValues: { minPlayers: min, maxPlayers: max },
+      }),
+      [minPlayers, field],
+    );
+  };
+
+  it.each([
+    [isGreaterThan, 2, 4, []],
+    [
+      isGreaterThan,
+      4,
+      2,
+      ["Maximum players must be greater than Minimum players"],
+    ],
+    [
+      isGreaterThan,
+      3,
+      3,
+      ["Maximum players must be greater than Minimum players"],
+    ],
+    [isGreaterThanOrEqual, 3, 3, []],
+    [
+      isGreaterThanOrEqual,
+      4,
+      2,
+      ["Maximum players must be greater than or equal to Minimum players"],
+    ],
+    [isLesserThan, 4, 2, []],
+    [
+      isLesserThan,
+      3,
+      3,
+      ["Maximum players must be lesser than Minimum players"],
+    ],
+    [isLesserThanOrEqual, 3, 3, []],
+    [
+      isLesserThanOrEqual,
+      2,
+      4,
+      ["Maximum players must be lesser than or equal to Minimum players"],
+    ],
+  ])("compares against the referenced field", (builder, min, max, expected) => {
+    expect(validateMaxPlayers(builder("minPlayers"), min, max)).toEqual(
+      expected,
+    );
+  });
+
+  it("passes when the declaring field has no value", () => {
+    expect(validateMaxPlayers(isGreaterThan("minPlayers"), 4, null)).toEqual(
+      [],
+    );
+  });
+
+  it("passes when the referenced field has no value", () => {
+    expect(validateMaxPlayers(isGreaterThan("minPlayers"), null, 4)).toEqual(
+      [],
+    );
+  });
+
+  it("reports the required error and the comparison error together", () => {
+    const field = formNumber({
+      name: "maxPlayers",
+      label: "Maximum players",
+      required: true,
+      validators: [isGreaterThan("minPlayers")],
+    });
+    expect(
+      validateField(
+        field,
+        valuesWith({ numericValues: { minPlayers: 4, maxPlayers: null } }),
+        [minPlayers, field],
+      ),
+      // A missing value skips the comparison, so only the required error remains.
+    ).toEqual(["Maximum players is required"]);
+  });
+
+  it("throws when the referenced field does not exist", () => {
+    const field = maxPlayersWith(isGreaterThan("nonexistent"));
+    expect(() =>
+      validateField(field, valuesWith({ numericValues: { maxPlayers: 4 } }), [
+        field,
+      ]),
+    ).toThrow("Unknown field referenced by validator: nonexistent");
+  });
+
+  it("throws when the declaring field is not numeric", () => {
+    const field = formText({
+      name: "name",
+      label: "Name",
+      validators: [isGreaterThan("minPlayers")],
+    });
+    expect(() =>
+      validateField(field, emptyValues, [minPlayers, field]),
+    ).toThrow("Comparison validators require numeric fields: name");
+  });
+
+  it("throws when the referenced field is not numeric", () => {
+    const other = formText({ name: "name", label: "Name" });
+    const field = maxPlayersWith(isGreaterThan("name"));
+    expect(() => validateField(field, emptyValues, [other, field])).toThrow(
+      "Comparison validators require numeric fields: name",
+    );
   });
 });
 

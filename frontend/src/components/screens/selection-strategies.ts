@@ -39,9 +39,9 @@ export const selectionStrategySelectNumber = (values: {
   if ((min !== undefined || max !== undefined) && exact !== undefined) {
     throw new Error("Either min/max or exact need to be set, never both");
   }
-  // Exact > 0
-  if (exact !== undefined && (exact <= 0 || !Number.isInteger(exact))) {
-    throw new Error("Exact must be a positive integer");
+  // Exact > 1 (exact === 1 => use the "choose one" strategy instead)
+  if (exact !== undefined && (exact <= 1 || !Number.isInteger(exact))) {
+    throw new Error("Exact must be a positive integer greater than 1");
   }
   // Min >= 0
   if (min !== undefined && (min < 0 || !Number.isInteger(min))) {

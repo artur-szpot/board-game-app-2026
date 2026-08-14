@@ -8,6 +8,7 @@ import { formNumber } from "../../forms/FormFieldNumericInput";
 import { formOptions } from "../../forms/FormOptionsField";
 import { formSearch } from "../../forms/FormSearchField";
 import { formText } from "../../forms/FormTextField";
+import { isGreaterThanOrEqual } from "../../forms/validators";
 import type { FormScreenProps } from "../FormScreenProps";
 import type { SelectionResult } from "../selection-strategies";
 import {
@@ -89,6 +90,7 @@ export const buildEditGameScreen = (game: GameResponseDto): FormScreenProps => {
         initialValue: game.maxPlayers,
         min: 1,
         max: 99,
+        validators: [isGreaterThanOrEqual("minPlayers")],
       }),
       formOptions({
         name: "length",

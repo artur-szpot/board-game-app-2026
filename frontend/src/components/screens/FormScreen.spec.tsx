@@ -15,12 +15,13 @@ import { formNumber } from "../forms/FormFieldNumericInput";
 import { formOptions } from "../forms/FormOptionsField";
 import { formSearch } from "../forms/FormSearchField";
 import { formText } from "../forms/FormTextField";
+import { isGreaterThanOrEqual } from "../forms/validators";
 import { FormScreen } from "./FormScreen";
 import type { FormScreenPropsFull } from "./FormScreenProps";
 import {
   GameDataType,
   ResultMappingStrategy,
-  selectionStrategySelectNumber,
+  selectionStrategyChooseOne,
 } from "./selection-strategies";
 
 vi.mock("axios");
@@ -110,7 +111,7 @@ describe("FormScreen", () => {
             params: {
               title: "Pick tags",
               dataType: GameDataType.TAG,
-              strategy: selectionStrategySelectNumber({ exact: 1 }),
+              strategy: selectionStrategyChooseOne(),
               options: [{ label: "Strategy", value: "tag-1" }],
             },
           }),
@@ -121,7 +122,7 @@ describe("FormScreen", () => {
             params: {
               title: "Find helpers",
               dataTypes: [GameDataType.HELPER],
-              strategy: selectionStrategySelectNumber({ exact: 1 }),
+              strategy: selectionStrategyChooseOne(),
             },
           }),
         ]}
@@ -307,7 +308,7 @@ describe("FormScreen", () => {
             params: {
               title: "Find locations",
               dataTypes: [GameDataType.LOCATION],
-              strategy: selectionStrategySelectNumber({ exact: 1 }),
+              strategy: selectionStrategyChooseOne(),
               additionalFields: [
                 formText({
                   name: "notes",
@@ -390,7 +391,7 @@ describe("FormScreen", () => {
           params: {
             title: "Find helpers",
             dataTypes: [GameDataType.HELPER],
-            strategy: selectionStrategySelectNumber({ exact: 1 }),
+            strategy: selectionStrategyChooseOne(),
           },
         }),
       ],
@@ -437,7 +438,9 @@ describe("FormScreen", () => {
       );
 
       expect(screen.getByText("Title is required")).toBeInTheDocument();
-      expect(screen.getByText("Helpers: select exactly 1")).toBeInTheDocument();
+      expect(
+        screen.getByText("Helpers: choose exactly one option"),
+      ).toBeInTheDocument();
     });
 
     it("revalidates live once errors are revealed", async () => {
@@ -469,6 +472,52 @@ describe("FormScreen", () => {
       render(<FormScreen {...props} />);
 
       expect(screen.getByText("Title is required")).toBeInTheDocument();
+    });
+
+    it("reports a broken comparison between two numeric fields", async () => {
+      const user = userEvent.setup();
+
+      render(
+        <FormScreen
+          frameId="comparison-form"
+          title="Create game"
+          action="some/url"
+          method="POST"
+          fields={[
+            formNumber({
+              name: "minPlayers",
+              label: "Minimum players",
+              initialValue: 5,
+            }),
+            formNumber({
+              name: "maxPlayers",
+              label: "Maximum players",
+              initialValue: 2,
+              validators: [isGreaterThanOrEqual("minPlayers")],
+            }),
+          ]}
+        />,
+      );
+
+      await user.click(
+        screen.getByRole("button", { name: "Show 1 form errors" }),
+      );
+
+      expect(
+        screen.getByText(
+          "Maximum players must be greater than or equal to Minimum players",
+        ),
+      ).toBeInTheDocument();
+
+      await user.clear(getNumericInput("maxPlayers"));
+      await user.type(getNumericInput("maxPlayers"), "6");
+
+      expect(
+        screen.queryByText(
+          "Maximum players must be greater than or equal to Minimum players",
+        ),
+      ).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Confirm" })).toBeEnabled();
     });
   });
 });

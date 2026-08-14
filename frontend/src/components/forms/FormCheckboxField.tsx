@@ -8,6 +8,7 @@ import {
 import { useHasRequiredPermissions } from "../../utils/useHasRequiredPermissions";
 import { FormFieldType, hasVisibleErrors, type FormFieldProps } from "./common";
 import { FormFieldErrors } from "./FormFieldErrors";
+import type { FieldValidator } from "./validators";
 
 export type FormFieldCheckboxProps = FormFieldProps & {
   kind: FormFieldType.CHECKBOX;
@@ -24,12 +25,14 @@ export const formCheckbox = ({
   checked,
   disabled,
   requiredPermissions,
+  validators,
 }: {
   name: string;
   label: string;
   checked: boolean;
   disabled?: boolean;
   requiredPermissions?: Partial<Record<PermissionType, PermissionLevel>>;
+  validators?: FieldValidator[];
 }): FormFieldCheckboxProps => ({
   kind: FormFieldType.CHECKBOX,
   label,
@@ -37,6 +40,7 @@ export const formCheckbox = ({
   checked,
   disabled,
   requiredPermissions,
+  validators,
 });
 
 export const FormCheckboxField: FC<FormFieldCheckboxPropsFull> = ({

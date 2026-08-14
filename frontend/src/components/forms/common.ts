@@ -1,4 +1,5 @@
 import type { PermissionLevel, PermissionType } from "../../dto/user-data.dto";
+import type { FieldValidator } from "./validators";
 
 export enum FormFieldType {
   TEXT,
@@ -13,6 +14,7 @@ export type FormFieldProps = {
   label: string;
   requiredPermissions?: Partial<Record<PermissionType, PermissionLevel>>;
   disabled?: boolean;
+  validators?: FieldValidator[];
   // Supplied at render time by the containing form, never by the field builders.
   showErrors?: boolean;
   errors?: string[];
