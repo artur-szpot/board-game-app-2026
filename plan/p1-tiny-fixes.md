@@ -1,5 +1,5 @@
 - change auth forms to use FormScreen
 - show current chosen in options
-- some responsiveness? (min+max on one row, change+clear on one row)
 - change behavior for single-select options
 - allow alt names for games
+- location path navigation (tree)
