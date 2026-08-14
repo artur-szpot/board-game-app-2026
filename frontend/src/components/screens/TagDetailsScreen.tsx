@@ -215,6 +215,7 @@ export const TagDetailsScreen = ({
       badges.push({
         type: BadgeTypeEnum.TAG_PARENT,
         value: tag.parent.name,
+        to: `/collection/tags/${tag.parent.id}`,
       });
     }
 
@@ -333,8 +334,8 @@ export const TagDetailsScreen = ({
               <Box className="entity-panel-badges">
                 {tagBadges.map((badge, index) => (
                   <GameBadge
-                    key={`${badge.type}-${badge.value}-${index.toString()}`}
                     {...badge}
+                    key={`${badge.type}-${badge.value}-${index.toString()}`}
                   />
                 ))}
               </Box>

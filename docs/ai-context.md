@@ -48,6 +48,8 @@ Use this file to capture operational context, decisions, and any remaining unkno
 - Collection View buttons navigate to the item route (`EntityPanelTab.viewPath`); the list's pagination query string travels in React Router history state (`frontend/src/utils/list-return-state.ts`) rather than in the detail URL, so detail links stay clean. `EntityPanelTab.viewScreen` remains as a frame-based fallback for tabs without a detail route.
 - Tag details now include a confirmation-based `Make public` action shown only for non-`SYSTEM` tags when user has `SYSTEM_COLLECTION:FULL`; after success, the screen refreshes in place so the button disappears.
 - Tag details and collection cards render a `Public` badge for `SYSTEM`-owned tags and a parent-name badge from hydrated `tag.parent` data.
+- `GameBadge` accepts an optional `to`; when set the badge renders as a router link (`clickable` MUI Chip) so entity-backed badges navigate to their detail route. Tag and parent-tag badges supply it; attribute badges (`PLAYER_COUNT`, `GAME_LENGTH`, `PUBLIC`) stay inert.
+- Game details location cards are links too: `GameLocationDto.isGameId = true` means the entry is a game, so it targets `/collection/games/:id`; otherwise `/collection/locations/:id`.
 
 ## Frontend Frame Stack Notes
 
