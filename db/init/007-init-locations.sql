@@ -21,7 +21,6 @@ ALTER TABLE locations
    REFERENCES users(id)
    ON DELETE CASCADE;
 
-CREATE UNIQUE INDEX locations_owner_name_idx ON locations (owner_id, name);
 CREATE INDEX locations_owner_id_idx ON locations (owner_id);
 
 ALTER TABLE locations
