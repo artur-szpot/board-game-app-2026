@@ -6,9 +6,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { buildChoiceMadeFromItems } from "../../store/features/frame-actions";
 import { invokeFrameCallback } from "../../store/features/frameCallbackRegistry";
 import {
-    closeFrame,
-    openOptionsFrame,
-    openSearchFrame,
+  closeFrame,
+  openOptionsFrame,
+  openSearchFrame,
 } from "../../store/features/frameStackSlice";
 import { formCheckbox } from "../forms/FormCheckboxField";
 import { formNumber } from "../forms/FormFieldNumericInput";
@@ -18,9 +18,9 @@ import { formText } from "../forms/FormTextField";
 import { FormScreen } from "./FormScreen";
 import type { FormScreenPropsFull } from "./FormScreenProps";
 import {
-    GameDataType,
-    ResultMappingStrategy,
-    selectionStrategySelectNumber,
+  GameDataType,
+  ResultMappingStrategy,
+  selectionStrategySelectNumber,
 } from "./selection-strategies";
 
 vi.mock("axios");
@@ -371,6 +371,104 @@ describe("FormScreen", () => {
           },
         ],
       },
+    });
+  });
+
+  describe("validation errors", () => {
+    // showErrors is cached per frame id, so every case needs its own id.
+    const buildInvalidFormProps = (frameId: string): FormScreenPropsFull => ({
+      frameId,
+      title: "Create game",
+      action: "some/url",
+      method: "POST",
+      fields: [
+        formText({ name: "title", label: "Title", required: true }),
+        formSearch({
+          name: "helpers",
+          label: "Helpers",
+          resultMapping: ResultMappingStrategy.VALUES_ONLY,
+          params: {
+            title: "Find helpers",
+            dataTypes: [GameDataType.HELPER],
+            strategy: selectionStrategySelectNumber({ exact: 1 }),
+          },
+        }),
+      ],
+    });
+
+    it("hides the error count button when the form is valid", () => {
+      render(
+        <FormScreen
+          frameId="valid-form"
+          title="Create game"
+          action="some/url"
+          method="POST"
+          fields={[
+            formText({
+              name: "title",
+              label: "Title",
+              required: true,
+              initialValue: "Brass",
+            }),
+          ]}
+        />,
+      );
+
+      expect(
+        screen.queryByRole("button", { name: /form errors/ }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("shows the number of errors without revealing them", () => {
+      render(<FormScreen {...buildInvalidFormProps("counted-form")} />);
+
+      expect(
+        screen.getByRole("button", { name: "Show 2 form errors" }),
+      ).toHaveTextContent("2");
+      expect(screen.queryByText("Title is required")).not.toBeInTheDocument();
+    });
+
+    it("reveals per-field messages when the error count is clicked", async () => {
+      const user = userEvent.setup();
+      render(<FormScreen {...buildInvalidFormProps("revealing-form")} />);
+
+      await user.click(
+        screen.getByRole("button", { name: "Show 2 form errors" }),
+      );
+
+      expect(screen.getByText("Title is required")).toBeInTheDocument();
+      expect(screen.getByText("Helpers: select exactly 1")).toBeInTheDocument();
+    });
+
+    it("revalidates live once errors are revealed", async () => {
+      const user = userEvent.setup();
+      render(<FormScreen {...buildInvalidFormProps("revalidating-form")} />);
+
+      await user.click(
+        screen.getByRole("button", { name: "Show 2 form errors" }),
+      );
+      await user.type(screen.getByLabelText("Title"), "Brass");
+
+      expect(screen.queryByText("Title is required")).not.toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Show 1 form errors" }),
+      ).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Confirm" })).toBeDisabled();
+    });
+
+    it("keeps errors revealed when the frame is reopened", async () => {
+      const user = userEvent.setup();
+      const props = buildInvalidFormProps("persistent-errors-form");
+
+      const firstRender = render(<FormScreen {...props} />);
+      await user.click(
+        screen.getByRole("button", { name: "Show 2 form errors" }),
+      );
+      firstRender.unmount();
+
+      render(<FormScreen {...props} />);
+
+      expect(screen.getByText("Title is required")).toBeInTheDocument();
     });
   });
 });

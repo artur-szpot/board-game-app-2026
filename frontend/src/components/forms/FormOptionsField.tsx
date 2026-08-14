@@ -14,8 +14,9 @@ import type {
   ResultMappingStrategy,
   SelectionResult,
 } from "../screens/selection-strategies";
-import { FormFieldType } from "./common";
+import { FormFieldType, hasVisibleErrors } from "./common";
 import { DataDisplay } from "./data-displays/DataDisplay";
+import { FormFieldErrors } from "./FormFieldErrors";
 import type {
   FormFieldSelectionHandlerProps,
   FormFieldSelectionProps,
@@ -59,8 +60,11 @@ export const FormOptionsField: FC<FormFieldOptionsPropsFull> = ({
   onAdditionalStringFieldChange,
   onAdditionalBooleanFieldChange,
   requiredPermissions,
+  showErrors,
+  errors,
 }: FormFieldOptionsPropsFull) => {
   const hasRequiredPermissions = useHasRequiredPermissions(requiredPermissions);
+  const isErrored = hasVisibleErrors({ showErrors, errors });
 
   const dispatch = useAppDispatch();
   const chosen = currentSelection;
@@ -80,7 +84,11 @@ export const FormOptionsField: FC<FormFieldOptionsPropsFull> = ({
   return (
     <div className="form-options" hidden={!hasRequiredPermissions}>
       <Stack spacing={1.25}>
-        <Typography component="p" className="form-field-label">
+        <Typography
+          component="p"
+          className="form-field-label"
+          color={isErrored ? "error" : undefined}
+        >
           {label}
         </Typography>
         {chosen.length > 0 &&
@@ -124,6 +132,7 @@ export const FormOptionsField: FC<FormFieldOptionsPropsFull> = ({
           {"Clear"}
         </Button>
       )}
+      <FormFieldErrors name={name} showErrors={showErrors} errors={errors} />
     </div>
   );
 };

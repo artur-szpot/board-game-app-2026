@@ -7,12 +7,12 @@ import { selectAccessToken } from "../../store/features/currentUserSlice";
 import { getFormScreenCustomMappings } from "../../store/features/formScreenCustomMappingRegistry";
 import { resultMapper } from "../../store/features/frame-actions";
 import type {
-    FrameCallbackContent,
-    FrameCallbackReceiver,
+  FrameCallbackContent,
+  FrameCallbackReceiver,
 } from "../../store/features/frameStackSlice";
 import {
-    addCallbackReceiverToTopFrame,
-    closeFrame,
+  addCallbackReceiverToTopFrame,
+  closeFrame,
 } from "../../store/features/frameStackSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { FormFieldType } from "../forms/common";
@@ -22,20 +22,21 @@ import { FormOptionsField } from "../forms/FormOptionsField";
 import { FormSearchField } from "../forms/FormSearchField";
 import { FormTextField } from "../forms/FormTextField";
 import { MainActions } from "../MainActions";
+import { countErrors, validateForm } from "./form-validation";
 import {
-    mapFormValuesToResults,
-    type FormScreenField,
-    type FormScreenPropsFull,
-    type FormScreenValues,
+  mapFormValuesToResults,
+  type FormScreenField,
+  type FormScreenPropsFull,
+  type FormScreenValues,
 } from "./FormScreenProps";
 import {
-    isSameSelectionResult,
-    isSelectionCorrect,
-    type SelectionResult,
-    type SelectionScreenProps,
+  isSameSelectionResult,
+  type SelectionResult,
+  type SelectionScreenProps,
 } from "./selection-strategies";
 
 const formScreenDraftCache = new Map<string, FormScreenValues>();
+const formScreenShowErrorsCache = new Map<string, boolean>();
 
 const withSelectionAdditionalFields = (
   selected: SelectionResult,
@@ -157,6 +158,14 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
   const [selectionValues, setSelectionValues] = useState<
     Record<string, SelectionResult[]>
   >(draft?.selectionValues ?? buildInitialSelectionValues(fields));
+  const [showErrors, setShowErrors] = useState(
+    formScreenShowErrorsCache.get(frameId) ?? false,
+  );
+
+  const revealErrors = () => {
+    formScreenShowErrorsCache.set(frameId, true);
+    setShowErrors(true);
+  };
 
   // Initialize cache entry on mount
   useEffect(() => {
@@ -336,25 +345,13 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
     [fields, frameId],
   );
 
-  const isFieldOk = (field: FormScreenField) => {
-    switch (field.kind) {
-      case FormFieldType.CHECKBOX:
-        return true;
-      case FormFieldType.TEXT:
-        return !field.required || stringValues[field.name].length;
-      case FormFieldType.NUMERIC:
-        return !field.required || numericValues[field.name] !== null;
-      case FormFieldType.OPTIONS:
-      case FormFieldType.SEARCH:
-        return isSelectionCorrect(
-          field.params.correctnessStrategy ?? field.params.strategy,
-          selectionValues[field.name].length,
-        );
-      default:
-        return false;
-    }
-  };
-  const isConfirmEnabled = () => fields.every(isFieldOk);
+  const errors = validateForm(fields, {
+    stringValues,
+    numericValues,
+    booleanValues,
+    selectionValues,
+  });
+  const errorCount = countErrors(errors);
 
   const dispatch = useAppDispatch();
 
@@ -386,6 +383,7 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
     }
     // TODO: display a success message
     formScreenDraftCache.delete(frameId);
+    formScreenShowErrorsCache.delete(frameId);
     dispatch(
       closeFrame({
         id: frameId,
@@ -402,12 +400,15 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
               {title}
             </Typography>
             {Object.values(fields).map(field => {
+              const fieldErrors = errors[field.name] ?? [];
               switch (field.kind) {
                 case FormFieldType.TEXT:
                   return (
                     <FormTextField
                       key={field.name}
                       {...field}
+                      showErrors={showErrors}
+                      errors={fieldErrors}
                       value={stringValues[field.name]}
                       onChange={handleStringChange(field.name)}
                       onClear={() => updateStringValue(field.name, "")}
@@ -418,6 +419,8 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
                     <FormFieldNumericInput
                       key={field.name}
                       {...field}
+                      showErrors={showErrors}
+                      errors={fieldErrors}
                       value={numericValues[field.name]}
                       onChange={value => updateNumericValue(field.name, value)}
                     />
@@ -427,6 +430,8 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
                     <FormOptionsField
                       key={field.name}
                       {...field}
+                      showErrors={showErrors}
+                      errors={fieldErrors}
                       currentSelection={selectionValues[field.name]}
                       selectionChangeEmitter={selectionChangeReceiver(
                         field.name,
@@ -471,6 +476,8 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
                     <FormSearchField
                       key={field.name}
                       {...field}
+                      showErrors={showErrors}
+                      errors={fieldErrors}
                       selectionChangeEmitter={selectionChangeReceiver(
                         field.name,
                       )}
@@ -508,6 +515,8 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
                     <FormCheckboxField
                       key={field.name}
                       {...field}
+                      showErrors={showErrors}
+                      errors={fieldErrors}
                       checked={booleanValues[field.name]}
                       onChange={handleBooleanChange(field.name)}
                     />
@@ -515,7 +524,11 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
               }
             })}
             <MainActions
-              confirmEnabled={isConfirmEnabled()}
+              confirmEnabled={errorCount === 0}
+              errorCount={errorCount}
+              onShowErrors={() => {
+                revealErrors();
+              }}
               confirmCallback={() => {
                 void dispatchResults({
                   stringValues,
