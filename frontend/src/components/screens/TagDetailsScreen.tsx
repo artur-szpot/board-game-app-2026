@@ -31,6 +31,7 @@ import {
     openFormFrame,
 } from "../../store/features/frameStackSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { useListSearch } from "../../utils/list-return-state";
 import { buildEditTagScreen } from "./definitions/edit-tag";
 import type { GameBadgeProps } from "./GameBadge";
 import { BadgeTypeEnum, GameBadge } from "./GameBadge";
@@ -43,6 +44,7 @@ export const TagDetailsScreen = ({
 }: TagDetailsScreenPropsFull) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const listSearch = useListSearch();
   const accessToken = useAppSelector(selectAccessToken);
   const permissions = useAppSelector(selectPermissions);
   const userId = useAppSelector(selectUserId);
@@ -134,8 +136,9 @@ export const TagDetailsScreen = ({
       return;
     }
 
-    void navigate("/collection/tags");
-  }, [dispatch, frameId, navigate, openedAsFrame]);
+    // The list pagination rides in history state so it stays out of the detail URL.
+    void navigate({ pathname: "/collection/tags", search: listSearch });
+  }, [dispatch, frameId, listSearch, navigate, openedAsFrame]);
 
   const handleEdit = () => {
     if (!tag || !canEditOrDelete) {

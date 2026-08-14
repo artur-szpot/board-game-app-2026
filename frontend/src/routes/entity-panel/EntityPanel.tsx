@@ -1,54 +1,59 @@
 import AddIcon from "@mui/icons-material/Add";
 import ClearIcon from "@mui/icons-material/Clear";
 import {
-  Box,
-  Button,
-  ButtonGroup,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  IconButton,
-  InputAdornment,
-  Paper,
-  Tab,
-  Tabs,
-  TextField,
-  Typography,
+    Box,
+    Button,
+    ButtonGroup,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
+    IconButton,
+    InputAdornment,
+    Paper,
+    Tab,
+    Tabs,
+    TextField,
+    Typography,
 } from "@mui/material";
 import Pagination from "@mui/material/Pagination";
 import type { UnknownAction } from "@reduxjs/toolkit";
 import axios from "axios";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router";
 
 import { FrameStackScreenWrapper } from "../../components/frames/FrameStackScreenWrapper";
 import {
-  selectAccessToken,
-  selectPermissions,
+    selectAccessToken,
+    selectPermissions,
 } from "../../store/features/currentUserSlice";
 import {
-  FrameTypeEnum,
-  openFormFrame,
-  resetToBottomFrame,
-  selectTopFrame,
+    FrameTypeEnum,
+    openFormFrame,
+    resetToBottomFrame,
+    selectTopFrame,
 } from "../../store/features/frameStackSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { buildListReturnState } from "../../utils/list-return-state";
 
 import { EntityPanelContent } from "./EntityPanelContent";
 import type {
-  EntityPanelProps,
-  EntityPanelTab,
-  SearchResponse,
+    EntityPanelProps,
+    EntityPanelTab,
+    SearchResponse,
 } from "./entity-panel-types";
 import { DEFAULT_PAGE_SIZE } from "./entity-panel-types";
+import {
+    buildPaginationSearch,
+    PAGE_SIZE_OPTIONS,
+    parsePaginationParams,
+} from "./pagination-params";
 
 import { PermissionLevel, PermissionType } from "../../dto/user-data.dto";
 import "./entity-panel.scss";
 
 const INPUT_STABILITY_IN_MS = 500;
-const PAGE_SIZE_OPTIONS = [3, 10, 50] as const;
 
 const getLastPageIndex = (itemsTotal: number, pageSize: number): number => {
   return Math.max(0, Math.ceil(itemsTotal / pageSize) - 1);
@@ -92,8 +97,22 @@ export const EntityPanel = <
     state => (state.currentUser as { id?: string }).id,
   );
   const topFrame = useAppSelector(selectTopFrame);
-  const [currentPageSize, setCurrentPageSize] = useState(pageSize);
-  const [page, setPage] = useState(0);
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { page, pageSize: currentPageSize } = useMemo(
+    () => parsePaginationParams(searchParams, pageSize),
+    [pageSize, searchParams],
+  );
+  const setPagination = useCallback(
+    (nextPage: number, nextPageSize: number) => {
+      setSearchParams(
+        current =>
+          buildPaginationSearch(current, nextPage, nextPageSize, pageSize),
+        { replace: true },
+      );
+    },
+    [pageSize, setSearchParams],
+  );
   const [items, setItems] = useState<Item[]>([]);
   const [total, setTotal] = useState<number>(0);
   const [searchTerm, setSearchTerm] = useState("");
@@ -103,6 +122,8 @@ export const EntityPanel = <
     Item | undefined
   >();
   const [isDeleteSubmitting, setIsDeleteSubmitting] = useState(false);
+  const previousContentRef = useRef(content);
+  const previousSearchTermRef = useRef(searchTerm);
 
   const labeledTabs = useMemo(() => withDefaultLabels(tabs), [tabs]);
   const activeTab = labeledTabs.find(tab => tab.category === content);
@@ -217,7 +238,7 @@ export const EntityPanel = <
       // When the current page is no longer valid (e.g. last item on page was deleted),
       // jump to the last available page and let the page-change effect fetch it.
       if (response.data.total > 0 && page > lastPageIndex) {
-        setPage(lastPageIndex);
+        setPagination(lastPageIndex, currentPageSize);
         return;
       }
 
@@ -241,16 +262,22 @@ export const EntityPanel = <
     page,
     searchEndpoint,
     searchTerm,
+    setPagination,
   ]);
 
   useEffect(() => {
     dispatch(resetToBottomFrame());
   }, [dispatch]);
 
+  // Pagination now lives in the URL, so it must only be reset on an actual change, never on mount.
   useEffect(() => {
-    setPage(0);
+    if (previousContentRef.current === content) {
+      return;
+    }
+    previousContentRef.current = content;
     setSearchTerm("");
-  }, [content]);
+    setPagination(0, currentPageSize);
+  }, [content, currentPageSize, setPagination]);
 
   useEffect(() => {
     const timer = window.setTimeout(
@@ -262,8 +289,12 @@ export const EntityPanel = <
   }, [fetchItems, searchTerm]);
 
   useEffect(() => {
-    setPage(0);
-  }, [searchTerm]);
+    if (previousSearchTermRef.current === searchTerm) {
+      return;
+    }
+    previousSearchTermRef.current = searchTerm;
+    setPagination(0, currentPageSize);
+  }, [currentPageSize, searchTerm, setPagination]);
 
   const selectedTabValue = labeledTabs.some(tab => tab.category === content)
     ? content
@@ -282,6 +313,17 @@ export const EntityPanel = <
   };
 
   const onViewItem = (item: Item) => {
+    const viewPath = activeTab?.viewPath as
+      | ((value: Item) => string)
+      | undefined;
+
+    if (viewPath) {
+      void navigate(viewPath(item), {
+        state: buildListReturnState(searchParams.toString()),
+      });
+      return;
+    }
+
     if (!activeTab?.viewScreen) {
       return;
     }
@@ -301,7 +343,7 @@ export const EntityPanel = <
 
   const canViewItem = (item: Item) => {
     void item;
-    return Boolean(activeTab?.viewScreen);
+    return Boolean(activeTab?.viewScreen ?? activeTab?.viewPath);
   };
 
   const canEditItem = (item: Item) => {
@@ -379,8 +421,7 @@ export const EntityPanel = <
 
     const currentTopItemIndex = page * currentPageSize;
     const nextPage = Math.floor(currentTopItemIndex / nextPageSize);
-    setCurrentPageSize(nextPageSize);
-    setPage(nextPage);
+    setPagination(nextPage, nextPageSize);
   };
 
   const totalPages = Math.ceil(total / currentPageSize);
@@ -476,7 +517,9 @@ export const EntityPanel = <
                 className="entity-panel-pagination"
                 count={totalPages}
                 page={page + 1}
-                onChange={(_event, nextPage) => setPage(nextPage - 1)}
+                onChange={(_event, nextPage) =>
+                  setPagination(nextPage - 1, currentPageSize)
+                }
                 shape="rounded"
                 disabled={totalPages <= 1}
               />

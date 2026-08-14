@@ -38,6 +38,7 @@ let mockState: MockState = defaultState;
 
 vi.mock("react-router", () => ({
   useNavigate: () => mockNavigate,
+  useLocation: () => ({ state: null }),
 }));
 
 vi.mock("../../store/hooks", () => ({
