@@ -16,6 +16,7 @@ import type {
 } from "../../components/screens/SearchScreenProps";
 import type { TagDetailsScreenProps } from "../../components/screens/TagDetailsScreenProps";
 import { createAppSlice } from "../createAppSlice";
+import { registerFormScreenAsyncValidators } from "./formScreenAsyncValidatorRegistry";
 import { registerFormScreenCustomMappings } from "./formScreenCustomMappingRegistry";
 import type { ActionEnum } from "./frame-actions";
 import {
@@ -198,12 +199,14 @@ export const frameStackSlice = createAppSlice({
           id,
           payload.params.fields,
         );
+        const { asyncValidators, ...serializableParams } = payload.params;
+        registerFormScreenAsyncValidators(id, asyncValidators);
 
         return {
           payload: {
             id,
             params: {
-              ...payload.params,
+              ...serializableParams,
               fields: serializedFields,
             },
             callbackReceiverId: payload.callbackReceiver

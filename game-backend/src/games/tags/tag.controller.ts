@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Inject,
   Param,
   Patch,
@@ -39,7 +40,9 @@ import {
 } from '@common/openapi/error-response.dto';
 
 import { CreateTagDto } from './dto/in/create-tag.dto';
+import { CheckTagNameDto } from './dto/in/check-tag-name.dto';
 import { UpdateTagDto } from './dto/in/update-tag.dto';
+import { CheckResultResponse } from './dto/out/check-result.response';
 import { TagResponse } from './dto/out/tag.response';
 import { TAG_GATEWAY, TagGateway } from './infrastructure/tag.gateway';
 
@@ -73,6 +76,19 @@ export class TagController {
         req.user.permissions,
       ),
     });
+  }
+
+  @Post('/check')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Check whether a tag name is available' })
+  @ApiBody({ type: CheckTagNameDto })
+  @ApiOkResponse({ type: CheckResultResponse })
+  @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.READ])
+  public async checkTagName(
+    @Body() body: CheckTagNameDto,
+    @UserId() userId: string,
+  ): Promise<CheckResultResponse> {
+    return this.gateway.checkName(body, userId);
   }
 
   @Post()

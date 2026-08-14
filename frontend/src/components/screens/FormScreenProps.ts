@@ -15,6 +15,16 @@ export type FormScreenValues = {
   selectionValues: Record<string, SelectionResult[]>;
 };
 
+export type FormAsyncValidator = {
+  name: string;
+  url: string;
+  watchedFields: string[];
+  targetField: string;
+  errorMessage: string;
+  // Not serializable, which is why validators are kept out of Redux entirely.
+  buildBody: (values: FormScreenValues) => object;
+};
+
 export type FormScreenResult = string | number | boolean | object;
 
 export type FormFieldCustomMappings = Record<
@@ -138,6 +148,7 @@ export type FormScreenProps = {
   fields: FormScreenField[];
   action: string;
   method: "POST" | "PATCH";
+  asyncValidators?: FormAsyncValidator[];
 };
 
 export type FormScreenPropsFull = FormScreenProps & FrameProps;

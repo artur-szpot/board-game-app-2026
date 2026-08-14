@@ -1,23 +1,23 @@
 import {
-    BadRequestException,
-    Inject,
-    Injectable,
-    Logger,
+  BadRequestException,
+  Inject,
+  Injectable,
+  Logger,
 } from '@nestjs/common';
 
 import {
-    GetManyItemsDto,
-    ItemOwnershipDto,
+  GetManyItemsDto,
+  ItemOwnershipDto,
 } from '@common/dto/in/get-many-items.dto';
 import {
-    CustomInternalError,
-    CustomNotFoundError,
+  CustomInternalError,
+  CustomNotFoundError,
 } from '@common/errors/service-errors';
 import { validateUpdateDtoNotEmpty } from '@common/helpers/validate-update-dto-not-empty';
 import { Paginated } from '@common/pagination/Paginated';
 import {
-    LOCATION_REPOSITORY,
-    LocationRepository,
+  LOCATION_REPOSITORY,
+  LocationRepository,
 } from '@db/repositories/location.repository';
 
 import { CreateLocationDto } from '../dto/in/create-location.dto';
@@ -79,22 +79,6 @@ export class LocationService implements LocationGateway {
     return locations;
   }
 
-  private async ensureUniqueName(
-    name: string,
-    ownerId: string,
-    existingLocationId?: string,
-  ) {
-    const existingLocation = await this.locationRepository.getLocationByName(
-      name,
-      ownerId,
-    );
-    if (existingLocation && existingLocation.id !== existingLocationId) {
-      throw new BadRequestException(
-        `Location name "${name}" is already in use`,
-      );
-    }
-  }
-
   private async ensureParentLocationExists(
     parentId: string,
     userId: string,
@@ -154,7 +138,6 @@ export class LocationService implements LocationGateway {
   }
 
   private async validateCreateInput(input: CreateLocationDto, userId: string) {
-    await this.ensureUniqueName(input.name, userId);
     if (input.parentId) {
       await this.ensureParentLocationExists(input.parentId, userId);
     }
@@ -165,9 +148,6 @@ export class LocationService implements LocationGateway {
     input: UpdateLocationDto,
     userId: string,
   ) {
-    if (input.name) {
-      await this.ensureUniqueName(input.name, userId, locationId);
-    }
     if (input.parentId) {
       await this.ensureValidParentLocation(locationId, input.parentId, userId);
     }

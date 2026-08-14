@@ -7,9 +7,9 @@ import { buildChoiceMadeFromItems } from "../../store/features/frame-actions";
 import { closeFrame } from "../../store/features/frameStackSlice";
 import { SearchScreen } from "./SearchScreen";
 import {
-    GameDataType,
-    selectionStrategyChooseOne,
-    selectionStrategySelectNumber,
+  GameDataType,
+  selectionStrategyChooseOne,
+  selectionStrategySelectNumber,
 } from "./selection-strategies";
 
 const mockDispatch = vi.fn();

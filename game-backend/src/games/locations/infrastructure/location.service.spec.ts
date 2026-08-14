@@ -1,5 +1,3 @@
-import { BadRequestException } from '@nestjs/common';
-
 import {
     CustomInternalError,
     CustomNotFoundError,
@@ -141,15 +139,10 @@ describe('LocationService', () => {
         name: 'New Location',
       };
 
-      mockRepository.getLocationByName.mockResolvedValueOnce(null);
       mockRepository.createLocation.mockResolvedValueOnce(testLocationDto);
 
       const result = await service.create(createLocationDto, '123-abc');
 
-      expect(mockRepository.getLocationByName).toHaveBeenCalledWith(
-        createLocationDto.name,
-        '123-abc',
-      );
       expect(mockRepository.createLocation).toHaveBeenCalledWith(
         createLocationDto,
         '123-abc',
@@ -165,22 +158,6 @@ describe('LocationService', () => {
         createdOn: testLocationDto.createdOn,
         updatedOn: testLocationDto.updatedOn,
       });
-    });
-
-    it('should throw BadRequestException when location name is already in use', async () => {
-      const createLocationDto: CreateLocationDto = {
-        name: testLocationDto.name,
-      };
-
-      mockRepository.getLocationByName.mockResolvedValueOnce(testLocationDto);
-
-      await expect(
-        service.create(createLocationDto, '123-abc'),
-      ).rejects.toBeInstanceOf(BadRequestException);
-      expect(mockRepository.getLocationByName).toHaveBeenCalledWith(
-        createLocationDto.name,
-        '123-abc',
-      );
     });
   });
 
@@ -198,7 +175,6 @@ describe('LocationService', () => {
       };
 
       mockRepository.getLocationById.mockResolvedValueOnce(testLocationDto);
-      mockRepository.getLocationByName.mockResolvedValueOnce(null);
       mockRepository.updateLocation.mockResolvedValueOnce(updatedLocationDto);
 
       const result = await service.update(
@@ -210,10 +186,6 @@ describe('LocationService', () => {
       expect(mockRepository.getLocationById).toHaveBeenCalledWith(
         testLocationDto.id,
         writeOwnership,
-      );
-      expect(mockRepository.getLocationByName).toHaveBeenCalledWith(
-        updateLocationDto.name,
-        '123-abc',
       );
       expect(mockRepository.updateLocation).toHaveBeenCalledWith(
         testLocationDto.id,

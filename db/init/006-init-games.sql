@@ -21,5 +21,4 @@ ALTER TABLE games
    REFERENCES users(id)
    ON DELETE CASCADE;
 
-CREATE UNIQUE INDEX games_owner_name_idx ON games (owner_id, name);
 CREATE INDEX games_owner_id_idx ON games (owner_id);

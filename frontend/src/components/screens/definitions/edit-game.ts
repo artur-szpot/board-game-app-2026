@@ -1,7 +1,7 @@
 import type {
-    GameResponseDto,
-    HelperResponseDto,
-    ScoringSchemaResponseDto,
+  GameResponseDto,
+  HelperResponseDto,
+  ScoringSchemaResponseDto,
 } from "../../../dto/collection-items.dto";
 import { GameLength } from "../../../dto/game-length.enum";
 import { formNumber } from "../../forms/FormFieldNumericInput";
@@ -12,10 +12,10 @@ import { isGreaterThanOrEqual } from "../../forms/validators";
 import type { FormScreenProps } from "../FormScreenProps";
 import type { SelectionResult } from "../selection-strategies";
 import {
-    GameDataType,
-    ResultMappingStrategy,
-    selectionStrategyChooseOne,
-    selectionStrategySelectAnyNumber,
+  GameDataType,
+  ResultMappingStrategy,
+  selectionStrategyChooseOne,
+  selectionStrategySelectAnyNumber,
 } from "../selection-strategies";
 
 const toTagSelection = (

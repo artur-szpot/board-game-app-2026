@@ -1629,6 +1629,73 @@
         ]
       }
     },
+    "/game-api/tags/check": {
+      "post": {
+        "operationId": "TagController_checkTagName",
+        "summary": "Check whether a tag name is available",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckTagNameDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckResultResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Tags"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
+        ]
+      }
+    },
     "/game-api/tags": {
       "post": {
         "operationId": "TagController_createTag",
@@ -3774,6 +3841,27 @@
         }
       },
       "TagResponse": {
+        "type": "object",
+        "properties": {}
+      },
+      "CheckTagNameDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "public": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "CheckResultResponse": {
         "type": "object",
         "properties": {}
       },

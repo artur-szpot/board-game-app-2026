@@ -3,10 +3,10 @@ import { formSearch } from "../../forms/FormSearchField";
 import { formText } from "../../forms/FormTextField";
 import type { FormScreenProps } from "../FormScreenProps";
 import {
-    GameDataType,
-    ResultMappingStrategy,
-    selectionStrategyChooseOne,
-    selectionStrategySelectNumber,
+  GameDataType,
+  ResultMappingStrategy,
+  selectionStrategyChooseOne,
+  selectionStrategySelectNumber,
 } from "../selection-strategies";
 
 export const buildEditLocationScreen = (
