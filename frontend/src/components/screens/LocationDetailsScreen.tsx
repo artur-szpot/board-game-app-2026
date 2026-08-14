@@ -2,17 +2,17 @@ import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import {
-  Alert,
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Paper,
-  Stack,
-  Typography,
+    Alert,
+    Box,
+    Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
+    Paper,
+    Stack,
+    Typography,
 } from "@mui/material";
 import axios from "axios";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -21,15 +21,16 @@ import { useNavigate } from "react-router";
 import type { LocationResponseDto } from "../../dto/collection-items.dto";
 import { PermissionLevel, PermissionType } from "../../dto/user-data.dto";
 import {
-  selectAccessToken,
-  selectPermissions,
-  selectUserId,
+    selectAccessToken,
+    selectPermissions,
+    selectUserId,
 } from "../../store/features/currentUserSlice";
 import {
-  closeFrame,
-  openFormFrame,
+    closeFrame,
+    openFormFrame,
 } from "../../store/features/frameStackSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { useListSearch } from "../../utils/list-return-state";
 import { buildEditLocationScreen } from "./definitions/edit-location";
 import type { LocationDetailsScreenPropsFull } from "./LocationDetailsScreenProps";
 
@@ -40,6 +41,7 @@ export const LocationDetailsScreen = ({
 }: LocationDetailsScreenPropsFull) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const listSearch = useListSearch();
   const accessToken = useAppSelector(selectAccessToken);
   const permissions = useAppSelector(selectPermissions);
   const userId = useAppSelector(selectUserId);
@@ -129,8 +131,9 @@ export const LocationDetailsScreen = ({
       return;
     }
 
-    void navigate("/collection/locations");
-  }, [dispatch, frameId, navigate, openedAsFrame]);
+    // The list pagination rides in history state so it stays out of the detail URL.
+    void navigate({ pathname: "/collection/locations", search: listSearch });
+  }, [dispatch, frameId, listSearch, navigate, openedAsFrame]);
 
   const handleEdit = () => {
     if (!location || !canEditOrDelete) {

@@ -22,6 +22,8 @@ Source: frontend/src/App.tsx
 - /collection/helpers
 - /collection/scoring-schemas
 
+Collection and admin list routes accept optional `?page` (one-based) and `?pageSize` query parameters.
+
 ## Game backend routes
 
 ### Auth and admin

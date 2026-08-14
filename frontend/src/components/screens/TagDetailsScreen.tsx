@@ -3,17 +3,17 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import PublicIcon from "@mui/icons-material/Public";
 import {
-    Alert,
-    Box,
-    Button,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    Paper,
-    Stack,
-    Typography,
+  Alert,
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Paper,
+  Stack,
+  Typography,
 } from "@mui/material";
 import axios from "axios";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -22,15 +22,16 @@ import { useNavigate } from "react-router";
 import type { TagResponseDto } from "../../dto/collection-items.dto";
 import { PermissionLevel, PermissionType } from "../../dto/user-data.dto";
 import {
-    selectAccessToken,
-    selectPermissions,
-    selectUserId,
+  selectAccessToken,
+  selectPermissions,
+  selectUserId,
 } from "../../store/features/currentUserSlice";
 import {
-    closeFrame,
-    openFormFrame,
+  closeFrame,
+  openFormFrame,
 } from "../../store/features/frameStackSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { useListSearch } from "../../utils/list-return-state";
 import { buildEditTagScreen } from "./definitions/edit-tag";
 import type { GameBadgeProps } from "./GameBadge";
 import { BadgeTypeEnum, GameBadge } from "./GameBadge";
@@ -43,6 +44,7 @@ export const TagDetailsScreen = ({
 }: TagDetailsScreenPropsFull) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const listSearch = useListSearch();
   const accessToken = useAppSelector(selectAccessToken);
   const permissions = useAppSelector(selectPermissions);
   const userId = useAppSelector(selectUserId);
@@ -134,8 +136,9 @@ export const TagDetailsScreen = ({
       return;
     }
 
-    void navigate("/collection/tags");
-  }, [dispatch, frameId, navigate, openedAsFrame]);
+    // The list pagination rides in history state so it stays out of the detail URL.
+    void navigate({ pathname: "/collection/tags", search: listSearch });
+  }, [dispatch, frameId, listSearch, navigate, openedAsFrame]);
 
   const handleEdit = () => {
     if (!tag || !canEditOrDelete) {
@@ -212,6 +215,7 @@ export const TagDetailsScreen = ({
       badges.push({
         type: BadgeTypeEnum.TAG_PARENT,
         value: tag.parent.name,
+        to: `/collection/tags/${tag.parent.id}`,
       });
     }
 
@@ -330,8 +334,8 @@ export const TagDetailsScreen = ({
               <Box className="entity-panel-badges">
                 {tagBadges.map((badge, index) => (
                   <GameBadge
-                    key={`${badge.type}-${badge.value}-${index.toString()}`}
                     {...badge}
+                    key={`${badge.type}-${badge.value}-${index.toString()}`}
                   />
                 ))}
               </Box>

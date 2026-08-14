@@ -4,6 +4,7 @@ import PersonIcon from "@mui/icons-material/Person";
 import PublicIcon from "@mui/icons-material/Public";
 import TagIcon from "@mui/icons-material/Tag";
 import { Chip } from "@mui/material";
+import { Link } from "react-router";
 
 export enum BadgeTypeEnum {
   PLAYER_COUNT = "PLAYER_COUNT",
@@ -17,6 +18,7 @@ export type GameBadgeProps = {
   type: BadgeTypeEnum;
   value: string;
   tooltip?: string;
+  to?: string;
 };
 
 export const badgeIcon = (badgeType: BadgeTypeEnum) => {
@@ -34,12 +36,40 @@ export const badgeIcon = (badgeType: BadgeTypeEnum) => {
   }
 };
 
-export const GameBadge = ({ type, value, tooltip }: GameBadgeProps) => (
-  <Chip
-    icon={badgeIcon(type)}
-    label={value}
-    size="small"
-    variant="outlined"
-    title={tooltip}
-  />
-);
+export const GameBadge = ({ type, value, tooltip, to }: GameBadgeProps) => {
+  const linkProps =
+    to === undefined ? {} : ({ clickable: true, component: Link, to } as const);
+
+  return (
+    <Chip
+      {...linkProps}
+      icon={badgeIcon(type)}
+      label={value}
+      size="small"
+      variant="outlined"
+      title={tooltip}
+      sx={{
+        px: 1.2,
+        py: 2,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        textDecoration: "none",
+        "& .MuiChip-icon": {
+          display: "flex",
+          alignItems: "center",
+          marginTop: 0,
+          marginBottom: 0,
+          marginRight: 0.1,
+        },
+        "& .MuiChip-label": {
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          lineHeight: 1,
+          paddingTop: "1px",
+        },
+      }}
+    />
+  );
+};

@@ -1,6 +1,7 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import axios from "axios";
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { TagDetailsScreen } from "./TagDetailsScreen";
@@ -38,6 +39,10 @@ let mockState: MockState = defaultState;
 
 vi.mock("react-router", () => ({
   useNavigate: () => mockNavigate,
+  useLocation: () => ({ state: null }),
+  Link: ({ to, children }: { to: string; children?: ReactNode }) => (
+    <a href={to}>{children}</a>
+  ),
 }));
 
 vi.mock("../../store/hooks", () => ({

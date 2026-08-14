@@ -18,7 +18,7 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 import type { GameResponseDto } from "../../dto/collection-items.dto";
 import { PermissionLevel, PermissionType } from "../../dto/user-data.dto";
@@ -32,6 +32,7 @@ import {
   openFormFrame,
 } from "../../store/features/frameStackSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { useListSearch } from "../../utils/list-return-state";
 import { buildEditGameScreen } from "./definitions/edit-game";
 import type { GameBadgeProps } from "./GameBadge";
 import { BadgeTypeEnum, GameBadge } from "./GameBadge";
@@ -44,6 +45,7 @@ export const GameDetailsScreen = ({
 }: GameDetailsScreenPropsFull) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const listSearch = useListSearch();
   const accessToken = useAppSelector(selectAccessToken);
   const permissions = useAppSelector(selectPermissions);
   const userId = useAppSelector(selectUserId);
@@ -133,8 +135,9 @@ export const GameDetailsScreen = ({
       return;
     }
 
-    void navigate("/collection/games");
-  }, [dispatch, frameId, navigate, openedAsFrame]);
+    // The list pagination rides in history state so it stays out of the detail URL.
+    void navigate({ pathname: "/collection/games", search: listSearch });
+  }, [dispatch, frameId, listSearch, navigate, openedAsFrame]);
 
   const handleEdit = () => {
     if (!game || !canEditOrDelete) {
@@ -197,13 +200,13 @@ export const GameDetailsScreen = ({
             },
             {
               type: BadgeTypeEnum.PLAYER_COUNT,
-              value: `${game.minPlayers.toString()}-${game.maxPlayers.toString()}`,
+              value: `${game.minPlayers.toString()} - ${game.maxPlayers.toString()}`,
             },
             ...game.tags.map(tag => ({
-              key: `tag-${tag.id}`,
               type: BadgeTypeEnum.TAG,
               value: tag.name,
               tooltip: tag.description,
+              to: `/collection/tags/${tag.id}`,
             })),
           ]
         : [],
@@ -282,12 +285,24 @@ export const GameDetailsScreen = ({
                   .slice(0, -1)
                   .map(pathPart => pathPart.name)
                   .join(" » ");
+                // A game can be used as a location, in which case the id points at a game.
+                const locationTarget = location.isGameId
+                  ? `/collection/games/${location.locationId}`
+                  : `/collection/locations/${location.locationId}`;
 
                 return (
                   <Paper
                     key={location.locationId}
+                    component={Link}
+                    to={locationTarget}
                     elevation={1}
-                    sx={{ p: 1.5 }}
+                    sx={{
+                      p: 1.5,
+                      display: "block",
+                      color: "inherit",
+                      textDecoration: "none",
+                      "&:hover": { backgroundColor: "action.hover" },
+                    }}
                   >
                     <Stack
                       direction="row"

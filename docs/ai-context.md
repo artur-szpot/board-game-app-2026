@@ -32,6 +32,7 @@ Use this file to capture operational context, decisions, and any remaining unkno
 ## Validated Assumptions
 
 - Pagination mapping note: Material UI Pagination is one-based for display, while frontend request state and backend pageNumber are zero-based. Convert with +1/-1 at the UI boundary.
+- EntityPanel pagination is URL-driven: `?page` is one-based and `?pageSize` must be one of the offered options; both are parsed in `frontend/src/routes/entity-panel/pagination-params.ts` and omitted from the URL when they equal defaults. Updates use `setSearchParams(..., { replace: true })`, so paging never adds history entries.
 - game-api prefixes are stable and should not be renamed.
 - randomizer-backend is intentionally lightweight and isolated.
 - Collection ownership scoping baseline: games, tags, locations, helpers, scoring schemas, and game scores are owner-scoped for non-superusers on reads; writes remain owner-bound.
@@ -43,9 +44,12 @@ Use this file to capture operational context, decisions, and any remaining unkno
 - Tag read payload shape: tag responses return `parent` as `{ id, name }` when a parent exists; mutation inputs continue using `parentId`.
 - EntityPanel item actions are now always-visible icon buttons (View, Edit, Delete) on each item card; buttons stay visible but are disabled when no action is configured or ownership/permission rules do not allow the action.
 - EntityPanel ownership gate for Edit/Delete: user-owned items are mutable; `SYSTEM`-owned items require `SYSTEM_COLLECTION:FULL`; roles additionally disable Edit/Delete when `protectedRole = true`.
-- Game/Tag/Location detail headers expose Edit/Delete/Close buttons in both frame and route contexts; Close and delete-success close the frame when opened as a frame, otherwise they navigate back to `/collection/games`, `/collection/tags`, or `/collection/locations` respectively.
+- Game/Tag/Location detail headers expose Edit/Delete/Close buttons in both frame and route contexts; Close and delete-success close the frame when opened as a frame, otherwise they navigate back to `/collection/games`, `/collection/tags`, or `/collection/locations` respectively, restoring the list pagination.
+- Collection View buttons navigate to the item route (`EntityPanelTab.viewPath`); the list's pagination query string travels in React Router history state (`frontend/src/utils/list-return-state.ts`) rather than in the detail URL, so detail links stay clean. `EntityPanelTab.viewScreen` remains as a frame-based fallback for tabs without a detail route.
 - Tag details now include a confirmation-based `Make public` action shown only for non-`SYSTEM` tags when user has `SYSTEM_COLLECTION:FULL`; after success, the screen refreshes in place so the button disappears.
 - Tag details and collection cards render a `Public` badge for `SYSTEM`-owned tags and a parent-name badge from hydrated `tag.parent` data.
+- `GameBadge` accepts an optional `to`; when set the badge renders as a router link (`clickable` MUI Chip) so entity-backed badges navigate to their detail route. Tag and parent-tag badges supply it; attribute badges (`PLAYER_COUNT`, `GAME_LENGTH`, `PUBLIC`) stay inert.
+- Game details location cards are links too: `GameLocationDto.isGameId = true` means the entry is a game, so it targets `/collection/games/:id`; otherwise `/collection/locations/:id`.
 
 ## Frontend Frame Stack Notes
 

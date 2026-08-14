@@ -61,18 +61,26 @@ const renderItem = <Item,>(
       });
       badges.push({
         type: BadgeTypeEnum.PLAYER_COUNT,
-        value: `${(gameDetail.minPlayers ?? 0).toString()}-${(gameDetail.maxPlayers ?? 0).toString()}`,
+        value: `${(gameDetail.minPlayers ?? 0).toString()} - ${(gameDetail.maxPlayers ?? 0).toString()}`,
       });
       (Array.isArray(gameDetail.tags) ? gameDetail.tags : []).forEach(tag => {
         if (typeof tag !== "object") {
           throw new Error("Wrong DTO shape received");
         }
 
-        const tagRecord = tag as { name: string; description?: string };
+        const tagRecord = tag as {
+          id?: string;
+          name: string;
+          description?: string;
+        };
         badges.push({
           type: BadgeTypeEnum.TAG,
           value: tagRecord.name,
           tooltip: tagRecord.description,
+          to:
+            typeof tagRecord.id === "string" && tagRecord.id.length > 0
+              ? `/collection/tags/${tagRecord.id}`
+              : undefined,
         });
       });
       break;
@@ -97,6 +105,7 @@ const renderItem = <Item,>(
           badges.push({
             type: BadgeTypeEnum.TAG_PARENT,
             value: parentRecord.name,
+            to: `/collection/tags/${parentRecord.id}`,
           });
         }
       }

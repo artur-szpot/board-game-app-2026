@@ -1,9 +1,14 @@
-import { render, screen } from "@testing-library/react";
+import { render as renderComponent, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactElement } from "react";
+import { MemoryRouter } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 
 import { GameDataType } from "../../components/screens/selection-strategies";
 import { EntityPanelContent } from "./EntityPanelContent";
+
+const render = (ui: ReactElement) =>
+  renderComponent(ui, { wrapper: MemoryRouter });
 
 describe("EntityPanelContent", () => {
   const noop = () => undefined;
@@ -40,6 +45,66 @@ describe("EntityPanelContent", () => {
 
     expect(onViewItem).toHaveBeenCalledWith(
       expect.objectContaining({ id: "game-1", name: "Brass" }),
+    );
+  });
+
+  it("links tag badges to the tag details route and leaves attribute badges inert", () => {
+    render(
+      <EntityPanelContent
+        tab={{ category: GameDataType.GAME, label: "Games" }}
+        items={[
+          {
+            id: "game-1",
+            name: "Brass",
+            description: "Industrial strategy",
+            length: "LONG",
+            minPlayers: 2,
+            maxPlayers: 4,
+            tags: [{ id: "tag-1", name: "Strategy" }],
+          },
+        ]}
+        loading={false}
+        onViewItem={noop}
+        canViewItem={() => false}
+        onEditItem={noop}
+        canEditItem={() => false}
+        onDeleteItem={noop}
+        canDeleteItem={() => false}
+      />,
+    );
+
+    expect(screen.getByRole("link", { name: "Strategy" })).toHaveAttribute(
+      "href",
+      "/collection/tags/tag-1",
+    );
+    expect(screen.queryByRole("link", { name: "2 - 4" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "LONG" })).toBeNull();
+  });
+
+  it("links the parent tag badge to the parent tag details route", () => {
+    render(
+      <EntityPanelContent
+        tab={{ category: GameDataType.TAG, label: "Tags" }}
+        items={[
+          {
+            id: "tag-2",
+            name: "Engine building",
+            parent: { id: "tag-1", name: "Strategy" },
+          },
+        ]}
+        loading={false}
+        onViewItem={noop}
+        canViewItem={() => false}
+        onEditItem={noop}
+        canEditItem={() => false}
+        onDeleteItem={noop}
+        canDeleteItem={() => false}
+      />,
+    );
+
+    expect(screen.getByRole("link", { name: "Strategy" })).toHaveAttribute(
+      "href",
+      "/collection/tags/tag-1",
     );
   });
 

@@ -12,12 +12,7 @@ import type {
     LocationResponseDto,
     TagResponseDto,
 } from "../../dto/collection-items.dto";
-import {
-    openFormFrame,
-    openGameDetailsFrame,
-    openLocationDetailsFrame,
-    openTagDetailsFrame,
-} from "../../store/features/frameStackSlice";
+import { openFormFrame } from "../../store/features/frameStackSlice";
 import type { EntityPanelTab } from "../entity-panel/entity-panel-types";
 import { EntityPanel } from "../entity-panel/EntityPanel";
 import type {
@@ -38,7 +33,7 @@ const COLLECTION_TABS: EntityPanelTab<
     createScreen: createGameScreen,
     editScreen: item =>
       openFormFrame({ params: buildEditGameScreen(item as GameResponseDto) }),
-    viewScreen: item => openGameDetailsFrame({ params: { gameId: item.id } }),
+    viewPath: item => `/collection/games/${item.id}`,
     deleteEndpoint: (item: CollectionPanelItem) => `game-api/games/${item.id}`,
   },
   {
@@ -48,7 +43,7 @@ const COLLECTION_TABS: EntityPanelTab<
     createScreen: createTagScreen,
     editScreen: item =>
       openFormFrame({ params: buildEditTagScreen(item as TagResponseDto) }),
-    viewScreen: item => openTagDetailsFrame({ params: { tagId: item.id } }),
+    viewPath: item => `/collection/tags/${item.id}`,
     deleteEndpoint: (item: CollectionPanelItem) => `game-api/tags/${item.id}`,
   },
   {
@@ -60,8 +55,7 @@ const COLLECTION_TABS: EntityPanelTab<
       openFormFrame({
         params: buildEditLocationScreen(item as LocationResponseDto),
       }),
-    viewScreen: item =>
-      openLocationDetailsFrame({ params: { locationId: item.id } }),
+    viewPath: item => `/collection/locations/${item.id}`,
     deleteEndpoint: (item: CollectionPanelItem) =>
       `game-api/locations/${item.id}`,
   },

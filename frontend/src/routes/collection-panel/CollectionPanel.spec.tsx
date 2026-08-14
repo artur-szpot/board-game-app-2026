@@ -18,7 +18,7 @@ import { makeStore } from "../../store/store";
 import { CollectionPanel } from "./CollectionPanel";
 
 describe("CollectionPanel", () => {
-  it("provides view actions for tags and locations", () => {
+  it("provides view routes for games, tags and locations", () => {
     const store = makeStore({
       currentUser: { accessToken: "test-token" },
     });
@@ -34,22 +34,22 @@ describe("CollectionPanel", () => {
     const props = entityPanelSpy.mock.calls.at(-1)?.[0] as {
       tabs: {
         category: GameDataType;
-        viewScreen?: (item: { id: string }) => { type: string };
+        viewPath?: (item: { id: string }) => string;
       }[];
     };
 
+    const gameTab = props.tabs.find(tab => tab.category === GameDataType.GAME);
     const tagTab = props.tabs.find(tab => tab.category === GameDataType.TAG);
     const locationTab = props.tabs.find(
       tab => tab.category === GameDataType.LOCATION,
     );
 
-    expect(tagTab?.viewScreen).toBeTypeOf("function");
-    expect(locationTab?.viewScreen).toBeTypeOf("function");
-    expect(tagTab?.viewScreen?.({ id: "tag-1" }).type).toBe(
-      "frameStack/openTagDetailsFrame",
+    expect(gameTab?.viewPath?.({ id: "game-1" })).toBe(
+      "/collection/games/game-1",
     );
-    expect(locationTab?.viewScreen?.({ id: "location-1" }).type).toBe(
-      "frameStack/openLocationDetailsFrame",
+    expect(tagTab?.viewPath?.({ id: "tag-1" })).toBe("/collection/tags/tag-1");
+    expect(locationTab?.viewPath?.({ id: "location-1" })).toBe(
+      "/collection/locations/location-1",
     );
   });
 
