@@ -6,7 +6,8 @@ import {
     type PermissionType,
 } from "../../dto/user-data.dto";
 import { useHasRequiredPermissions } from "../../utils/useHasRequiredPermissions";
-import { FormFieldType, type FormFieldProps } from "./common";
+import { FormFieldType, hasVisibleErrors, type FormFieldProps } from "./common";
+import { FormFieldErrors } from "./FormFieldErrors";
 
 export type FormFieldCheckboxProps = FormFieldProps & {
   kind: FormFieldType.CHECKBOX;
@@ -45,8 +46,11 @@ export const FormCheckboxField: FC<FormFieldCheckboxPropsFull> = ({
   disabled,
   requiredPermissions,
   onChange,
+  showErrors,
+  errors,
 }: FormFieldCheckboxPropsFull) => {
   const hasRequiredPermissions = useHasRequiredPermissions(requiredPermissions);
+  const isErrored = hasVisibleErrors({ showErrors, errors });
 
   return (
     <div className="form-checkbox" hidden={!hasRequiredPermissions}>
@@ -61,7 +65,9 @@ export const FormCheckboxField: FC<FormFieldCheckboxPropsFull> = ({
           />
         }
         label={label}
+        sx={isErrored ? { color: "error.main" } : undefined}
       />
+      <FormFieldErrors name={name} showErrors={showErrors} errors={errors} />
     </div>
   );
 };

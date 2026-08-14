@@ -4,7 +4,8 @@ import { useEffect, useState, type ChangeEvent, type FC } from "react";
 
 import { useHasRequiredPermissions } from "../../utils/useHasRequiredPermissions";
 import type { FormFieldProps } from "./common";
-import { FormFieldType } from "./common";
+import { FormFieldType, hasVisibleErrors } from "./common";
+import { FormFieldErrors } from "./FormFieldErrors";
 
 export type FormFieldTextProps = FormFieldProps & {
   kind: FormFieldType.TEXT;
@@ -44,8 +45,11 @@ export const FormTextField: FC<FormFieldTextPropsFull> = ({
   onClear,
   value,
   requiredPermissions,
+  showErrors,
+  errors,
 }: FormFieldTextPropsFull) => {
   const hasRequiredPermissions = useHasRequiredPermissions(requiredPermissions);
+  const isErrored = hasVisibleErrors({ showErrors, errors });
 
   const [isClearable, setIsClearable] = useState(Boolean(value));
 
@@ -74,6 +78,7 @@ export const FormTextField: FC<FormFieldTextPropsFull> = ({
         type="text"
         value={value}
         onChange={handleChange}
+        error={isErrored}
         slotProps={{
           htmlInput: {
             required,
@@ -95,6 +100,7 @@ export const FormTextField: FC<FormFieldTextPropsFull> = ({
           },
         }}
       />
+      <FormFieldErrors name={name} showErrors={showErrors} errors={errors} />
     </div>
   );
 };

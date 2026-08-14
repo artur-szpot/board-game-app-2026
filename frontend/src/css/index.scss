@@ -79,6 +79,33 @@ div.main-actions {
   .MuiButton-contained {
     border: 0;
   }
+
+  .MuiButton-root.main-actions-error-count {
+    min-width: 0;
+    padding: 0.45rem 0.7rem;
+    font-weight: 700;
+
+    .MuiButton-startIcon {
+      margin-right: 0.35rem;
+    }
+  }
+}
+
+ul.form-field-errors {
+  list-style: none;
+  margin: 0.35rem 0 0;
+  padding-left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+
+  .MuiButton-root.form-field-error {
+    cursor: default;
+    text-align: left;
+    justify-content: flex-start;
+    padding: 0.35rem 0.75rem;
+  }
 }
 
 div.data-item {

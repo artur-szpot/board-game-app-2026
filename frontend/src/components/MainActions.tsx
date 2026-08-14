@@ -1,3 +1,4 @@
+import WarningIcon from "@mui/icons-material/Warning";
 import { Button, Stack } from "@mui/material";
 import { type FC } from "react";
 
@@ -10,6 +11,8 @@ export type MainActionsProps = FrameProps & {
   allowConfirm?: boolean;
   confirmEnabled: boolean;
   confirmCallback: () => void;
+  errorCount?: number;
+  onShowErrors?: () => void;
 };
 
 export const MainActions: FC<MainActionsProps> = ({
@@ -18,6 +21,8 @@ export const MainActions: FC<MainActionsProps> = ({
   allowConfirm = true,
   confirmEnabled,
   confirmCallback,
+  errorCount = 0,
+  onShowErrors,
 }: MainActionsProps) => {
   const dispatch = useAppDispatch();
 
@@ -50,6 +55,19 @@ export const MainActions: FC<MainActionsProps> = ({
           onClick={confirmCallback}
         >
           Confirm
+        </Button>
+      )}
+      {errorCount > 0 && (
+        <Button
+          className="main-actions-error-count"
+          variant="contained"
+          color="error"
+          type="button"
+          startIcon={<WarningIcon />}
+          aria-label={`Show ${errorCount.toString()} form errors`}
+          onClick={onShowErrors}
+        >
+          {errorCount}
         </Button>
       )}
     </Stack>

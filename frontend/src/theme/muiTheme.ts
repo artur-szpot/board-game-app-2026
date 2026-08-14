@@ -9,6 +9,10 @@ export const muiTheme = createTheme({
     secondary: {
       main: "#1f3f8f",
     },
+    error: {
+      main: "#ff6961",
+      contrastText: "#3a0d0a",
+    },
     background: {
       default: "#370142",
       paper: "#2b0d45",
@@ -51,6 +55,23 @@ export const muiTheme = createTheme({
         },
         ".main-actions .MuiButton-root.Mui-disabled": {
           color: alpha("#ffffff", 0.65),
+        },
+        // Beats the generic .main-actions button and MuiButton contained overrides.
+        ".main-actions .MuiButton-root.main-actions-error-count": {
+          backgroundColor: "#ff6961",
+          borderColor: alpha("#3a0d0a", 0.35),
+          color: "#3a0d0a",
+        },
+        ".main-actions .MuiButton-root.main-actions-error-count:hover": {
+          backgroundColor: "#ff8b85",
+        },
+        ".form-field-errors .MuiButton-root.form-field-error": {
+          backgroundColor: "#ff6961",
+          border: `1px solid ${alpha("#3a0d0a", 0.35)}`,
+          color: "#3a0d0a",
+        },
+        ".form-field-errors .MuiButton-root.form-field-error:hover": {
+          backgroundColor: "#ff6961",
         },
         ".data-item": {
           border: `1px solid ${alpha("#ffffff", 0.18)}`,

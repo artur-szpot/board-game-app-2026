@@ -11,7 +11,8 @@ import type { FC } from "react";
 
 import { useHasRequiredPermissions } from "../../utils/useHasRequiredPermissions";
 import type { FormFieldProps } from "./common";
-import { FormFieldType } from "./common";
+import { FormFieldType, hasVisibleErrors } from "./common";
+import { FormFieldErrors } from "./FormFieldErrors";
 
 export type FormFieldNumericInputProps = FormFieldProps & {
   kind: FormFieldType.NUMERIC;
@@ -64,8 +65,11 @@ export const FormFieldNumericInput: FC<FormFieldNumericInputPropsFull> = ({
   value,
   onChange,
   requiredPermissions,
+  showErrors,
+  errors,
 }: FormFieldNumericInputPropsFull) => {
   const hasRequiredPermissions = useHasRequiredPermissions(requiredPermissions);
+  const isErrored = hasVisibleErrors({ showErrors, errors });
 
   const id = `${name}-numeric-input`;
 
@@ -84,6 +88,7 @@ export const FormFieldNumericInput: FC<FormFieldNumericInputPropsFull> = ({
             ref={props.ref}
             disabled={state.disabled}
             required={state.required}
+            error={isErrored}
             variant="outlined"
             sx={{
               width: "100%",
@@ -200,6 +205,7 @@ export const FormFieldNumericInput: FC<FormFieldNumericInputPropsFull> = ({
           </BaseNumberField.Increment>
         </Box>
       </BaseNumberField.Root>
+      <FormFieldErrors name={name} showErrors={showErrors} errors={errors} />
     </div>
   );
 };

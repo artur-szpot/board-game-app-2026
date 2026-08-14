@@ -13,4 +13,12 @@ export type FormFieldProps = {
   label: string;
   requiredPermissions?: Partial<Record<PermissionType, PermissionLevel>>;
   disabled?: boolean;
+  // Supplied at render time by the containing form, never by the field builders.
+  showErrors?: boolean;
+  errors?: string[];
 };
+
+export const hasVisibleErrors = (props: {
+  showErrors?: boolean;
+  errors?: string[];
+}) => Boolean(props.showErrors) && (props.errors?.length ?? 0) > 0;

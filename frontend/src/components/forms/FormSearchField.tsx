@@ -14,8 +14,9 @@ import type {
   ResultMappingStrategy,
   SelectionResult,
 } from "../screens/selection-strategies";
-import { FormFieldType } from "./common";
+import { FormFieldType, hasVisibleErrors } from "./common";
 import { DataDisplay } from "./data-displays/DataDisplay";
+import { FormFieldErrors } from "./FormFieldErrors";
 import type {
   FormFieldSelectionHandlerProps,
   FormFieldSelectionProps,
@@ -58,8 +59,11 @@ export const FormSearchField: FC<FormFieldSearchPropsFull> = ({
   onAdditionalStringFieldChange,
   onAdditionalBooleanFieldChange,
   requiredPermissions,
+  showErrors,
+  errors,
 }: FormFieldSearchPropsFull) => {
   const hasRequiredPermissions = useHasRequiredPermissions(requiredPermissions);
+  const isErrored = hasVisibleErrors({ showErrors, errors });
 
   const dispatch = useAppDispatch();
   const chosen = params.currentSelection ?? [];
@@ -77,7 +81,11 @@ export const FormSearchField: FC<FormFieldSearchPropsFull> = ({
   return (
     <div className="form-search" hidden={!hasRequiredPermissions}>
       <Stack spacing={1.25}>
-        <Typography component="p" className="form-field-label">
+        <Typography
+          component="p"
+          className="form-field-label"
+          color={isErrored ? "error" : undefined}
+        >
           {label}
         </Typography>
         {chosen.length > 0 &&
@@ -121,6 +129,7 @@ export const FormSearchField: FC<FormFieldSearchPropsFull> = ({
           {"Clear"}
         </Button>
       )}
+      <FormFieldErrors name={name} showErrors={showErrors} errors={errors} />
     </div>
   );
 };
