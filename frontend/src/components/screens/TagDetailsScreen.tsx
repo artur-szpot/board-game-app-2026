@@ -3,17 +3,17 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import PublicIcon from "@mui/icons-material/Public";
 import {
-    Alert,
-    Box,
-    Button,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    Paper,
-    Stack,
-    Typography,
+  Alert,
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Paper,
+  Stack,
+  Typography,
 } from "@mui/material";
 import axios from "axios";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -22,13 +22,13 @@ import { useNavigate } from "react-router";
 import type { TagResponseDto } from "../../dto/collection-items.dto";
 import { PermissionLevel, PermissionType } from "../../dto/user-data.dto";
 import {
-    selectAccessToken,
-    selectPermissions,
-    selectUserId,
+  selectAccessToken,
+  selectPermissions,
+  selectUserId,
 } from "../../store/features/currentUserSlice";
 import {
-    closeFrame,
-    openFormFrame,
+  closeFrame,
+  openFormFrame,
 } from "../../store/features/frameStackSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { useListSearch } from "../../utils/list-return-state";

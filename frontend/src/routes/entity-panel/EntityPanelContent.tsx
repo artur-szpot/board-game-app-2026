@@ -61,7 +61,7 @@ const renderItem = <Item,>(
       });
       badges.push({
         type: BadgeTypeEnum.PLAYER_COUNT,
-        value: `${(gameDetail.minPlayers ?? 0).toString()}-${(gameDetail.maxPlayers ?? 0).toString()}`,
+        value: `${(gameDetail.minPlayers ?? 0).toString()} - ${(gameDetail.maxPlayers ?? 0).toString()}`,
       });
       (Array.isArray(gameDetail.tags) ? gameDetail.tags : []).forEach(tag => {
         if (typeof tag !== "object") {

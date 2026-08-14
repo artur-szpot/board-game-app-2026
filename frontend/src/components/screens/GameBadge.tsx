@@ -41,5 +41,26 @@ export const GameBadge = ({ type, value, tooltip }: GameBadgeProps) => (
     size="small"
     variant="outlined"
     title={tooltip}
+    sx={{
+      px: 1.2,
+      py: 2,
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      "& .MuiChip-icon": {
+        display: "flex",
+        alignItems: "center",
+        marginTop: 0,
+        marginBottom: 0,
+        marginRight: 0.1,
+      },
+      "& .MuiChip-label": {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        lineHeight: 1,
+        paddingTop: "1px",
+      },
+    }}
   />
 );

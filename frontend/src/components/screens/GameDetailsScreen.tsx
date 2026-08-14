@@ -200,7 +200,7 @@ export const GameDetailsScreen = ({
             },
             {
               type: BadgeTypeEnum.PLAYER_COUNT,
-              value: `${game.minPlayers.toString()}-${game.maxPlayers.toString()}`,
+              value: `${game.minPlayers.toString()} - ${game.maxPlayers.toString()}`,
             },
             ...game.tags.map(tag => ({
               key: `tag-${tag.id}`,
