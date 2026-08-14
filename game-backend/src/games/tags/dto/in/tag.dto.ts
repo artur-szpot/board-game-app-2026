@@ -30,6 +30,10 @@ export class TagDto {
   @IsOptional()
   parentId?: string | null;
 
+  @IsString()
+  @IsOptional()
+  parentName?: string | null;
+
   @IsDateString()
   createdOn: string;
 

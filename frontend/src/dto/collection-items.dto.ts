@@ -64,7 +64,10 @@ export type TagResponseDto = {
   private: boolean;
   name: string;
   description?: string;
-  parentId?: string;
+  parent?: {
+    id: string;
+    name: string;
+  };
   createdOn: string;
   updatedOn: string;
 };

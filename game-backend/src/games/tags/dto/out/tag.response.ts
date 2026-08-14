@@ -1,4 +1,21 @@
-import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
+
+export class TagParentResponse {
+  @IsString()
+  @IsNotEmpty()
+  id: string;
+
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+}
 
 export class TagResponse {
   @IsString()
@@ -20,9 +37,10 @@ export class TagResponse {
   @IsOptional()
   description?: string;
 
-  @IsString()
+  @Type(() => TagParentResponse)
+  @ValidateNested()
   @IsOptional()
-  parentId?: string;
+  parent?: TagParentResponse;
 
   @IsString()
   @IsNotEmpty()

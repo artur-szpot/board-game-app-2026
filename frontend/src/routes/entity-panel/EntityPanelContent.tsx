@@ -76,6 +76,31 @@ const renderItem = <Item,>(
         });
       });
       break;
+    case GameDataType.TAG as string:
+      if (record.ownerId === "SYSTEM") {
+        badges.push({
+          type: BadgeTypeEnum.PUBLIC,
+          value: "Public",
+        });
+      }
+
+      if (typeof record.parent === "object" && record.parent !== null) {
+        const parentRecord = record.parent as {
+          id?: unknown;
+          name?: unknown;
+        };
+
+        if (
+          typeof parentRecord.id === "string" &&
+          typeof parentRecord.name === "string"
+        ) {
+          badges.push({
+            type: BadgeTypeEnum.TAG_PARENT,
+            value: parentRecord.name,
+          });
+        }
+      }
+      break;
     case AdminDataType.PERMISSION as string:
       name = record.permissionType as string;
       break;

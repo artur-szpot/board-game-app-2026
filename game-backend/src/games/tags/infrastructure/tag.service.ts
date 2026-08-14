@@ -1,26 +1,26 @@
 import {
-    BadRequestException,
-    ForbiddenException,
-    Inject,
-    Injectable,
-    Logger,
+  BadRequestException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  Logger,
 } from '@nestjs/common';
 
 import { SYSTEM_OWNER_ID } from '@common/constants/system-owner';
 import {
-    GetManyItemsDto,
-    ItemOwnershipDto,
+  GetManyItemsDto,
+  ItemOwnershipDto,
 } from '@common/dto/in/get-many-items.dto';
 import {
-    CustomInternalError,
-    CustomNotFoundError,
+  CustomInternalError,
+  CustomNotFoundError,
 } from '@common/errors/service-errors';
 import { validateUpdateDtoNotEmpty } from '@common/helpers/validate-update-dto-not-empty';
 import { Paginated } from '@common/pagination/Paginated';
 import { TAG_REPOSITORY, TagRepository } from '@db/repositories/tag.repository';
 
-import { CreateTagDto } from '../dto/in/create-tag.dto';
 import { CheckTagNameDto } from '../dto/in/check-tag-name.dto';
+import { CreateTagDto } from '../dto/in/create-tag.dto';
 import { TagDto } from '../dto/in/tag.dto';
 import { UpdateTagDto } from '../dto/in/update-tag.dto';
 import { CheckResultResponse } from '../dto/out/check-result.response';
@@ -43,7 +43,13 @@ export class TagService implements TagGateway {
       private: tag.private,
       name: tag.name,
       description: tag.description ?? undefined,
-      parentId: tag.parentId ?? undefined,
+      parent:
+        tag.parentId && tag.parentName
+          ? {
+              id: tag.parentId,
+              name: tag.parentName,
+            }
+          : undefined,
       createdOn: tag.createdOn,
       updatedOn: tag.updatedOn,
     };

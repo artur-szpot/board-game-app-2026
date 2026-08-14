@@ -41,12 +41,12 @@ export const buildEditTagScreen = (tag: TagResponseDto): FormScreenProps => ({
         strategy: selectionStrategyChooseOne(),
         correctnessStrategy: selectionStrategySelectNumber({ max: 1 }),
         title: "Parent tag",
-        currentSelection: tag.parentId
+        currentSelection: tag.parent
           ? [
               {
                 type: GameDataType.TAG,
-                value: tag.parentId,
-                name: tag.parentId,
+                value: tag.parent.id,
+                name: tag.parent.name,
               },
             ]
           : [],

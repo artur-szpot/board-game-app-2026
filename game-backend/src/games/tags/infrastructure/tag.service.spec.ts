@@ -60,10 +60,28 @@ describe('TagService', () => {
         private: testTagDto.private,
         name: testTagDto.name,
         description: testTagDto.description,
-        parentId: undefined,
+        parent: undefined,
         createdOn: testTagDto.createdOn,
         updatedOn: testTagDto.updatedOn,
       });
+    });
+
+    it('should map hydrated parent metadata into the response', async () => {
+      const tagWithParent = {
+        ...testTagDto,
+        parentId: 'tag-parent',
+        parentName: 'Parent Tag',
+      };
+      mockRepository.getTagById.mockResolvedValueOnce(tagWithParent);
+
+      await expect(service.getById(tagWithParent.id)).resolves.toEqual(
+        expect.objectContaining({
+          parent: {
+            id: 'tag-parent',
+            name: 'Parent Tag',
+          },
+        }),
+      );
     });
 
     it('should throw CustomNotFoundError when tag is missing', async () => {
@@ -108,7 +126,7 @@ describe('TagService', () => {
             private: testTagDto.private,
             name: testTagDto.name,
             description: testTagDto.description,
-            parentId: undefined,
+            parent: undefined,
             createdOn: testTagDto.createdOn,
             updatedOn: testTagDto.updatedOn,
           },
@@ -152,7 +170,7 @@ describe('TagService', () => {
         private: testTagDto.private,
         name: testTagDto.name,
         description: testTagDto.description,
-        parentId: undefined,
+        parent: undefined,
         createdOn: testTagDto.createdOn,
         updatedOn: testTagDto.updatedOn,
       });
@@ -300,7 +318,7 @@ describe('TagService', () => {
         private: updatedTagDto.private,
         name: updatedTagDto.name,
         description: updatedTagDto.description,
-        parentId: undefined,
+        parent: undefined,
         createdOn: updatedTagDto.createdOn,
         updatedOn: updatedTagDto.updatedOn,
       });
@@ -414,7 +432,7 @@ describe('TagService', () => {
         private: testTagDto.private,
         name: testTagDto.name,
         description: testTagDto.description,
-        parentId: undefined,
+        parent: undefined,
         createdOn: testTagDto.createdOn,
         updatedOn: testTagDto.updatedOn,
       });
