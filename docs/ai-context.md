@@ -40,10 +40,12 @@ Use this file to capture operational context, decisions, and any remaining unkno
 - Shared collection creation: the standard tag create route now accepts a `public` flag to create a SYSTEM-owned public tag; `/game-api/helpers/system` and `/game-api/scoring-schemas/system` remain dedicated SYSTEM-only creation routes that require `SYSTEM_COLLECTION:FULL` and force `ownerId = SYSTEM` and `private = false`.
 - Shared collection mutation: existing PUT/PATCH/DELETE routes still require `GAME_COLLECTIONS:FULL`; a `SYSTEM`-owned target additionally requires `SYSTEM_COLLECTION:FULL` and otherwise returns 403.
 - Tag make-public flow: `PATCH /game-api/tags/:id/system` requires `SYSTEM_COLLECTION:FULL` and caller ownership of the tag; successful mutation transfers `ownerId` to `SYSTEM` and makes the tag public.
+- Tag read payload shape: tag responses return `parent` as `{ id, name }` when a parent exists; mutation inputs continue using `parentId`.
 - EntityPanel item actions are now always-visible icon buttons (View, Edit, Delete) on each item card; buttons stay visible but are disabled when no action is configured or ownership/permission rules do not allow the action.
 - EntityPanel ownership gate for Edit/Delete: user-owned items are mutable; `SYSTEM`-owned items require `SYSTEM_COLLECTION:FULL`; roles additionally disable Edit/Delete when `protectedRole = true`.
 - Game/Tag/Location detail headers expose Edit/Delete/Close buttons in both frame and route contexts; Close and delete-success close the frame when opened as a frame, otherwise they navigate back to `/collection/games`, `/collection/tags`, or `/collection/locations` respectively.
 - Tag details now include a confirmation-based `Make public` action shown only for non-`SYSTEM` tags when user has `SYSTEM_COLLECTION:FULL`; after success, the screen refreshes in place so the button disappears.
+- Tag details and collection cards render a `Public` badge for `SYSTEM`-owned tags and a parent-name badge from hydrated `tag.parent` data.
 
 ## Frontend Frame Stack Notes
 

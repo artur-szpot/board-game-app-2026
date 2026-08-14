@@ -24,6 +24,11 @@ export class PostgresTagRepository implements TagRepository {
       name,
       description,
       parent_id AS "parentId",
+      (
+        SELECT parent.name
+        FROM tags parent
+        WHERE parent.id = tags.parent_id
+      ) AS "parentName",
       created_on AS "createdOn",
       updated_on AS "updatedOn"
    FROM tags
@@ -35,7 +40,11 @@ export class PostgresTagRepository implements TagRepository {
   private readonly CREATE_TAG_SQL = `
       INSERT INTO tags (id, owner_id, private, name, description, parent_id)
       VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING id, owner_id AS "ownerId", private, name, description, parent_id AS "parentId", created_on AS "createdOn", updated_on AS "updatedOn";
+      RETURNING id, owner_id AS "ownerId", private, name, description, parent_id AS "parentId", (
+        SELECT parent.name
+        FROM tags parent
+        WHERE parent.id = tags.parent_id
+      ) AS "parentName", created_on AS "createdOn", updated_on AS "updatedOn";
   `;
 
   private readonly UPDATE_TAG_SQL = (input: UpdateTagDto): string => {
@@ -58,14 +67,22 @@ export class PostgresTagRepository implements TagRepository {
          ${valuesToSet.join(', ')},
          updated_on = CURRENT_TIMESTAMP
       WHERE id = $1
-      RETURNING id, owner_id AS "ownerId", private, name, description, parent_id AS "parentId", created_on AS "createdOn", updated_on AS "updatedOn";
+      RETURNING id, owner_id AS "ownerId", private, name, description, parent_id AS "parentId", (
+        SELECT parent.name
+        FROM tags parent
+        WHERE parent.id = tags.parent_id
+      ) AS "parentName", created_on AS "createdOn", updated_on AS "updatedOn";
     `;
   };
 
   private readonly DELETE_TAG_SQL = `
    DELETE FROM tags
    WHERE id = $1
-    RETURNING id, owner_id AS "ownerId", private, name, description, parent_id AS "parentId", created_on AS "createdOn", updated_on AS "updatedOn";
+    RETURNING id, owner_id AS "ownerId", private, name, description, parent_id AS "parentId", (
+      SELECT parent.name
+      FROM tags parent
+      WHERE parent.id = tags.parent_id
+    ) AS "parentName", created_on AS "createdOn", updated_on AS "updatedOn";
   `;
 
   private readonly MAKE_TAG_SYSTEM_OWNED_SQL = `
@@ -75,7 +92,11 @@ export class PostgresTagRepository implements TagRepository {
       private = false,
       updated_on = CURRENT_TIMESTAMP
    WHERE id = $1
-   RETURNING id, owner_id AS "ownerId", private, name, description, parent_id AS "parentId", created_on AS "createdOn", updated_on AS "updatedOn";
+   RETURNING id, owner_id AS "ownerId", private, name, description, parent_id AS "parentId", (
+     SELECT parent.name
+     FROM tags parent
+     WHERE parent.id = tags.parent_id
+   ) AS "parentName", created_on AS "createdOn", updated_on AS "updatedOn";
   `;
 
   constructor(private readonly connector: PostgresConnector) {}

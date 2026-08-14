@@ -3,17 +3,17 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import PublicIcon from "@mui/icons-material/Public";
 import {
-  Alert,
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Paper,
-  Stack,
-  Typography,
+    Alert,
+    Box,
+    Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
+    Paper,
+    Stack,
+    Typography,
 } from "@mui/material";
 import axios from "axios";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -22,16 +22,18 @@ import { useNavigate } from "react-router";
 import type { TagResponseDto } from "../../dto/collection-items.dto";
 import { PermissionLevel, PermissionType } from "../../dto/user-data.dto";
 import {
-  selectAccessToken,
-  selectPermissions,
-  selectUserId,
+    selectAccessToken,
+    selectPermissions,
+    selectUserId,
 } from "../../store/features/currentUserSlice";
 import {
-  closeFrame,
-  openFormFrame,
+    closeFrame,
+    openFormFrame,
 } from "../../store/features/frameStackSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { buildEditTagScreen } from "./definitions/edit-tag";
+import type { GameBadgeProps } from "./GameBadge";
+import { BadgeTypeEnum, GameBadge } from "./GameBadge";
 import type { TagDetailsScreenPropsFull } from "./TagDetailsScreenProps";
 
 export const TagDetailsScreen = ({
@@ -194,6 +196,28 @@ export const TagDetailsScreen = ({
     return tag.ownerId !== "SYSTEM";
   }, [hasSystemCollectionFullPermission, tag]);
 
+  const tagBadges = useMemo<GameBadgeProps[]>(() => {
+    if (!tag) {
+      return [];
+    }
+
+    const badges: GameBadgeProps[] = [];
+    if (tag.ownerId === "SYSTEM") {
+      badges.push({
+        type: BadgeTypeEnum.PUBLIC,
+        value: "Public",
+      });
+    }
+    if (tag.parent) {
+      badges.push({
+        type: BadgeTypeEnum.TAG_PARENT,
+        value: tag.parent.name,
+      });
+    }
+
+    return badges;
+  }, [tag]);
+
   const handleOpenMakePublicDialog = () => {
     if (!canShowMakePublicButton) {
       return;
@@ -302,18 +326,28 @@ export const TagDetailsScreen = ({
         {!loading && error && <Alert severity="error">{error}</Alert>}
         {ready && (
           <Stack spacing={1.5}>
+            {tagBadges.length > 0 && (
+              <Box className="entity-panel-badges">
+                {tagBadges.map((badge, index) => (
+                  <GameBadge
+                    key={`${badge.type}-${badge.value}-${index.toString()}`}
+                    {...badge}
+                  />
+                ))}
+              </Box>
+            )}
             {tag.description ? null : (
               <Typography color="text.secondary" variant="body2">
                 No description provided.
               </Typography>
             )}
-            {tag.parentId && (
+            {tag.parent && (
               <Box>
                 <Typography component="h3" variant="subtitle2">
                   Parent tag
                 </Typography>
                 <Typography color="text.secondary" variant="body2">
-                  {tag.parentId}
+                  {tag.parent.name}
                 </Typography>
               </Box>
             )}

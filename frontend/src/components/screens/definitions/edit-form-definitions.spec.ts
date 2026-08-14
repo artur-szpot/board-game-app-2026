@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import type {
-  GameResponseDto,
-  LocationResponseDto,
-  TagResponseDto,
+    GameResponseDto,
+    LocationResponseDto,
+    TagResponseDto,
 } from "../../../dto/collection-items.dto";
 import { FormFieldType } from "../../forms/common";
 import { GameDataType } from "../selection-strategies";
@@ -97,7 +97,10 @@ describe("edit form definitions", () => {
       private: true,
       name: "Strategy",
       description: "",
-      parentId: "tag-9",
+      parent: {
+        id: "tag-9",
+        name: "Parent Strategy",
+      },
       createdOn: "2026-01-01T00:00:00.000Z",
       updatedOn: "2026-01-02T00:00:00.000Z",
     } satisfies TagResponseDto);
@@ -137,7 +140,7 @@ describe("edit form definitions", () => {
       expect.objectContaining({
         type: GameDataType.TAG,
         value: "tag-9",
-        name: "tag-9",
+        name: "Parent Strategy",
       }),
     ]);
     expect(publicTagField).toEqual(
