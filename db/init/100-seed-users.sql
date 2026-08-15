@@ -1,3 +1,7 @@
+/* Uncomment to seed a test user in a local deployment.
+   For actual production users to be seeded, use the secret-100-... file. */
+   
+/* 
 INSERT INTO users(
    id, 
    username, 
@@ -12,3 +16,4 @@ VALUES (
    '$2a$12$N3SbUkcIITkuNAGeDObmQO4CbLbdmNR/FR4W.nXnPNiElYBm5Sz.u', --'this-will-be-hashed'
    CURRENT_TIMESTAMP
 );
+*/

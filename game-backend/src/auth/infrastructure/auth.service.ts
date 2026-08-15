@@ -1,9 +1,9 @@
 import {
-    BadRequestException,
-    Inject,
-    Injectable,
-    Logger,
-    UnauthorizedException,
+  BadRequestException,
+  Inject,
+  Injectable,
+  Logger,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -11,12 +11,12 @@ import * as bcrypt from 'bcrypt';
 import { userMapper } from '@auth/modules/users/mappers/user.mapper';
 import { CustomInternalError } from '@common/errors/service-errors';
 import {
-    ROLE_REPOSITORY,
-    RoleRepository,
+  ROLE_REPOSITORY,
+  RoleRepository,
 } from '@db/repositories/role.repository';
 import {
-    USER_REPOSITORY,
-    UserRepository,
+  USER_REPOSITORY,
+  UserRepository,
 } from '@db/repositories/user.repository';
 
 import { JwtDto } from '../dto/in/jwt.dto';
