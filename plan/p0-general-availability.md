@@ -6,4 +6,4 @@ What needs to happen before:
 - wire a path in the backend that resets the database to just the above test set of data (to be removed once beta period is over)
 - deploy with production-safe configuration, HTTPS, a real domain, and non-development secrets
 - add an about page stating how fragile the beta state is
-- disable user creation; add appropriate test users deployed from a secret file (admin, WZ, family, test-owner, test-viewer)
+- disable user creation

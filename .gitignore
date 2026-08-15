@@ -4,6 +4,7 @@ Thumbs.db
 
 # Secrets
 secrets
+db/init/secret-*
 
 # Local settings
 .vscode
