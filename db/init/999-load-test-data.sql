@@ -24,16 +24,16 @@ SET
 
 INSERT INTO locations (id, owner_id, private, name, description, parent_id, path, path_ids)
 VALUES
-	('test-location-01', '123-abc', true, 'Test Location 01', 'Main shelf A for test games.', NULL, ARRAY['Test Location 02', 'Test Location 01']::TEXT[], ARRAY['test-location-02']::VARCHAR(40)[]),
-	('test-location-02', '123-abc', true, 'Test Location 02', 'Main shelf B for test games.', NULL, ARRAY['Test Location 02']::TEXT[], ARRAY[]::VARCHAR(40)[]),
-	('test-location-03', '123-abc', true, 'Test Location 03', 'Closet top section for test games.', NULL, ARRAY['Test Location 03']::TEXT[], ARRAY[]::VARCHAR(40)[]),
-	('test-location-04', '123-abc', true, 'Test Location 04', 'Closet middle section for test games.', NULL, ARRAY['Test Location 04']::TEXT[], ARRAY[]::VARCHAR(40)[]),
-	('test-location-05', '123-abc', true, 'Test Location 05', 'Closet bottom section for test games.', NULL, ARRAY['Test Location 05']::TEXT[], ARRAY[]::VARCHAR(40)[]),
-	('test-location-06', '123-abc', true, 'Test Location 06', 'Living room cabinet left side.', NULL, ARRAY['Test Location 06']::TEXT[], ARRAY[]::VARCHAR(40)[]),
-	('test-location-07', '123-abc', true, 'Test Location 07', 'Living room cabinet right side.', NULL, ARRAY['Test Location 07']::TEXT[], ARRAY[]::VARCHAR(40)[]),
-	('test-location-08', '123-abc', true, 'Test Location 08', 'Travel bag storage location.', NULL, ARRAY['Test Location 08']::TEXT[], ARRAY[]::VARCHAR(40)[]),
-	('test-location-09', '123-abc', true, 'Test Location 09', 'Guest room shelf for overflow.', NULL, ARRAY['Test Location 09']::TEXT[], ARRAY[]::VARCHAR(40)[]),
-	('test-location-10', '123-abc', true, 'Test Location 10', 'Office shelf for prototypes.', NULL, ARRAY['Test Location 10']::TEXT[], ARRAY[]::VARCHAR(40)[])
+	('test-location-01', 'wuzet', true, 'Test Location 01', 'Main shelf A for test games.', NULL, ARRAY['Test Location 02', 'Test Location 01']::TEXT[], ARRAY['test-location-02']::VARCHAR(40)[]),
+	('test-location-02', 'wuzet', true, 'Test Location 02', 'Main shelf B for test games.', NULL, ARRAY['Test Location 02']::TEXT[], ARRAY[]::VARCHAR(40)[]),
+	('test-location-03', 'wuzet', true, 'Test Location 03', 'Closet top section for test games.', NULL, ARRAY['Test Location 03']::TEXT[], ARRAY[]::VARCHAR(40)[]),
+	('test-location-04', 'wuzet', true, 'Test Location 04', 'Closet middle section for test games.', NULL, ARRAY['Test Location 04']::TEXT[], ARRAY[]::VARCHAR(40)[]),
+	('test-location-05', 'wuzet', true, 'Test Location 05', 'Closet bottom section for test games.', NULL, ARRAY['Test Location 05']::TEXT[], ARRAY[]::VARCHAR(40)[]),
+	('test-location-06', 'wuzet', true, 'Test Location 06', 'Living room cabinet left side.', NULL, ARRAY['Test Location 06']::TEXT[], ARRAY[]::VARCHAR(40)[]),
+	('test-location-07', 'wuzet', true, 'Test Location 07', 'Living room cabinet right side.', NULL, ARRAY['Test Location 07']::TEXT[], ARRAY[]::VARCHAR(40)[]),
+	('test-location-08', 'wuzet', true, 'Test Location 08', 'Travel bag storage location.', NULL, ARRAY['Test Location 08']::TEXT[], ARRAY[]::VARCHAR(40)[]),
+	('test-location-09', 'wuzet', true, 'Test Location 09', 'Guest room shelf for overflow.', NULL, ARRAY['Test Location 09']::TEXT[], ARRAY[]::VARCHAR(40)[]),
+	('test-location-10', 'wuzet', true, 'Test Location 10', 'Office shelf for prototypes.', NULL, ARRAY['Test Location 10']::TEXT[], ARRAY[]::VARCHAR(40)[])
 ON CONFLICT (id)
 DO UPDATE
 SET
@@ -48,16 +48,16 @@ SET
 
 INSERT INTO games (id, owner_id, private, name, description, length, min_players, max_players)
 VALUES
-	('test-game-01', '123-abc', true, 'Test Game 01', 'Small-box card drafting game for tests.', 'FILLER', 2, 5),
-	('test-game-02', '123-abc', true, 'Test Game 02', 'Fast tactical skirmish game for tests.', 'SHORT', 2, 4),
-	('test-game-03', '123-abc', true, 'Test Game 03', 'Resource management game for tests.', 'MEDIUM', 3, 6),
-	('test-game-04', '123-abc', true, 'Test Game 04', 'Epic campaign game for tests.', 'LONG', 4, 8),
-	('test-game-05', '123-abc', true, 'Test Game 05', 'Push-your-luck dice game for tests.', 'FILLER', 2, 6),
-	('test-game-06', '123-abc', true, 'Test Game 06', 'Two-player duel game for tests.', 'SHORT', 2, 2),
-	('test-game-07', '123-abc', true, 'Test Game 07', 'Economic strategy game for tests.', 'MEDIUM', 2, 5),
-	('test-game-08', '123-abc', true, 'Test Game 08', 'Civilization game for tests.', 'LONG', 3, 6),
-	('test-game-09', '123-abc', true, 'Test Game 09', 'Tile-laying puzzle game for tests.', 'SHORT', 1, 4),
-	('test-game-10', '123-abc', true, 'Test Game 10', 'Narrative adventure game for tests.', 'MEDIUM', 2, 6)
+	('test-game-01', 'wuzet', true, 'Test Game 01', 'Small-box card drafting game for tests.', 'FILLER', 2, 5),
+	('test-game-02', 'wuzet', true, 'Test Game 02', 'Fast tactical skirmish game for tests.', 'SHORT', 2, 4),
+	('test-game-03', 'wuzet', true, 'Test Game 03', 'Resource management game for tests.', 'MEDIUM', 3, 6),
+	('test-game-04', 'wuzet', true, 'Test Game 04', 'Epic campaign game for tests.', 'LONG', 4, 8),
+	('test-game-05', 'wuzet', true, 'Test Game 05', 'Push-your-luck dice game for tests.', 'FILLER', 2, 6),
+	('test-game-06', 'wuzet', true, 'Test Game 06', 'Two-player duel game for tests.', 'SHORT', 2, 2),
+	('test-game-07', 'wuzet', true, 'Test Game 07', 'Economic strategy game for tests.', 'MEDIUM', 2, 5),
+	('test-game-08', 'wuzet', true, 'Test Game 08', 'Civilization game for tests.', 'LONG', 3, 6),
+	('test-game-09', 'wuzet', true, 'Test Game 09', 'Tile-laying puzzle game for tests.', 'SHORT', 1, 4),
+	('test-game-10', 'wuzet', true, 'Test Game 10', 'Narrative adventure game for tests.', 'MEDIUM', 2, 6)
 ON CONFLICT (id)
 DO UPDATE
 SET
