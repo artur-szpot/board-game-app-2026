@@ -1,4 +1,5 @@
-import { BrowserRouter, Route, Routes } from "react-router";
+import { useEffect } from "react";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router";
 
 import { Footer } from "./components/bars/Footer";
 import { Navbar } from "./components/bars/Navbar";
@@ -12,12 +13,26 @@ import { CollectionPanel } from "./routes/collection-panel/CollectionPanel";
 import { GameDetails } from "./routes/game-details/GameDetails";
 import { LocationDetails } from "./routes/location-details/LocationDetails";
 import { TagDetails } from "./routes/tag-details/TagDetails";
+import { resetToBottomFrame } from "./store/features/frameStackSlice";
+import { useAppDispatch } from "./store/hooks";
 
 import "./css/index.scss";
+
+const ResetFrameStackOnNavigation = () => {
+  const dispatch = useAppDispatch();
+  const location = useLocation();
+
+  useEffect(() => {
+    dispatch(resetToBottomFrame());
+  }, [dispatch, location.key]);
+
+  return null;
+};
 
 export const App = () => {
   return (
     <BrowserRouter>
+      <ResetFrameStackOnNavigation />
       <Navbar />
       <div className="main-container">
         <Routes>

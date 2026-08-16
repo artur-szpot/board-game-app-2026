@@ -2,4 +2,5 @@
 - show current chosen in options
 - change behavior for single-select options
 - allow alt names for games
-- location path navigation (tree)
+- ability to "add next"
+- if possible: add shift-actions (delete without confirmation, create next, max players etc.)
