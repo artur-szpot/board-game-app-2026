@@ -1,12 +1,15 @@
 import logging
 import os
-import random
 from contextlib import asynccontextmanager
 from typing import Optional
 
 import psycopg
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+
+from app.routers.dice.dice_controller import router as dice_router
+from app.routers.players.players_controller import router as players_router
+from app.routers.shuffle.shuffle_controller import router as shuffle_router
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +56,9 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+app.include_router(dice_router)
+app.include_router(players_router)
+app.include_router(shuffle_router)
 
 
 @app.get("/health")
@@ -70,8 +76,3 @@ def health_ready() -> JSONResponse:
     is_ready = _check_database_connection()
     status_code = 200 if is_ready else 503
     return JSONResponse(status_code=status_code, content={"status": "ok" if is_ready else "error"})
-
-
-@app.get("/d6", response_model=int)
-def roll_d6() -> int:
-    return random.randint(1, 6)

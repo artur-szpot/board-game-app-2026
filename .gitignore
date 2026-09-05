@@ -8,3 +8,14 @@ db/init/*-secret.sql
 
 # Local settings
 .vscode
+
+# Python generated files
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+.venv/
