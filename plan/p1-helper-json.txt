@@ -1,0 +1,140 @@
+One large single JSON file defines all steps of a helper.
+
+Top-level schema:
+{
+    "schema": "helper",
+    "version:: "2026.0",
+    "variables": {...},
+    "enums": [...],
+    "steps": [...],
+    "sets": {...}
+}
+
+Variables define variables that will be set (randomized or not) and then used for some reason or another in the steps. Every defined variable must appear somewhere in the steps. Every used variable must be defined.
+
+All variable names in camelCase. Reserved common variables like TEAM and PLAYERS in UPPER_SNAKE and cannot be redefined in the helper.
+
+Ideally all variables should be integers. For those carrying other meaning, use mapping from enums. All enums must be used as variable types; all used enums must be defined.
+
+Sets need to reference existing data sets in the application. (separate NoSQL-like table for sets) Need protection from removing sets that are being referenced. Sets need to be referenced by ID, not name, since name doesn't have to be unique and can be changed (sets are NOT immutable, contrary to helpers). Each referenced set must be used in steps and vice versa.
+
+i18n achieved by providing labels as tuples of code [+ variables], eg.
+{
+    "label": ["helper.game.istanbul.smuggler", {"position": 7}],
+    "label": ["helper.general.firstPlayer"]
+}
+
+These translations to be fetched from the API by the helper on mount/language change. If not available in chosen language, default to English -- ON THE BE LEVEL! BE takes request like {"labels": ["helper.general", "helper.game.isntabul"], "language": "pl"} and returns object like:
+{
+    "helper.general.firstPlayer": "Pierwszy gracz",
+    "helper.game.istanbul.smuggler": "Szmugler: {{position}}"
+}
+
+Translation sets don't need to be specified, they will be inferred at runtime; API to return warning and UI to display it if any expected sets/keys are missing from the response. The helper will still work, but will diplay the ugly code+variable strings.
+
+Known steps:
+* select team and players (min-max, skip?)
+* select game variant (single choice)
+* select expansions (multiple choice)
+* deal (assign) items from deck(s) [to players]
+* spread (show dealt items) in some way, e.g. 5x5 istanbul
+* roll and assign to variable
+* display variables (dice roll result, spread board, single player assignment (fiesta))
+
+Each step to have its own schema definition, to be validated as well.
+{
+    "schema": "team-and-players",
+    "version": "2026.0",
+    "allowSkip": true, // optional, defaults to false
+    "minPlayers": 2,
+    "maxPlayers": 5,
+    "targetVariables": ["TEAM", "PLAYERS"] // these need to cross-reference defined variables! For team-and-players in particular, no need to define this, but kept for example.
+}
+
+API is stateless! All results and decisions kept in the UI. BUT: allow variable injection too. Each step to define if it is only meant to set some variables; if these are given alongside the schema (because user loads a config, or has a preselected team and players), step to be skipped.
+
+
+
+
+
+ISTANBUL - THE GOLDEN STANDARD
+{
+    "schema": "helper",
+    "version:: "2026.0",
+    "variables": {
+        "firstPlayer": "integer",
+        "mode": "istanbulMode",
+        "board": <some type of variable?>, //TODO
+        "governorPosition": "integer",
+        "smugglerPosition": "integer",
+        "courierPosition": "integer",
+        "coffeemanPosition": "integer"
+    },
+    "enums": {
+        "istanbulMode": ["vanilla", "coffee", "letters", "grandBazaar"]
+    },
+    "steps": [
+        {
+            "label": "choosePlayers", // will not be displayed, informational/documenting + referential
+            "schema": "team-and-players",
+            "version": "2026.0",
+            "allowSkip": true,
+            "minPlayers": 2,
+            "maxPlayers": 5
+        },
+        {
+            "label": "gameVariant",
+            "schema": "single-select",
+            "version": "2026.0",
+            "allowSkip": false,
+            "targetVariable": "mode",
+            "enum": "istanbulMode"
+        },
+        {
+            "label": "spreadBoard",
+            "schema": "deal-spread",
+            "version": "2026.0",
+            "hidden": true,
+            "targetVariable": "board",
+            <source set of data, board width, other special rules>
+        },
+        {
+            "label": "setBigPawns",
+            "schema": "roll",
+            "version": "2026.0",
+            "hidden": true,
+            "targetVariables": [
+                "governorPosition", 
+                "smugglerPosition", 
+                "coffeemanPosition",
+                "courierPosition"
+            ],
+            "formula": "2d6"
+        },
+        {
+            "schema": "display",
+            "version": "2026.0",
+            "elements": [
+                {
+                    "type": "spread",
+                    "globalReroll": true,
+                    "localReroll": false,
+                    "variable": "board",
+                    "onReroll": [
+                        "spreadBoard"
+                    ] // needs to reference steps that exist in this helper,
+                    "label": ["helper.game.istanbul.board"]
+                },
+                {
+                    "type": "key-value",
+                    "globalReroll": true,
+                    "localReroll": false,
+                    "variable": "firstPlayer",
+                    "onReroll": ["CHOOSE_FIRST_PLAYER"], // global steps in ALL CAPS, no need to redefine
+                    "label": ["helper.general.firstPlayer"] // somehow needs to translate to the player at chosen index
+                }
+            ]
+        }
+    ],
+    "sets": {...}
+}
