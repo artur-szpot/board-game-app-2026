@@ -90,6 +90,7 @@
 - DB bootstrap runs from db/init in filename order.
 - Cycle prevention is enforced by game-backend services rather than database triggers or Compose startup checks.
 - SQL files include schema, relation tables, and test-data loaders.
+- Randomizer persistence includes owner-scoped teams, players, and team-player links; team deletion cascades to links but retains player records.
 - Postgres data volume is persisted in docker volume db-volume.
 
 ## Known cross-layer coupling points
