@@ -13,6 +13,10 @@ import { LocationDetailsScreen } from "../screens/LocationDetailsScreen";
 import type { LocationDetailsScreenPropsFull } from "../screens/LocationDetailsScreenProps";
 import { OptionsScreen } from "../screens/OptionsScreen";
 import type { OptionsScreenPropsFull } from "../screens/OptionsScreenProps";
+import { ScoreEntryScreen } from "../screens/ScoreEntryScreen";
+import type { ScoreEntryScreenPropsFull } from "../screens/ScoreEntryScreenProps";
+import { ScoringSchemaEditorScreen } from "../screens/ScoringSchemaEditorScreen";
+import type { ScoringSchemaEditorScreenPropsFull } from "../screens/ScoringSchemaEditorScreenProps";
 import { SearchScreen } from "../screens/SearchScreen";
 import type { SearchScreenPropsFull } from "../screens/SearchScreenProps";
 import { TagDetailsScreen } from "../screens/TagDetailsScreen";
@@ -63,6 +67,15 @@ export const FrameStackScreenWrapper: FC<FrameStackScreenWrapperProps> = ({
           openedAsFrame={true}
         />
       );
+    }
+    case FrameTypeEnum.SCORING_SCHEMA_EDITOR: {
+      const editorParams =
+        topFrame.params as ScoringSchemaEditorScreenPropsFull;
+      return <ScoringSchemaEditorScreen {...editorParams} />;
+    }
+    case FrameTypeEnum.SCORE_ENTRY: {
+      const scoreEntryParams = topFrame.params as ScoreEntryScreenPropsFull;
+      return <ScoreEntryScreen {...scoreEntryParams} />;
     }
     default:
       return <h1>Not implemented yet</h1>;

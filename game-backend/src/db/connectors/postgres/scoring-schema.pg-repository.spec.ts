@@ -1,8 +1,10 @@
+import { testScoringSchemaDefinition } from '../../../games/scoring-schemas/dto/schema/test-scoring-schema.fixture';
 import { PostgresScoringSchemaRepository } from './scoring-schema.pg-repository';
 
 describe('PostgresScoringSchemaRepository', () => {
   let connector: any;
   let repository: PostgresScoringSchemaRepository;
+  const schema = testScoringSchemaDefinition();
 
   beforeEach(() => {
     connector = {
@@ -41,7 +43,7 @@ describe('PostgresScoringSchemaRepository', () => {
     const created = {
       id: 'schema-1',
       name: 'Default',
-      schema: { points: 1 },
+      schema,
       description: 'A scoring schema',
       createdOn: new Date(),
       updatedOn: new Date(),
@@ -52,7 +54,7 @@ describe('PostgresScoringSchemaRepository', () => {
       repository.createScoringSchema(
         {
           name: 'Default',
-          schema: { points: 1 },
+          schema,
           description: 'A scoring schema',
         },
         'user-1',
@@ -67,13 +69,20 @@ describe('PostgresScoringSchemaRepository', () => {
 
   it('creates explicitly public scoring schemas', async () => {
     connector.getOne.mockResolvedValue({ id: 'schema-1' });
-    const input = { name: 'Shared', schema: { points: 1 } };
+    const input = { name: 'Shared', schema };
 
     await repository.createScoringSchema(input, 'SYSTEM', false);
 
     expect(connector.getOne).toHaveBeenCalledWith(
-      expect.stringContaining('VALUES ($1, $2, $3, $4, $5, $6)'),
-      [expect.any(String), 'SYSTEM', false, 'Shared', { points: 1 }, null],
+      expect.stringContaining('VALUES ($1, $2, $3, $4, $5::jsonb, $6)'),
+      [
+        expect.any(String),
+        'SYSTEM',
+        false,
+        'Shared',
+        JSON.stringify(schema),
+        null,
+      ],
     );
   });
 

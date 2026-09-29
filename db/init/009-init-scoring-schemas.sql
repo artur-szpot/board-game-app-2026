@@ -3,7 +3,7 @@ CREATE TABLE scoring_schemas (
    owner_id VARCHAR(40) NOT NULL,
    private BOOLEAN NOT NULL DEFAULT true,
    name TEXT NOT NULL,
-   schema JSON NOT NULL,
+   schema JSONB NOT NULL,
    description TEXT,
    created_on TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
    updated_on TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP

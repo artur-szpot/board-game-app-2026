@@ -57,14 +57,18 @@ describe('GameScoreController', () => {
   });
 
   it('creates a game score endpoint', async () => {
+    const scores = {
+      players: ['alice', 'bob'],
+      values: { 'row-coins': { alice: 32, bob: 28 } },
+    };
     gateway.create.mockResolvedValue({
       id: 'score-1',
       ownerId: '123-abc',
       private: true,
       gameId: 'game-1',
       playedOn: '2026-07-18',
-      schema: { points: 'number' },
-      scores: { alice: 32, bob: 28 },
+      schemaId: 'schema-1',
+      scores,
       createdOn: new Date().toISOString(),
       updatedOn: new Date().toISOString(),
     });
@@ -76,7 +80,7 @@ describe('GameScoreController', () => {
         gameId: 'game-1',
         playedOn: '2026-07-18',
         schemaId: 'schema-1',
-        scores: { alice: 32, bob: 28 },
+        scores,
       }),
     });
 
@@ -90,10 +94,26 @@ describe('GameScoreController', () => {
         gameId: 'game-1',
         playedOn: '2026-07-18',
         schemaId: 'schema-1',
-        scores: { alice: 32, bob: 28 },
+        scores,
       },
       '123-abc',
     );
+  });
+
+  it('lists game scores filtered by game', async () => {
+    gateway.getMany.mockResolvedValue({ page: [], total: 0 });
+
+    const response = await fetch(
+      `${baseUrl}/game-api/game-scores?gameId=game-1&pageSize=5`,
+    );
+
+    expect(response.status).toBe(200);
+    expect(gateway.getMany).toHaveBeenCalledWith({
+      userId: '123-abc',
+      hasCollectionSuperuserPermission: false,
+      filters: { gameId: 'game-1' },
+      pagination: { pageNumber: 0, pageSize: 5 },
+    });
   });
 
   it('retrieves a game score by id endpoint', async () => {
@@ -103,8 +123,8 @@ describe('GameScoreController', () => {
       private: true,
       gameId: 'game-1',
       playedOn: '2026-07-18',
-      schema: { points: 'number' },
-      scores: { alice: 32, bob: 28 },
+      schemaId: 'schema-1',
+      scores: { players: ['alice'], values: { 'row-coins': { alice: 32 } } },
       createdOn: new Date().toISOString(),
       updatedOn: new Date().toISOString(),
     });

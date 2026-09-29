@@ -7,6 +7,7 @@ import {
     Param,
     Patch,
     Post,
+    Query,
     Req,
     UseGuards,
 } from '@nestjs/common';
@@ -36,10 +37,13 @@ import {
     HttpErrorResponseDto,
     ValidationErrorResponseDto,
 } from '@common/openapi/error-response.dto';
+import { DEFAULT_PAGINATION } from '@common/pagination/pagination';
 
 import { CreateGameScoreDto } from './dto/in/create-game-score.dto';
+import { ListGameScoresQueryDto } from './dto/in/list-game-scores-query.dto';
 import { UpdateGameScoreDto } from './dto/in/update-game-score.dto';
 import { GameScoreResponse } from './dto/out/game-score.response';
+import { PaginatedGameScoresResponse } from './dto/out/paginated-game-scores.response';
 import { GAME_SCORE_GATEWAY, GameScoreGateway } from './game-score.gateway';
 
 @ApiTags('GameScores')
@@ -53,6 +57,28 @@ export class GameScoreController {
   constructor(
     @Inject(GAME_SCORE_GATEWAY) private readonly gateway: GameScoreGateway,
   ) {}
+
+  @Get()
+  @ApiOperation({ summary: 'List game scores, optionally filtered by game' })
+  @ApiOkResponse({ type: PaginatedGameScoresResponse })
+  @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.READ])
+  public async getMany(
+    @Query() query: ListGameScoresQueryDto,
+    @UserId() userId: string,
+    @Req() req: { user: JwtDto },
+  ): Promise<PaginatedGameScoresResponse> {
+    return this.gateway.getMany({
+      userId,
+      hasCollectionSuperuserPermission: hasCollectionSuperuserPermission(
+        req.user.permissions,
+      ),
+      filters: query.gameId ? { gameId: query.gameId } : undefined,
+      pagination: {
+        pageNumber: query.pageNumber ?? DEFAULT_PAGINATION.pageNumber,
+        pageSize: query.pageSize ?? DEFAULT_PAGINATION.pageSize,
+      },
+    });
+  }
 
   @Get('/:id')
   @ApiOperation({ summary: 'Get game score by ID' })

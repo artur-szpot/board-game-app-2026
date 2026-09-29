@@ -15,15 +15,30 @@ import {
     GAME_SCORE_REPOSITORY,
     GameScoreRepository,
 } from '@db/repositories/game-score.repository';
+import {
+    SCORING_SCHEMA_REPOSITORY,
+    ScoringSchemaRepository,
+} from '@db/repositories/scoring-schema.repository';
 
 import {
     GetManyItemsDto,
     ItemOwnershipDto,
 } from '@common/dto/in/get-many-items.dto';
+import { ScoringSchemaDefinitionDto } from '../../scoring-schemas/dto/schema/scoring-schema-definition.dto';
 import { CreateGameScoreDto } from '../dto/in/create-game-score.dto';
+import { GameScoreDto } from '../dto/in/game-score.dto';
 import { UpdateGameScoreDto } from '../dto/in/update-game-score.dto';
 import { GameScoreResponse } from '../dto/out/game-score.response';
 import { GameScoreGateway } from '../game-score.gateway';
+
+const collectRowIds = (schema: ScoringSchemaDefinitionDto): Set<string> =>
+  new Set(
+    schema.groups.flatMap((group) =>
+      group.categories.flatMap((category) =>
+        category.rows.map((row) => row.id),
+      ),
+    ),
+  );
 
 @Injectable()
 export class GameScoreService implements GameScoreGateway {
@@ -32,20 +47,48 @@ export class GameScoreService implements GameScoreGateway {
   constructor(
     @Inject(GAME_SCORE_REPOSITORY)
     private readonly gameScoreRepository: GameScoreRepository,
+    @Inject(SCORING_SCHEMA_REPOSITORY)
+    private readonly scoringSchemaRepository: ScoringSchemaRepository,
   ) {}
 
-  private mapToResponse(score: any): GameScoreResponse {
+  private mapToResponse(score: GameScoreDto): GameScoreResponse {
     return {
       id: score.id,
       ownerId: score.ownerId,
       private: score.private,
       gameId: score.gameId,
       playedOn: new Date(score.playedOn).toISOString(),
+      schemaId: score.schemaId,
       schema: score.schema,
+      schemaName: score.schemaName,
       scores: score.scores,
       createdOn: new Date(score.createdOn).toISOString(),
       updatedOn: new Date(score.updatedOn).toISOString(),
     };
+  }
+
+  private async assertScoresMatchSchema(
+    schemaId: string,
+    scores: CreateGameScoreDto['scores'],
+    userId: string,
+  ): Promise<void> {
+    const schema = await this.scoringSchemaRepository.getScoringSchemaById(
+      schemaId,
+      { userId, hasCollectionSuperuserPermission: false },
+    );
+    if (!schema) {
+      throw new CustomNotFoundError(`scoring schema with ID "${schemaId}"`);
+    }
+
+    const knownRowIds = collectRowIds(schema.schema);
+    const unknownRowIds = Object.keys(scores.values).filter(
+      (rowId) => !knownRowIds.has(rowId),
+    );
+    if (unknownRowIds.length) {
+      throw new BadRequestException(
+        `Unknown scoring row ID(s): ${unknownRowIds.join(', ')}`,
+      );
+    }
   }
 
   public async getById(
@@ -99,12 +142,19 @@ export class GameScoreService implements GameScoreGateway {
     }
 
     try {
+      await this.assertScoresMatchSchema(input.schemaId, input.scores, userId);
       const created = await this.gameScoreRepository.createGameScore(
         input,
         userId,
       );
       return this.mapToResponse(created);
     } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof CustomNotFoundError
+      ) {
+        throw error;
+      }
       this.logger.error(`Unexpected error while creating game score: ${error}`);
       throw new CustomInternalError('creating the game score');
     }

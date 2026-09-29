@@ -2241,6 +2241,168 @@
         ]
       }
     },
+    "/game-api/game-scores": {
+      "get": {
+        "operationId": "GameScoreController_getMany",
+        "summary": "List game scores, optionally filtered by game",
+        "parameters": [
+          {
+            "name": "gameId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageNumber",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedGameScoresResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "GameScores"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "GameScoreController_create",
+        "summary": "Create game score",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGameScoreDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameScoreResponse"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameScoreResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "GameScores"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
+        ]
+      }
+    },
     "/game-api/game-scores/{id}": {
       "get": {
         "operationId": "GameScoreController_getById",
@@ -2458,83 +2620,6 @@
             }
           },
           "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HttpErrorResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "GameScores"
-        ],
-        "security": [
-          {
-            "access-token": []
-          }
-        ]
-      }
-    },
-    "/game-api/game-scores": {
-      "post": {
-        "operationId": "GameScoreController_create",
-        "summary": "Create game score",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateGameScoreDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GameScoreResponse"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GameScoreResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ValidationErrorResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HttpErrorResponseDto"
-                }
-              }
-            }
-          },
-          "403": {
             "description": "",
             "content": {
               "application/json": {
@@ -3906,6 +3991,96 @@
         "type": "object",
         "properties": {}
       },
+      "ScoringGroupMechanism": {
+        "type": "string",
+        "enum": [
+          "SUM_ALL",
+          "SUM_ALL_PLUS_SMALLEST",
+          "GREATEST_ONLY",
+          "SMALLEST_ONLY"
+        ]
+      },
+      "ScoringRowDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "ScoringCategoryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScoringRowDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "rows"
+        ]
+      },
+      "ScoringGroupDto": {
+        "type": "object",
+        "properties": {
+          "mechanism": {
+            "$ref": "#/components/schemas/ScoringGroupMechanism"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScoringCategoryDto"
+            }
+          }
+        },
+        "required": [
+          "mechanism",
+          "id",
+          "categories"
+        ]
+      },
+      "ScoringSchemaDefinitionDto": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "number"
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScoringGroupDto"
+            }
+          }
+        },
+        "required": [
+          "version",
+          "groups"
+        ]
+      },
       "CreateScoringSchemaDto": {
         "type": "object",
         "properties": {
@@ -3913,7 +4088,7 @@
             "type": "string"
           },
           "schema": {
-            "type": "object"
+            "$ref": "#/components/schemas/ScoringSchemaDefinitionDto"
           },
           "description": {
             "type": "string"
@@ -3931,7 +4106,7 @@
             "type": "string"
           },
           "schema": {
-            "type": "object"
+            "$ref": "#/components/schemas/ScoringSchemaDefinitionDto"
           },
           "description": {
             "type": "string",
@@ -3944,7 +4119,50 @@
       },
       "GameScoreResponse": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "schema": {
+            "$ref": "#/components/schemas/ScoringSchemaDefinitionDto"
+          }
+        }
+      },
+      "PaginatedGameScoresResponse": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GameScoreResponse"
+            }
+          }
+        },
+        "required": [
+          "page"
+        ]
+      },
+      "GameScoreValuesDto": {
+        "type": "object",
+        "properties": {
+          "values": {
+            "type": "object",
+            "description": "Raw per-row scores: rowId -> player -> value.",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "number"
+              }
+            }
+          },
+          "players": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "values",
+          "players"
+        ]
       },
       "CreateGameScoreDto": {
         "type": "object",
@@ -3959,7 +4177,7 @@
             "type": "string"
           },
           "scores": {
-            "type": "object"
+            "$ref": "#/components/schemas/GameScoreValuesDto"
           }
         },
         "required": [
@@ -3981,7 +4199,7 @@
             "type": "string"
           },
           "scores": {
-            "type": "object"
+            "$ref": "#/components/schemas/GameScoreValuesDto"
           },
           "private": {
             "type": "boolean"

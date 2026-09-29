@@ -8,6 +8,7 @@ import {
 } from '@common/dto/in/get-many-items.dto';
 import { CustomNotFoundError } from '@common/errors/service-errors';
 
+import { CreateScoringSchemaDto } from '../../../games/scoring-schemas/dto/in/create-scoring-schema.dto';
 import { ScoringSchemaDto } from '../../../games/scoring-schemas/dto/in/scoring-schema.dto';
 import { UpdateScoringSchemaDto } from '../../../games/scoring-schemas/dto/in/update-scoring-schema.dto';
 import { ScoringSchemaRepository } from '../../repositories/scoring-schema.repository';
@@ -33,7 +34,7 @@ export class PostgresScoringSchemaRepository implements ScoringSchemaRepository 
 
   private readonly CREATE_SCORING_SCHEMA_SQL = `
     INSERT INTO scoring_schemas (id, owner_id, private, name, schema, description)
-    VALUES ($1, $2, $3, $4, $5, $6)
+    VALUES ($1, $2, $3, $4, $5::jsonb, $6)
     RETURNING id, owner_id AS "ownerId", private, name, schema, description, created_on AS "createdOn", updated_on AS "updatedOn";
   `;
 
@@ -45,7 +46,7 @@ export class PostgresScoringSchemaRepository implements ScoringSchemaRepository 
       valuesToSet.push('name = $2');
     }
     if (input.schema !== undefined) {
-      valuesToSet.push('schema = $' + (valuesToSet.length + 2));
+      valuesToSet.push('schema = $' + (valuesToSet.length + 2) + '::jsonb');
     }
     if (input.description !== undefined) {
       valuesToSet.push('description = $' + (valuesToSet.length + 2));
@@ -201,7 +202,7 @@ export class PostgresScoringSchemaRepository implements ScoringSchemaRepository 
   }
 
   public async createScoringSchema(
-    input: any,
+    input: CreateScoringSchemaDto,
     ownerId: string,
     isPrivate = true,
   ): Promise<ScoringSchemaDto> {
@@ -213,7 +214,7 @@ export class PostgresScoringSchemaRepository implements ScoringSchemaRepository 
         ownerId,
         isPrivate,
         input.name,
-        input.schema,
+        JSON.stringify(input.schema),
         input.description ?? null,
       ],
     );
@@ -236,7 +237,7 @@ export class PostgresScoringSchemaRepository implements ScoringSchemaRepository 
       parameters.push(input.name);
     }
     if (input.schema !== undefined) {
-      parameters.push(input.schema);
+      parameters.push(JSON.stringify(input.schema));
     }
     if (input.description !== undefined) {
       parameters.push(input.description);

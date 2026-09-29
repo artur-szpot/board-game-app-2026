@@ -10,6 +10,7 @@ import { ScoringSchemaRepository } from '@db/repositories/scoring-schema.reposit
 import { CreateScoringSchemaDto } from '../dto/in/create-scoring-schema.dto';
 import { ScoringSchemaDto } from '../dto/in/scoring-schema.dto';
 import { UpdateScoringSchemaDto } from '../dto/in/update-scoring-schema.dto';
+import { testScoringSchemaDefinition } from '../dto/schema/test-scoring-schema.fixture';
 import { ScoringSchemaService } from './scoring-schema.service';
 
 describe('ScoringSchemaService', () => {
@@ -19,21 +20,14 @@ describe('ScoringSchemaService', () => {
     userId: 'user-1',
     hasCollectionSuperuserPermission: false,
   };
+  const schema = testScoringSchemaDefinition();
 
   const testDto: ScoringSchemaDto = {
     id: 'schema-1',
     ownerId: 'user-1',
     private: true,
     name: 'Test Schema',
-    schema: {
-      coins: 'number',
-      products: {
-        _logic: 'BEST_OF',
-        wood: 'number',
-        stone: 'number',
-        ore: 'number',
-      },
-    },
+    schema,
     description: null,
     createdOn: new Date().toISOString(),
     updatedOn: new Date().toISOString(),
@@ -151,15 +145,7 @@ describe('ScoringSchemaService', () => {
     it('creates when input valid', async () => {
       const createDto: CreateScoringSchemaDto = {
         name: 'New Schema',
-        schema: {
-          coins: 'number',
-          products: {
-            _logic: 'BEST_OF',
-            wood: 'number',
-            stone: 'number',
-            ore: 'number',
-          },
-        },
+        schema,
       };
 
       mockRepository.getScoringSchemaByName.mockResolvedValueOnce(null);
@@ -181,15 +167,7 @@ describe('ScoringSchemaService', () => {
     it('throws BadRequestException when name in use', async () => {
       const createDto: CreateScoringSchemaDto = {
         name: testDto.name,
-        schema: {
-          coins: 'number',
-          products: {
-            _logic: 'BEST_OF',
-            wood: 'number',
-            stone: 'number',
-            ore: 'number',
-          },
-        },
+        schema,
       };
       mockRepository.getScoringSchemaByName.mockResolvedValueOnce(testDto);
 
@@ -205,7 +183,7 @@ describe('ScoringSchemaService', () => {
     it('creates a public SYSTEM-owned scoring schema', async () => {
       const createDto: CreateScoringSchemaDto = {
         name: 'Shared Schema',
-        schema: { points: 'number' },
+        schema,
       };
       mockRepository.getScoringSchemaByName.mockResolvedValueOnce(null);
       mockRepository.createScoringSchema.mockResolvedValueOnce({

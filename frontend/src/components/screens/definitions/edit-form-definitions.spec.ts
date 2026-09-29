@@ -38,7 +38,7 @@ describe("edit form definitions", () => {
           ownerId: "user-1",
           private: true,
           name: "Default scoring",
-          schema: {},
+          schema: { version: 1, groups: [] },
           createdOn: "2026-01-01T00:00:00.000Z",
           updatedOn: "2026-01-02T00:00:00.000Z",
         },
