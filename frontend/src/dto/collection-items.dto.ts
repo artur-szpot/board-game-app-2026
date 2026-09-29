@@ -1,4 +1,5 @@
 import type { GameLength } from "./game-length.enum";
+import type { ScoringSchemaDefinition } from "./scoring-schema.dto";
 
 export type GameLocationPathDto = {
   name: string;
@@ -34,7 +35,7 @@ export type ScoringSchemaResponseDto = {
   private: boolean;
   name: string;
   description?: string;
-  schema: Record<string, unknown>;
+  schema: ScoringSchemaDefinition;
   createdOn: string;
   updatedOn: string;
 };

@@ -64,6 +64,7 @@ Collection and admin list routes accept optional `?page` (one-based) and `?pageS
 - POST /game-api/scoring-schemas
 - PATCH /game-api/scoring-schemas/:id
 - DELETE /game-api/scoring-schemas/:id
+- GET /game-api/game-scores (optional gameId, pageNumber, pageSize query params)
 - GET /game-api/game-scores/:id
 - POST /game-api/game-scores
 - PATCH /game-api/game-scores/:id

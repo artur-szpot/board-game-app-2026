@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
     IsBoolean,
     IsDateString,
@@ -5,7 +6,10 @@ import {
     IsObject,
     IsOptional,
     IsString,
+    ValidateNested,
 } from 'class-validator';
+
+import { ScoringSchemaDefinitionDto } from '../schema/scoring-schema-definition.dto';
 
 export class ScoringSchemaResponse {
   @IsString()
@@ -24,7 +28,9 @@ export class ScoringSchemaResponse {
   name: string;
 
   @IsObject()
-  schema: object;
+  @Type(() => ScoringSchemaDefinitionDto)
+  @ValidateNested()
+  schema: ScoringSchemaDefinitionDto;
 
   @IsString()
   @IsOptional()

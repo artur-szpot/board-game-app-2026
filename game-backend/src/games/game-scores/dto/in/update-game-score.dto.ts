@@ -1,10 +1,14 @@
+import { Type } from 'class-transformer';
 import {
     IsBoolean,
     IsDateString,
     IsObject,
     IsOptional,
     IsString,
+    ValidateNested,
 } from 'class-validator';
+
+import { GameScoreValuesDto } from './game-score-values.dto';
 
 export class UpdateGameScoreDto {
   @IsString()
@@ -21,7 +25,9 @@ export class UpdateGameScoreDto {
 
   @IsObject()
   @IsOptional()
-  scores?: Record<string, unknown>;
+  @Type(() => GameScoreValuesDto)
+  @ValidateNested()
+  scores?: GameScoreValuesDto;
 
   @IsBoolean()
   @IsOptional()

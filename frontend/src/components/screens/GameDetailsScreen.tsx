@@ -3,40 +3,50 @@ import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
+import ScoreboardIcon from "@mui/icons-material/Scoreboard";
 import {
-  Alert,
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Paper,
-  Stack,
-  Typography,
+    Alert,
+    Box,
+    Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
+    Paper,
+    Stack,
+    Typography,
 } from "@mui/material";
 import axios from "axios";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router";
 
 import type { GameResponseDto } from "../../dto/collection-items.dto";
+import type { GameScoreResponseDto } from "../../dto/scoring-schema.dto";
 import { PermissionLevel, PermissionType } from "../../dto/user-data.dto";
 import {
-  selectAccessToken,
-  selectPermissions,
-  selectUserId,
+    selectAccessToken,
+    selectPermissions,
+    selectUserId,
 } from "../../store/features/currentUserSlice";
+import { resultMapper } from "../../store/features/frame-actions";
 import {
-  closeFrame,
-  openFormFrame,
+    closeFrame,
+    openFormFrame,
+    openOptionsFrame,
+    openScoreEntryFrame,
 } from "../../store/features/frameStackSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { useListSearch } from "../../utils/list-return-state";
+import { grandTotal } from "../../utils/score-calculation";
 import { buildEditGameScreen } from "./definitions/edit-game";
 import type { GameBadgeProps } from "./GameBadge";
 import { BadgeTypeEnum, GameBadge } from "./GameBadge";
 import type { GameDetailsScreenPropsFull } from "./GameDetailsScreenProps";
+import {
+    GameDataType,
+    selectionStrategyChooseOne,
+} from "./selection-strategies";
 
 export const GameDetailsScreen = ({
   gameId,
@@ -54,6 +64,7 @@ export const GameDetailsScreen = ({
   const [error, setError] = useState<string | undefined>();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleteSubmitting, setIsDeleteSubmitting] = useState(false);
+  const [pastScores, setPastScores] = useState<GameScoreResponseDto[]>([]);
 
   const hasSystemCollectionFullPermission = useMemo(
     () =>
@@ -128,6 +139,80 @@ export const GameDetailsScreen = ({
 
     void loadGame();
   }, [accessToken, gameId]);
+
+  useEffect(() => {
+    if (!gameId) {
+      return;
+    }
+
+    const loadScores = async () => {
+      try {
+        const response = await axios.get<{ page: GameScoreResponseDto[] }>(
+          `${import.meta.env.VITE_API_URL as string}/game-api/game-scores`,
+          {
+            params: { gameId },
+            headers: accessToken
+              ? { Authorization: `Bearer ${accessToken}` }
+              : undefined,
+          },
+        );
+        setPastScores(response.data.page);
+      } catch {
+        setPastScores([]);
+      }
+    };
+
+    void loadScores();
+  }, [accessToken, gameId]);
+
+  const scoringSchemas = game?.scoringSchemas ?? [];
+
+  const openScoreEntry = useCallback(
+    (schema: GameResponseDto["scoringSchemas"][number]) => {
+      if (!game) {
+        return;
+      }
+      dispatch(
+        openScoreEntryFrame({
+          params: { gameId: game.id, gameName: game.name, schema },
+        }),
+      );
+    },
+    [dispatch, game],
+  );
+
+  const handleEnterScores = () => {
+    if (!game || scoringSchemas.length === 0) {
+      return;
+    }
+
+    if (scoringSchemas.length === 1) {
+      openScoreEntry(scoringSchemas[0]);
+      return;
+    }
+
+    dispatch(
+      openOptionsFrame({
+        params: {
+          title: "Choose a scoring schema",
+          dataType: GameDataType.SCORING_SCHEMA,
+          strategy: selectionStrategyChooseOne(),
+          options: scoringSchemas.map(schema => ({
+            value: schema.id,
+            label: schema.name,
+          })),
+        },
+        callbackEmitter: result => {
+          const chosenId =
+            resultMapper.toChoiceMade(result).payload.chosen[0]?.value;
+          const chosen = scoringSchemas.find(schema => schema.id === chosenId);
+          if (chosen) {
+            openScoreEntry(chosen);
+          }
+        },
+      }),
+    );
+  };
 
   const closeOrNavigate = useCallback(() => {
     if (openedAsFrame) {
@@ -228,6 +313,16 @@ export const GameDetailsScreen = ({
           )}
         </Stack>
         <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+          <Button
+            variant="outlined"
+            color="inherit"
+            type="button"
+            startIcon={<ScoreboardIcon />}
+            onClick={handleEnterScores}
+            disabled={!ready || scoringSchemas.length === 0}
+          >
+            Enter scores
+          </Button>
           <Button
             variant="outlined"
             color="inherit"
@@ -333,6 +428,47 @@ export const GameDetailsScreen = ({
                 );
               })}
             </Stack>
+            {pastScores.length > 0 && (
+              <Stack spacing={1}>
+                <Typography component="h3" variant="subtitle1">
+                  Past scores
+                </Typography>
+                {pastScores.map(score => {
+                  const definition = score.schema;
+                  // Recomputed on read so schema edits are always reflected.
+                  const totals = definition
+                    ? score.scores.players.map(player => ({
+                        player,
+                        total: grandTotal(
+                          definition,
+                          score.scores.values,
+                          player,
+                        ),
+                      }))
+                    : [];
+
+                  return (
+                    <Paper key={score.id} elevation={1} sx={{ p: 1.5 }}>
+                      <Typography component="p" variant="subtitle2">
+                        {`${new Date(score.playedOn).toLocaleDateString()} - ${score.schemaName ?? "Unknown schema"}`}
+                      </Typography>
+                      <Typography
+                        color="text.secondary"
+                        component="p"
+                        variant="body2"
+                      >
+                        {totals
+                          .map(
+                            ({ player, total }) =>
+                              `${player}: ${total.toString()}`,
+                          )
+                          .join("   ")}
+                      </Typography>
+                    </Paper>
+                  );
+                })}
+              </Stack>
+            )}
           </Stack>
         )}
       </Box>

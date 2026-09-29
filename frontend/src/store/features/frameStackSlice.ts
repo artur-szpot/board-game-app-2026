@@ -11,6 +11,14 @@ import type {
     OptionsScreenPropsFull,
 } from "../../components/screens/OptionsScreenProps";
 import type {
+    ScoreEntryScreenProps,
+    ScoreEntryScreenPropsFull,
+} from "../../components/screens/ScoreEntryScreenProps";
+import type {
+    ScoringSchemaEditorScreenProps,
+    ScoringSchemaEditorScreenPropsFull,
+} from "../../components/screens/ScoringSchemaEditorScreenProps";
+import type {
     SearchScreenProps,
     SearchScreenPropsFull,
 } from "../../components/screens/SearchScreenProps";
@@ -37,6 +45,8 @@ export enum FrameTypeEnum {
   GAME_DETAILS = "GAME_DETAILS",
   TAG_DETAILS = "TAG_DETAILS",
   LOCATION_DETAILS = "LOCATION_DETAILS",
+  SCORING_SCHEMA_EDITOR = "SCORING_SCHEMA_EDITOR",
+  SCORE_ENTRY = "SCORE_ENTRY",
 }
 
 export type FrameCallbackReceiver = (result: FrameCallbackContent) => void;
@@ -55,6 +65,8 @@ export type FrameStackItem = {
     | GameDetailsScreenProps
     | TagDetailsScreenProps
     | LocationDetailsScreenProps
+    | ScoringSchemaEditorScreenPropsFull
+    | ScoreEntryScreenPropsFull
     | undefined;
 };
 
@@ -332,6 +344,64 @@ export const frameStackSlice = createAppSlice({
         );
       },
     ),
+    openScoringSchemaEditorFrame: create.preparedReducer(
+      (payload: FrameStackDto<ScoringSchemaEditorScreenProps>) => ({
+        payload: {
+          params: payload.params,
+          callbackReceiverId: payload.callbackReceiver
+            ? registerFrameCallback(payload.callbackReceiver)
+            : undefined,
+          callbackEmitterId: payload.callbackEmitter
+            ? registerFrameCallback(payload.callbackEmitter)
+            : undefined,
+        },
+      }),
+      (
+        state: FrameStackState,
+        action: PayloadAction<
+          FrameStackReducerDto<ScoringSchemaEditorScreenProps>
+        >,
+      ) => {
+        const id = crypto.randomUUID();
+        state.stack.push(
+          createFrame(
+            id,
+            FrameTypeEnum.SCORING_SCHEMA_EDITOR,
+            { ...action.payload.params, frameId: id },
+            action.payload.callbackReceiverId,
+            action.payload.callbackEmitterId,
+          ),
+        );
+      },
+    ),
+    openScoreEntryFrame: create.preparedReducer(
+      (payload: FrameStackDto<ScoreEntryScreenProps>) => ({
+        payload: {
+          params: payload.params,
+          callbackReceiverId: payload.callbackReceiver
+            ? registerFrameCallback(payload.callbackReceiver)
+            : undefined,
+          callbackEmitterId: payload.callbackEmitter
+            ? registerFrameCallback(payload.callbackEmitter)
+            : undefined,
+        },
+      }),
+      (
+        state: FrameStackState,
+        action: PayloadAction<FrameStackReducerDto<ScoreEntryScreenProps>>,
+      ) => {
+        const id = crypto.randomUUID();
+        state.stack.push(
+          createFrame(
+            id,
+            FrameTypeEnum.SCORE_ENTRY,
+            { ...action.payload.params, frameId: id },
+            action.payload.callbackReceiverId,
+            action.payload.callbackEmitterId,
+          ),
+        );
+      },
+    ),
     closeFrame: create.reducer(
       (
         state,
@@ -415,6 +485,8 @@ export const {
   openGameDetailsFrame,
   openTagDetailsFrame,
   openLocationDetailsFrame,
+  openScoringSchemaEditorFrame,
+  openScoreEntryFrame,
   closeFrame,
   sameFrameResult,
   resetToBottomFrame,

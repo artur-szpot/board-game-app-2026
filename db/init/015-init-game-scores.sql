@@ -5,7 +5,7 @@ CREATE TABLE game_scores (
    game_id VARCHAR(40) NOT NULL,
    played_on TIMESTAMP(6),
    schema_id VARCHAR(40) NOT NULL,
-   scores JSON,
+   scores JSONB,
    created_on TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
    updated_on TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

@@ -10,9 +10,13 @@ import { GameDataType } from "../../components/screens/selection-strategies";
 import type {
     GameResponseDto,
     LocationResponseDto,
+    ScoringSchemaResponseDto,
     TagResponseDto,
 } from "../../dto/collection-items.dto";
-import { openFormFrame } from "../../store/features/frameStackSlice";
+import {
+    openFormFrame,
+    openScoringSchemaEditorFrame,
+} from "../../store/features/frameStackSlice";
 import type { EntityPanelTab } from "../entity-panel/entity-panel-types";
 import { EntityPanel } from "../entity-panel/EntityPanel";
 import type {
@@ -70,6 +74,11 @@ const COLLECTION_TABS: EntityPanelTab<
     category: GameDataType.SCORING_SCHEMA,
     routeSegment: "scoring-schemas",
     label: "Scoring Schemas",
+    createAction: () => openScoringSchemaEditorFrame({ params: {} }),
+    editScreen: item =>
+      openScoringSchemaEditorFrame({
+        params: { schema: item as ScoringSchemaResponseDto },
+      }),
     deleteEndpoint: (item: CollectionPanelItem) =>
       `game-api/scoring-schemas/${item.id}`,
   },

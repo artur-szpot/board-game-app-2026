@@ -301,6 +301,11 @@ export const EntityPanel = <
     : false;
 
   const onAddClick = () => {
+    if (activeTab?.createAction) {
+      dispatch(activeTab.createAction());
+      return;
+    }
+
     if (!activeTab?.createScreen) {
       return;
     }
@@ -464,7 +469,7 @@ export const EntityPanel = <
               variant="contained"
               startIcon={<AddIcon />}
               onClick={onAddClick}
-              disabled={!activeTab?.createScreen}
+              disabled={!activeTab?.createScreen && !activeTab?.createAction}
             >
               Add
             </Button>

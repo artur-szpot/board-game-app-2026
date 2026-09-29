@@ -49,6 +49,19 @@
   - /game-api/game-scores
   - /game-api/search
 
+### Scoring
+
+- `scoring_schemas.schema` holds a versioned JSONB definition with a strict three-level shape:
+  groups -> categories -> rows. Each group carries a mechanism (SUM_ALL, SUM_ALL_PLUS_SMALLEST,
+  GREATEST_ONLY, SMALLEST_ONLY) applied over its category subtotals; a category subtotal is the sum of
+  its rows; a row needs a name whenever no icon is set.
+- The shape is validated at the API boundary by nested class-validator DTOs under
+  game-backend/src/games/scoring-schemas/dto/schema.
+- `game_scores.scores` stores only raw input: `{ players, values }` where values maps rowId -> player ->
+  number. Subtotals and totals are never persisted; they are recomputed on read by
+  frontend/src/utils/score-calculation.ts.
+- `game_scores` has no schema column of its own; reads join `scoring_schemas` through `schema_id`.
+
 ## Frontend architecture
 
 - Framework: React 19 + React Router + Redux Toolkit + Material UI
@@ -70,6 +83,8 @@
 - Core actions:
   - openOptionsFrame/openSearchFrame/openFormFrame push new top frame.
   - openGameDetailsFrame pushes a game details frame that can be opened from route or frame contexts.
+  - openScoringSchemaEditorFrame and openScoreEntryFrame push the scoring screens, which hold their own
+    draft state because their shapes are too dynamic for the generic FormScreen field descriptors.
   - closeFrame pops only the current top frame and can carry a typed result payload.
   - sameFrameResult emits typed result payload on the current frame without stack changes.
   - resetToBottomFrame collapses stack to SELF.

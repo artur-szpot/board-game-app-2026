@@ -7,6 +7,8 @@ export type EntityPanelTab<Category extends string, Item> = {
   label?: string;
   routeSegment?: string;
   createScreen?: FormScreenProps;
+  // For tabs whose create screen is not a generic form.
+  createAction?: () => UnknownAction;
   viewPath?: (item: Item) => string;
   viewScreen?: (item: Item) => UnknownAction;
   editScreen?: (item: Item) => UnknownAction;

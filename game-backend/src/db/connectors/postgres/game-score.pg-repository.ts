@@ -2,13 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { createId } from '@paralleldrive/cuid2';
 
 import {
-  CustomInternalError,
-  CustomNotFoundError,
+    CustomInternalError,
+    CustomNotFoundError,
 } from '@common/errors/service-errors';
 
 import {
-  GetManyItemsDto,
-  ItemOwnershipDto,
+    GetManyItemsDto,
+    ItemOwnershipDto,
 } from '@common/dto/in/get-many-items.dto';
 import { CreateGameScoreDto } from '../../../games/game-scores/dto/in/create-game-score.dto';
 import { GameScoreDto } from '../../../games/game-scores/dto/in/game-score.dto';
@@ -18,12 +18,39 @@ import { PostgresConnector } from './PostgresConnector';
 
 @Injectable()
 export class PostgresGameScoreRepository implements GameScoreRepository {
+  // game_scores has no schema column of its own; the definition is resolved through schema_id.
   private readonly SELECT_SQL = `
-    SELECT id, owner_id AS "ownerId", private, game_id AS "gameId", played_on AS "playedOn", schema_id AS "schemaId", schema, scores, created_on AS "createdOn", updated_on AS "updatedOn"
-    FROM game_scores
+    SELECT gs.id, gs.owner_id AS "ownerId", gs.private, gs.game_id AS "gameId", gs.played_on AS "playedOn", gs.schema_id AS "schemaId", ss.schema, ss.name AS "schemaName", gs.scores, gs.created_on AS "createdOn", gs.updated_on AS "updatedOn"
+    FROM game_scores gs
+    LEFT JOIN scoring_schemas ss ON ss.id = gs.schema_id
+  `;
+
+  private readonly RETURNING_SQL = `
+    RETURNING id, owner_id AS "ownerId", private, game_id AS "gameId", played_on AS "playedOn", schema_id AS "schemaId", scores, created_on AS "createdOn", updated_on AS "updatedOn"
   `;
 
   constructor(private readonly connector: PostgresConnector) {}
+
+  private buildSearchArgs(dto?: GetManyItemsDto) {
+    const { userId, hasCollectionSuperuserPermission, filters } = dto ?? {};
+    const args: string[] = [];
+    const predicates: string[] = [];
+
+    if (userId && !hasCollectionSuperuserPermission) {
+      args.push(userId);
+      predicates.push(`gs.owner_id = $${args.length}`);
+    }
+
+    if (filters?.gameId) {
+      args.push(filters.gameId);
+      predicates.push(`gs.game_id = $${args.length}`);
+    }
+
+    return {
+      args: args.length ? args : undefined,
+      where: predicates.length ? predicates.join(' AND ') : undefined,
+    };
+  }
 
   public async getGameScoreById(
     gameScoreId: string,
@@ -31,11 +58,11 @@ export class PostgresGameScoreRepository implements GameScoreRepository {
   ): Promise<GameScoreDto | null> {
     const { hasCollectionSuperuserPermission, userId } = itemOwnership ?? {};
     const args: string[] = [gameScoreId];
-    let where = 'id = $1';
+    let where = 'gs.id = $1';
 
     if (userId && !hasCollectionSuperuserPermission) {
       args.push(userId);
-      where += ` AND owner_id = $${args.length}`;
+      where += ` AND gs.owner_id = $${args.length}`;
     }
 
     return this.connector.getOne<GameScoreDto>(
@@ -47,33 +74,20 @@ export class PostgresGameScoreRepository implements GameScoreRepository {
   public async getManyGameScores(
     dto?: GetManyItemsDto,
   ): Promise<GameScoreDto[]> {
-    const { pagination, userId, hasCollectionSuperuserPermission } = dto ?? {};
-
-    const args: string[] = [];
-    let where = '';
-    if (userId && !hasCollectionSuperuserPermission) {
-      args.push(userId);
-      where = `WHERE owner_id = $${args.length}`;
-    }
+    const { args, where } = this.buildSearchArgs(dto);
 
     return this.connector.getMany<GameScoreDto>(
-      `${this.SELECT_SQL} ${where} ${this.connector.searchSQL({ orderBy: 'played_on DESC', pagination })}`,
-      args.length ? args : undefined,
+      `${this.SELECT_SQL} ${this.connector.searchSQL({ where, orderBy: 'gs.played_on DESC', pagination: dto?.pagination })}`,
+      args,
     );
   }
 
   public async getGameScoresCount(dto?: GetManyItemsDto): Promise<number> {
-    const { userId, hasCollectionSuperuserPermission } = dto ?? {};
-    const args: string[] = [];
-    let where = '';
-    if (userId && !hasCollectionSuperuserPermission) {
-      args.push(userId);
-      where = ` WHERE owner_id = $${args.length}`;
-    }
+    const { args, where } = this.buildSearchArgs(dto);
 
     return this.connector.getCount(
-      `SELECT COUNT(*) AS total FROM game_scores${where};`,
-      args.length ? args : undefined,
+      `SELECT COUNT(*) AS total FROM game_scores gs${where ? ` WHERE ${where}` : ''};`,
+      args,
     );
   }
 
@@ -85,7 +99,7 @@ export class PostgresGameScoreRepository implements GameScoreRepository {
     const sql = `
       INSERT INTO game_scores (id, owner_id, private, game_id, played_on, schema_id, scores)
       VALUES ($1, $2, true, $3, COALESCE($4::timestamptz, NOW()), $5, $6::jsonb)
-      RETURNING id, owner_id AS "ownerId", private, game_id AS "gameId", played_on AS "playedOn", schema_id AS "schemaId", schema, scores, created_on AS "createdOn", updated_on AS "updatedOn";
+      ${this.RETURNING_SQL};
     `;
     return this.connector.getOne<GameScoreDto>(sql, [
       id,
@@ -136,7 +150,7 @@ export class PostgresGameScoreRepository implements GameScoreRepository {
     values.push(gameScoreId);
 
     return this.connector.getOne<GameScoreDto>(
-      `UPDATE game_scores SET ${columns.join(', ')} WHERE id = $${values.length} RETURNING id, owner_id AS "ownerId", private, game_id AS "gameId", played_on AS "playedOn", schema_id AS "schemaId", schema, scores, created_on AS "createdOn", updated_on AS "updatedOn";`,
+      `UPDATE game_scores SET ${columns.join(', ')} WHERE id = $${values.length} ${this.RETURNING_SQL};`,
       values,
     );
   }
@@ -150,7 +164,7 @@ export class PostgresGameScoreRepository implements GameScoreRepository {
       throw new CustomNotFoundError(`game score with ID "${gameScoreId}"`);
     }
     const deleted = await this.connector.getOne<GameScoreDto>(
-      `DELETE FROM game_scores WHERE id = $1 RETURNING id, owner_id AS "ownerId", private, game_id AS "gameId", played_on AS "playedOn", schema_id AS "schemaId", schema, scores, created_on AS "createdOn", updated_on AS "updatedOn";`,
+      `DELETE FROM game_scores WHERE id = $1 ${this.RETURNING_SQL};`,
       [gameScoreId],
     );
     if (!deleted) {

@@ -1,4 +1,13 @@
-import { IsNotEmpty, IsObject, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+    IsNotEmpty,
+    IsObject,
+    IsOptional,
+    IsString,
+    ValidateNested,
+} from 'class-validator';
+
+import { ScoringSchemaDefinitionDto } from '../schema/scoring-schema-definition.dto';
 
 export class CreateScoringSchemaDto {
   @IsString()
@@ -6,7 +15,9 @@ export class CreateScoringSchemaDto {
   name: string;
 
   @IsObject()
-  schema: object;
+  @Type(() => ScoringSchemaDefinitionDto)
+  @ValidateNested()
+  schema: ScoringSchemaDefinitionDto;
 
   @IsString()
   @IsOptional()

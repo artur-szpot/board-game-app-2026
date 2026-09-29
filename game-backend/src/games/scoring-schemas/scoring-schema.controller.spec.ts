@@ -3,12 +3,14 @@ import { Test } from '@nestjs/testing';
 
 import { JwtAuthGuard } from '@auth/guards/jwt.guard';
 import { PermisionsGuard } from '@auth/guards/permissions.guard';
+import { testScoringSchemaDefinition } from './dto/schema/test-scoring-schema.fixture';
 import { SCORING_SCHEMA_GATEWAY } from './infrastructure/scoring-schema.gateway';
 import { ScoringSchemaController } from './scoring-schema.controller';
 
 describe('ScoringSchemaController', () => {
   let app: INestApplication;
   let baseUrl: string;
+  const schema = testScoringSchemaDefinition();
   const gateway = {
     getById: jest.fn(),
     getMany: jest.fn(),
@@ -62,7 +64,7 @@ describe('ScoringSchemaController', () => {
       ownerId: '123-abc',
       private: true,
       name: 'Default',
-      schema: { points: 1 },
+      schema,
       description: 'A scoring schema',
       createdOn: new Date(),
       updatedOn: new Date(),
@@ -73,7 +75,7 @@ describe('ScoringSchemaController', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: 'Default',
-        schema: { points: 1 },
+        schema,
         description: 'A scoring schema',
       }),
     });
@@ -86,7 +88,7 @@ describe('ScoringSchemaController', () => {
     expect(gateway.create).toHaveBeenCalledWith(
       {
         name: 'Default',
-        schema: { points: 1 },
+        schema,
         description: 'A scoring schema',
       },
       '123-abc',
@@ -99,7 +101,7 @@ describe('ScoringSchemaController', () => {
       ownerId: '123-abc',
       private: true,
       name: 'Default',
-      schema: { points: 1 },
+      schema,
       description: 'A scoring schema',
       createdOn: new Date(),
       updatedOn: new Date(),
