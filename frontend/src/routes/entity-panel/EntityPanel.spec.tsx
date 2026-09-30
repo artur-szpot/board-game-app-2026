@@ -10,20 +10,25 @@ import { useListSearch } from "../../utils/list-return-state";
 
 import { EntityPanel } from "./EntityPanel";
 import type { EntityPanelTab } from "./entity-panel-types";
+import { EntityPanelFilterKind } from "./entity-panel-types";
 
-const { mockedPost } = vi.hoisted(() => ({
-  mockedPost:
-    vi.fn<
-      (
-        url: string,
-        body: { pagination: { pageNumber: number; pageSize: number } },
-      ) => Promise<unknown>
-    >(),
+const { mockedPost, mockedGet } = vi.hoisted(() => ({
+  mockedPost: vi.fn<
+    (
+      url: string,
+      body: {
+        pagination: { pageNumber: number; pageSize: number };
+        filters?: Record<string, string>;
+      },
+    ) => Promise<unknown>
+  >(),
+  mockedGet: vi.fn<(url: string) => Promise<unknown>>(),
 }));
 
 vi.mock("axios", () => ({
   default: {
     post: mockedPost,
+    get: mockedGet,
     delete: vi.fn(),
   },
 }));
@@ -39,6 +44,26 @@ const TABS: EntityPanelTab<GameDataType.GAME, TestItem>[] = [
   },
 ];
 
+const FILTERED_TABS: EntityPanelTab<GameDataType.GAME, TestItem>[] = [
+  {
+    ...TABS[0],
+    filters: [
+      {
+        kind: EntityPanelFilterKind.NUMBER,
+        key: "playerCount",
+        label: "Players",
+      },
+      {
+        kind: EntityPanelFilterKind.ENTITY_SELECTION,
+        key: "tagIds",
+        label: "Tags",
+        dataTypes: [GameDataType.TAG],
+        detailEndpoint: "game-api/tags",
+      },
+    ],
+  },
+];
+
 const LocationProbe = () => {
   const location = useLocation();
   return (
@@ -49,7 +74,10 @@ const LocationProbe = () => {
   );
 };
 
-const renderPanel = (initialEntry: string) => {
+const renderPanel = (
+  initialEntry: string,
+  tabs: EntityPanelTab<GameDataType.GAME, TestItem>[] = TABS,
+) => {
   const store = makeStore({ currentUser: { accessToken: "test-token" } });
 
   return render(
@@ -68,7 +96,7 @@ const renderPanel = (initialEntry: string) => {
                 title="Collection panel"
                 basePath="/collection"
                 searchEndpoint="game-api/search"
-                tabs={TABS}
+                tabs={tabs}
                 content={GameDataType.GAME}
               />
             }
@@ -82,6 +110,10 @@ const renderPanel = (initialEntry: string) => {
 
 const lastPagination = () => {
   return mockedPost.mock.calls.at(-1)?.[1].pagination;
+};
+
+const lastFilters = () => {
+  return mockedPost.mock.calls.at(-1)?.[1].filters;
 };
 
 describe("EntityPanel pagination", () => {
@@ -163,6 +195,98 @@ describe("EntityPanel pagination", () => {
     );
     expect(screen.getByTestId("list-search").textContent).toBe(
       "page=2&pageSize=10",
+    );
+  });
+});
+
+describe("EntityPanel filters", () => {
+  beforeEach(() => {
+    mockedPost.mockReset();
+    mockedGet.mockReset();
+    mockedPost.mockResolvedValue({
+      data: {
+        total: 30,
+        results: [{ id: "game-1", name: "Brass", type: GameDataType.GAME }],
+      },
+    });
+    mockedGet.mockResolvedValue({ data: { id: "tag-1", name: "Heavy" } });
+  });
+
+  it("renders no filter controls for a tab without filters", async () => {
+    renderPanel("/collection/games");
+
+    await waitFor(() => expect(mockedPost).toHaveBeenCalled());
+
+    expect(screen.queryByRole("button", { name: "Filters" })).toBeNull();
+  });
+
+  it("sends filters read from the URL", async () => {
+    renderPanel(
+      "/collection/games?f_playerCount=4&f_tagIds=tag-1,tag-2",
+      FILTERED_TABS,
+    );
+
+    await waitFor(() => expect(mockedPost).toHaveBeenCalled());
+
+    expect(lastFilters()).toEqual({
+      playerCount: "4",
+      tagIds: "tag-1,tag-2",
+    });
+  });
+
+  it("ignores invalid filter values", async () => {
+    renderPanel("/collection/games?f_playerCount=lots", FILTERED_TABS);
+
+    await waitFor(() => expect(mockedPost).toHaveBeenCalled());
+
+    expect(lastFilters()).toBeUndefined();
+  });
+
+  it("writes a changed filter to the URL and resets the page", async () => {
+    const user = userEvent.setup();
+    renderPanel("/collection/games?page=3", FILTERED_TABS);
+
+    await waitFor(() => expect(mockedPost).toHaveBeenCalled());
+
+    await user.click(screen.getByRole("button", { name: "Filters" }));
+    await user.type(await screen.findByLabelText("Players"), "4");
+
+    await waitFor(() =>
+      expect(screen.getByTestId("location").textContent).toBe(
+        "/collection/games?f_playerCount=4",
+      ),
+    );
+    await waitFor(() => expect(lastFilters()).toEqual({ playerCount: "4" }));
+  });
+
+  it("clears every filter parameter", async () => {
+    const user = userEvent.setup();
+    renderPanel("/collection/games?f_playerCount=4", FILTERED_TABS);
+
+    await waitFor(() => expect(mockedPost).toHaveBeenCalled());
+
+    await user.click(screen.getByRole("button", { name: /clear filters/i }));
+
+    await waitFor(() =>
+      expect(screen.getByTestId("location").textContent).toBe(
+        "/collection/games",
+      ),
+    );
+    await waitFor(() => expect(lastFilters()).toBeUndefined());
+  });
+
+  it("resolves names for selected ids restored from the URL", async () => {
+    const user = userEvent.setup();
+    renderPanel("/collection/games?f_tagIds=tag-1", FILTERED_TABS);
+
+    await waitFor(() => expect(mockedPost).toHaveBeenCalled());
+
+    await user.click(screen.getByRole("button", { name: "Filters" }));
+
+    expect(await screen.findByText("Heavy")).toBeTruthy();
+    expect(mockedGet).toHaveBeenCalledWith(
+      expect.stringContaining("game-api/tags/tag-1"),
+      expect.anything(),
     );
   });
 });

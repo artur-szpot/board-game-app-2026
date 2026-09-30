@@ -21,11 +21,13 @@ import type {
     SetResponseDto,
     TagResponseDto,
 } from "../../dto/collection-items.dto";
+import { GameLength } from "../../dto/game-length.enum";
 import {
     openFormFrame,
     openScoringSchemaEditorFrame,
 } from "../../store/features/frameStackSlice";
 import type { EntityPanelTab } from "../entity-panel/entity-panel-types";
+import { EntityPanelFilterKind } from "../entity-panel/entity-panel-types";
 import { EntityPanel } from "../entity-panel/EntityPanel";
 import type {
     CollectionPanelCategory,
@@ -33,6 +35,47 @@ import type {
     CollectionPanelItem,
     CollectionPanelProps,
 } from "./collection-types";
+
+const GAME_FILTERS = [
+  {
+    kind: EntityPanelFilterKind.NUMBER as const,
+    key: "playerCount",
+    label: "Players",
+  },
+  {
+    kind: EntityPanelFilterKind.ENTITY_SELECTION as const,
+    key: "tagIds",
+    label: "Tags",
+    dataTypes: [GameDataType.TAG],
+    detailEndpoint: "game-api/tags",
+  },
+  {
+    kind: EntityPanelFilterKind.ENTITY_SELECTION as const,
+    key: "locationIds",
+    label: "Locations",
+    dataTypes: [GameDataType.LOCATION],
+    detailEndpoint: "game-api/locations",
+  },
+  {
+    kind: EntityPanelFilterKind.TRI_STATE as const,
+    key: "hasHelpers",
+    label: "Helpers",
+    trueLabel: "With helpers",
+    falseLabel: "Without helpers",
+  },
+  {
+    kind: EntityPanelFilterKind.SELECT as const,
+    key: "length",
+    label: "Game length",
+    // TODO: reuse a shared enum-to-words mapper for game length once it exists.
+    options: [
+      GameLength.FILLER,
+      GameLength.SHORT,
+      GameLength.MEDIUM,
+      GameLength.LONG,
+    ].map(length => ({ value: length, label: length })),
+  },
+];
 
 const COLLECTION_TABS: EntityPanelTab<
   CollectionPanelCategory,
@@ -47,6 +90,7 @@ const COLLECTION_TABS: EntityPanelTab<
       openFormFrame({ params: buildEditGameScreen(item as GameResponseDto) }),
     viewPath: item => `/collection/games/${item.id}`,
     deleteEndpoint: (item: CollectionPanelItem) => `game-api/games/${item.id}`,
+    filters: GAME_FILTERS,
   },
   {
     category: GameDataType.TAG,

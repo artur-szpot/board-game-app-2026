@@ -179,6 +179,83 @@ describe('PostgresGameRepository', () => {
     });
   });
 
+  it('filters games by player count, treating missing bounds as unlimited', async () => {
+    connector.getMany.mockResolvedValue([]);
+
+    await repository.getManyGames({ filters: { playerCount: '4' } });
+
+    const [, args] = connector.getMany.mock.calls[0];
+    const { where } = connector.searchSQL.mock.calls[0][0];
+    expect(where).toBe(
+      '(COALESCE(min_players, 0) <= $1::int AND COALESCE(max_players, 2147483647) >= $1::int)',
+    );
+    expect(args).toEqual(['4']);
+  });
+
+  it('filters games by tags and locations with match-all semantics', async () => {
+    connector.getMany.mockResolvedValue([]);
+
+    await repository.getManyGames({
+      filters: { tagIds: 'tag-1, tag-2 ,tag-1,', locationIds: 'location-1' },
+    });
+
+    const [, args] = connector.getMany.mock.calls[0];
+    const { where } = connector.searchSQL.mock.calls[0][0];
+    expect(where).toContain(
+      'FROM game_tags gt WHERE gt.game_id = games.id AND gt.tag_id = ANY($1::text[])) = CARDINALITY($1::text[])',
+    );
+    expect(where).toContain('FROM game_game_locations ggl');
+    expect(where).toContain(
+      'WHERE linked.location_id = ANY($2::text[])) = CARDINALITY($2::text[])',
+    );
+    expect(args).toEqual([['tag-1', 'tag-2'], ['location-1']]);
+  });
+
+  it('filters games by helper presence and length', async () => {
+    connector.getMany.mockResolvedValue([]);
+
+    await repository.getManyGames({
+      filters: { hasHelpers: 'false', length: GameLength.SHORT },
+    });
+
+    const [, args] = connector.getMany.mock.calls[0];
+    const { where } = connector.searchSQL.mock.calls[0][0];
+    expect(where).toBe(
+      'NOT EXISTS (SELECT 1 FROM game_helpers gh WHERE gh.game_id = games.id) AND length = $1::game_length',
+    );
+    expect(args).toEqual([GameLength.SHORT]);
+  });
+
+  it('ignores unsupported filter values', async () => {
+    connector.getMany.mockResolvedValue([]);
+
+    await repository.getManyGames({
+      filters: {
+        playerCount: 'many',
+        tagIds: ' , ',
+        hasHelpers: 'maybe',
+        length: 'EPIC',
+      },
+    });
+
+    const [, args] = connector.getMany.mock.calls[0];
+    expect(connector.searchSQL.mock.calls[0][0].where).toBeUndefined();
+    expect(args).toBeUndefined();
+  });
+
+  it('applies the same filter predicates to the games count query', async () => {
+    connector.getCount.mockResolvedValue(2);
+
+    await expect(
+      repository.getGamesCount({ filters: { playerCount: '4' } }),
+    ).resolves.toBe(2);
+
+    expect(connector.getCount).toHaveBeenCalledWith(
+      'SELECT COUNT(*) AS total FROM games WHERE (COALESCE(min_players, 0) <= $1::int AND COALESCE(max_players, 2147483647) >= $1::int);',
+      ['4'],
+    );
+  });
+
   it('throws CustomNotFoundError when updating a missing game', async () => {
     connector.getOne.mockResolvedValue(null);
 

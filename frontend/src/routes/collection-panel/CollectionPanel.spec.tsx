@@ -53,6 +53,41 @@ describe("CollectionPanel", () => {
     );
   });
 
+  it("configures filters on the games tab only", () => {
+    const store = makeStore({
+      currentUser: { accessToken: "test-token" },
+    });
+
+    render(
+      <Provider store={store}>
+        <MemoryRouter>
+          <CollectionPanel />
+        </MemoryRouter>
+      </Provider>,
+    );
+
+    const props = entityPanelSpy.mock.calls.at(-1)?.[0] as {
+      tabs: {
+        category: GameDataType;
+        filters?: { key: string }[];
+      }[];
+    };
+
+    const gameTab = props.tabs.find(tab => tab.category === GameDataType.GAME);
+    const otherTabs = props.tabs.filter(
+      tab => tab.category !== GameDataType.GAME,
+    );
+
+    expect(gameTab?.filters?.map(filter => filter.key)).toEqual([
+      "playerCount",
+      "tagIds",
+      "locationIds",
+      "hasHelpers",
+      "length",
+    ]);
+    expect(otherTabs.every(tab => tab.filters === undefined)).toBe(true);
+  });
+
   it("provides edit actions for games, tags, and locations", () => {
     const store = makeStore({
       currentUser: { accessToken: "test-token" },
