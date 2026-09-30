@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 
 import {
+    CustomBadRequestError,
     CustomInternalError,
     CustomNotFoundError,
 } from '@common/errors/service-errors';
@@ -113,14 +114,14 @@ export class UserService implements UserGateway {
     if (!duplicateRoles.size) {
       return;
     }
-    throw new BadRequestException(
+    throw new CustomBadRequestError(
       `Duplicate roles provided for the user: ${[...duplicateRoles].map((role) => `"${role}"`).join(', ')}`,
     );
   }
 
   private async ensureUniqueEmail(email: string): Promise<void> {
     if ((await this.userRepository.getUserByEmail(email)) !== null) {
-      throw new BadRequestException(
+      throw new CustomBadRequestError(
         `User with e-mail "${email}" already exists`,
       );
     }
@@ -131,7 +132,7 @@ export class UserService implements UserGateway {
       return;
     }
     if ((await this.userRepository.getUserByUsername(username)) !== null) {
-      throw new BadRequestException(
+      throw new CustomBadRequestError(
         `User with username "${username}" already exists`,
       );
     }
@@ -140,7 +141,7 @@ export class UserService implements UserGateway {
   private async ensureUserExists(userId: string): Promise<void> {
     const existingUser = await this.userRepository.getUserById(userId);
     if (existingUser === null) {
-      throw new BadRequestException(`User with ID "${userId}" doesn't exist`);
+      throw new CustomBadRequestError(`User with ID "${userId}" doesn't exist`);
     }
   }
 

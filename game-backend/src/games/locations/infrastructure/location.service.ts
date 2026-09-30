@@ -1,23 +1,24 @@
 import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  Logger,
+    BadRequestException,
+    Inject,
+    Injectable,
+    Logger,
 } from '@nestjs/common';
 
 import {
-  GetManyItemsDto,
-  ItemOwnershipDto,
+    GetManyItemsDto,
+    ItemOwnershipDto,
 } from '@common/dto/in/get-many-items.dto';
 import {
-  CustomInternalError,
-  CustomNotFoundError,
+    CustomBadRequestError,
+    CustomInternalError,
+    CustomNotFoundError,
 } from '@common/errors/service-errors';
 import { validateUpdateDtoNotEmpty } from '@common/helpers/validate-update-dto-not-empty';
 import { Paginated } from '@common/pagination/Paginated';
 import {
-  LOCATION_REPOSITORY,
-  LocationRepository,
+    LOCATION_REPOSITORY,
+    LocationRepository,
 } from '@db/repositories/location.repository';
 
 import { CreateLocationDto } from '../dto/in/create-location.dto';
@@ -89,7 +90,7 @@ export class LocationService implements LocationGateway {
     );
 
     if (!parentLocation) {
-      throw new BadRequestException(
+      throw new CustomBadRequestError(
         `Parent location with ID "${parentId}" not found`,
       );
     }
@@ -101,7 +102,7 @@ export class LocationService implements LocationGateway {
     userId: string,
   ): Promise<void> {
     if (parentId === locationId) {
-      throw new BadRequestException('Location cannot be its own parent');
+      throw new CustomBadRequestError('Location cannot be its own parent');
     }
 
     const writeOwnership = { userId, hasCollectionSuperuserPermission: false };
@@ -111,7 +112,7 @@ export class LocationService implements LocationGateway {
     );
 
     if (!parentLocation) {
-      throw new BadRequestException(
+      throw new CustomBadRequestError(
         `Parent location with ID "${parentId}" not found`,
       );
     }
@@ -121,7 +122,7 @@ export class LocationService implements LocationGateway {
 
     while (currentParentId) {
       if (visited.has(currentParentId)) {
-        throw new BadRequestException(
+        throw new CustomBadRequestError(
           'Location parent relationship would create a cycle',
         );
       }

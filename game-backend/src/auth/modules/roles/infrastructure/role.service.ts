@@ -1,20 +1,21 @@
 import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  Logger,
+    BadRequestException,
+    Inject,
+    Injectable,
+    Logger,
 } from '@nestjs/common';
 
 import { GetManyItemsDto } from '@common/dto/in/get-many-items.dto';
 import {
-  CustomInternalError,
-  CustomNotFoundError,
+    CustomBadRequestError,
+    CustomInternalError,
+    CustomNotFoundError,
 } from '@common/errors/service-errors';
 import { validateUpdateDtoNotEmpty } from '@common/helpers/validate-update-dto-not-empty';
 import { Paginated } from '@common/pagination/Paginated';
 import {
-  ROLE_REPOSITORY,
-  RoleRepository,
+    ROLE_REPOSITORY,
+    RoleRepository,
 } from '@db/repositories/role.repository';
 
 import { CreateRoleDto, RolePermission } from '../dto/in/create-role.dto';
@@ -106,7 +107,7 @@ export class RoleService implements RoleGateway {
     if (!duplicatePermissions.size) {
       return;
     }
-    throw new BadRequestException(
+    throw new CustomBadRequestError(
       `Duplicate permissions provided for the role: ${[...duplicatePermissions].map((permission) => `"${permission}"`).join(', ')}`,
     );
   }
@@ -116,7 +117,9 @@ export class RoleService implements RoleGateway {
       return;
     }
     if ((await this.roleRepository.getRoleByName(name)) !== null) {
-      throw new BadRequestException(`Role with name "${name}" already exists`);
+      throw new CustomBadRequestError(
+        `Role with name "${name}" already exists`,
+      );
     }
   }
 
@@ -125,10 +128,10 @@ export class RoleService implements RoleGateway {
   ): Promise<void> {
     const existingRole = await this.roleRepository.getRoleById(roleId);
     if (existingRole === null) {
-      throw new BadRequestException(`Role with ID "${roleId}" doesn't exist`);
+      throw new CustomBadRequestError(`Role with ID "${roleId}" doesn't exist`);
     }
     if (existingRole.protectedRole) {
-      throw new BadRequestException(
+      throw new CustomBadRequestError(
         `This role is protected and cannot be modified`,
       );
     }

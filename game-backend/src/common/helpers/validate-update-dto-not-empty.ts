@@ -1,7 +1,7 @@
-import { BadRequestException } from '@nestjs/common';
+import { CustomBadRequestError } from '@common/errors/service-errors';
 
 export const validateUpdateDtoNotEmpty = (input: object): void => {
   if (Object.keys(input).length === 0) {
-    throw new BadRequestException(`Specify at least one field to update`);
+    throw new CustomBadRequestError(`Specify at least one field to update`);
   }
 };

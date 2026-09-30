@@ -1,19 +1,21 @@
 import {
-  BadRequestException,
-  ForbiddenException,
-  Inject,
-  Injectable,
-  Logger,
+    BadRequestException,
+    ForbiddenException,
+    Inject,
+    Injectable,
+    Logger,
 } from '@nestjs/common';
 
 import { SYSTEM_OWNER_ID } from '@common/constants/system-owner';
 import {
-  GetManyItemsDto,
-  ItemOwnershipDto,
+    GetManyItemsDto,
+    ItemOwnershipDto,
 } from '@common/dto/in/get-many-items.dto';
 import {
-  CustomInternalError,
-  CustomNotFoundError,
+    CustomBadRequestError,
+    CustomForbiddenError,
+    CustomInternalError,
+    CustomNotFoundError,
 } from '@common/errors/service-errors';
 import { validateUpdateDtoNotEmpty } from '@common/helpers/validate-update-dto-not-empty';
 import { Paginated } from '@common/pagination/Paginated';
@@ -82,7 +84,7 @@ export class TagService implements TagGateway {
     existingTagId?: string,
   ) {
     if (!(await this.isNameAvailable(name, ownerId, existingTagId))) {
-      throw new BadRequestException(`Tag name "${name}" is already in use`);
+      throw new CustomBadRequestError(`Tag name "${name}" is already in use`);
     }
   }
 
@@ -105,7 +107,7 @@ export class TagService implements TagGateway {
       hasCollectionSuperuserPermission: false,
     });
     if (!parentTag) {
-      throw new BadRequestException(
+      throw new CustomBadRequestError(
         `Parent tag with ID "${parentId}" not found`,
       );
     }
@@ -117,7 +119,7 @@ export class TagService implements TagGateway {
     userId: string,
   ): Promise<void> {
     if (tagId === parentId) {
-      throw new BadRequestException('Tag cannot be its own parent');
+      throw new CustomBadRequestError('Tag cannot be its own parent');
     }
 
     const writeOwnership = {
@@ -129,7 +131,7 @@ export class TagService implements TagGateway {
       writeOwnership,
     );
     if (!parentTag) {
-      throw new BadRequestException(
+      throw new CustomBadRequestError(
         `Parent tag with ID "${parentId}" not found`,
       );
     }
@@ -139,7 +141,7 @@ export class TagService implements TagGateway {
 
     while (currentParentId) {
       if (visited.has(currentParentId)) {
-        throw new BadRequestException(
+        throw new CustomBadRequestError(
           'Tag parent relationship would create a cycle',
         );
       }
@@ -271,7 +273,7 @@ export class TagService implements TagGateway {
         existingTag.ownerId === SYSTEM_OWNER_ID &&
         !itemOwnership?.hasSystemCollectionFullPermission
       ) {
-        throw new ForbiddenException(
+        throw new CustomForbiddenError(
           'SYSTEM_COLLECTION FULL permission is required',
         );
       }
@@ -309,7 +311,7 @@ export class TagService implements TagGateway {
     }
 
     if (!itemOwnership?.hasSystemCollectionFullPermission) {
-      throw new ForbiddenException(
+      throw new CustomForbiddenError(
         'SYSTEM_COLLECTION FULL permission is required',
       );
     }
@@ -322,7 +324,9 @@ export class TagService implements TagGateway {
       const existingTag = await this.getTag(id, visibleOwnership);
 
       if (existingTag.ownerId !== userId) {
-        throw new ForbiddenException('Only the owner can make this tag public');
+        throw new CustomForbiddenError(
+          'Only the owner can make this tag public',
+        );
       }
 
       const systemTag = await this.tagRepository.makeTagSystemOwned(
@@ -361,7 +365,7 @@ export class TagService implements TagGateway {
         existingTag.ownerId === SYSTEM_OWNER_ID &&
         !itemOwnership?.hasSystemCollectionFullPermission
       ) {
-        throw new ForbiddenException(
+        throw new CustomForbiddenError(
           'SYSTEM_COLLECTION FULL permission is required',
         );
       }

@@ -8,6 +8,8 @@ import {
 
 import { SYSTEM_OWNER_ID } from '@common/constants/system-owner';
 import {
+    CustomBadRequestError,
+    CustomForbiddenError,
     CustomInternalError,
     CustomNotFoundError,
 } from '@common/errors/service-errors';
@@ -74,7 +76,7 @@ export class ScoringSchemaService implements ScoringSchemaGateway {
       ownerId,
     );
     if (existing && existing.id !== existingId) {
-      throw new BadRequestException(
+      throw new CustomBadRequestError(
         `Scoring schema name "${name}" is already in use`,
       );
     }
@@ -193,7 +195,7 @@ export class ScoringSchemaService implements ScoringSchemaGateway {
         existingSchema.ownerId === SYSTEM_OWNER_ID &&
         !itemOwnership?.hasSystemCollectionFullPermission
       ) {
-        throw new ForbiddenException(
+        throw new CustomForbiddenError(
           'SYSTEM_COLLECTION FULL permission is required',
         );
       }
@@ -244,7 +246,7 @@ export class ScoringSchemaService implements ScoringSchemaGateway {
         existingSchema.ownerId === SYSTEM_OWNER_ID &&
         !itemOwnership?.hasSystemCollectionFullPermission
       ) {
-        throw new ForbiddenException(
+        throw new CustomForbiddenError(
           'SYSTEM_COLLECTION FULL permission is required',
         );
       }

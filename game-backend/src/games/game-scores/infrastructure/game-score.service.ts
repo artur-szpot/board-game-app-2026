@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 
 import {
+    CustomBadRequestError,
     CustomInternalError,
     CustomNotFoundError,
 } from '@common/errors/service-errors';
@@ -85,7 +86,7 @@ export class GameScoreService implements GameScoreGateway {
       (rowId) => !knownRowIds.has(rowId),
     );
     if (unknownRowIds.length) {
-      throw new BadRequestException(
+      throw new CustomBadRequestError(
         `Unknown scoring row ID(s): ${unknownRowIds.join(', ')}`,
       );
     }

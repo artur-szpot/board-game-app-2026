@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
@@ -6,6 +6,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 
 import { JwtDto } from '@auth/dto/in/jwt.dto';
 import { TokenRevocationService } from '@auth/infrastructure/token-revocation.service';
+import { CustomUnauthorizedError } from '@common/errors/service-errors';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -24,7 +25,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   async validate(req: Request, payload: any): Promise<JwtDto> {
     const token = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
     if (token && this.tokenRevocationService.isRevoked(token)) {
-      throw new UnauthorizedException('Token has been invalidated');
+      throw new CustomUnauthorizedError('Token has been invalidated');
     }
 
     return {

@@ -1,8 +1,10 @@
+import type { ReactNode } from "react";
 import { useEffect } from "react";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router";
 
 import { Footer } from "./components/bars/Footer";
 import { Navbar } from "./components/bars/Navbar";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { GameDataType } from "./components/screens/selection-strategies";
 import { AdminDataType } from "./routes/admin-panel/admin-data-type.enum";
 import { AdminPanel } from "./routes/admin-panel/AdminPanel";
@@ -30,70 +32,78 @@ const ResetFrameStackOnNavigation = () => {
   return null;
 };
 
+// Keyed by location so navigating away from a crashed screen recovers the UI.
+const RouteErrorBoundary = ({ children }: { children: ReactNode }) => {
+  const location = useLocation();
+  return <ErrorBoundary key={location.key}>{children}</ErrorBoundary>;
+};
+
 export const App = () => {
   return (
     <BrowserRouter>
       <ResetFrameStackOnNavigation />
       <Navbar />
       <div className="main-container">
-        <Routes>
-          <Route
-            path="/"
-            element={<CollectionPanel content={GameDataType.GAME} />}
-          />
-          <Route path="/signin" element={<Signin />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/signout" element={<Signout />} />
-          <Route path="/admin">
+        <RouteErrorBoundary>
+          <Routes>
             <Route
-              path="permissions"
-              element={<AdminPanel content={AdminDataType.PERMISSION} />}
-            />
-            <Route
-              path="roles"
-              element={<AdminPanel content={AdminDataType.ROLE} />}
-            />
-            <Route
-              path="users"
-              element={<AdminPanel content={AdminDataType.USER} />}
-            />
-            <Route path="*" element={<AdminPanel />} />
-          </Route>
-          <Route path="/collection">
-            <Route
-              path="games"
+              path="/"
               element={<CollectionPanel content={GameDataType.GAME} />}
             />
-            <Route path="games/:id" element={<GameDetails />} />
-            <Route
-              path="tags"
-              element={<CollectionPanel content={GameDataType.TAG} />}
-            />
-            <Route path="tags/:id" element={<TagDetails />} />
-            <Route
-              path="locations"
-              element={<CollectionPanel content={GameDataType.LOCATION} />}
-            />
-            <Route path="locations/:id" element={<LocationDetails />} />
-            <Route
-              path="helpers"
-              element={<CollectionPanel content={GameDataType.HELPER} />}
-            />
-            <Route path="helpers/:id" element={<HelperRunner />} />
-            <Route
-              path="sets"
-              element={<CollectionPanel content={GameDataType.SET} />}
-            />
-            <Route
-              path="scoring-schemas"
-              element={
-                <CollectionPanel content={GameDataType.SCORING_SCHEMA} />
-              }
-            />
-            <Route path="*" element={<CollectionPanel />} />
-          </Route>
-          <Route path="*" element={<p>404!</p>} />
-        </Routes>
+            <Route path="/signin" element={<Signin />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/signout" element={<Signout />} />
+            <Route path="/admin">
+              <Route
+                path="permissions"
+                element={<AdminPanel content={AdminDataType.PERMISSION} />}
+              />
+              <Route
+                path="roles"
+                element={<AdminPanel content={AdminDataType.ROLE} />}
+              />
+              <Route
+                path="users"
+                element={<AdminPanel content={AdminDataType.USER} />}
+              />
+              <Route path="*" element={<AdminPanel />} />
+            </Route>
+            <Route path="/collection">
+              <Route
+                path="games"
+                element={<CollectionPanel content={GameDataType.GAME} />}
+              />
+              <Route path="games/:id" element={<GameDetails />} />
+              <Route
+                path="tags"
+                element={<CollectionPanel content={GameDataType.TAG} />}
+              />
+              <Route path="tags/:id" element={<TagDetails />} />
+              <Route
+                path="locations"
+                element={<CollectionPanel content={GameDataType.LOCATION} />}
+              />
+              <Route path="locations/:id" element={<LocationDetails />} />
+              <Route
+                path="helpers"
+                element={<CollectionPanel content={GameDataType.HELPER} />}
+              />
+              <Route path="helpers/:id" element={<HelperRunner />} />
+              <Route
+                path="sets"
+                element={<CollectionPanel content={GameDataType.SET} />}
+              />
+              <Route
+                path="scoring-schemas"
+                element={
+                  <CollectionPanel content={GameDataType.SCORING_SCHEMA} />
+                }
+              />
+              <Route path="*" element={<CollectionPanel />} />
+            </Route>
+            <Route path="*" element={<p>404!</p>} />
+          </Routes>
+        </RouteErrorBoundary>
       </div>
       <Footer />
     </BrowserRouter>

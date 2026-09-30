@@ -3,10 +3,12 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
+import { BadRequestShapeFilter } from './common/errors/bad-request-shape.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
+  app.useGlobalFilters(new BadRequestShapeFilter());
   app.enableCors();
 
   const config = new DocumentBuilder()

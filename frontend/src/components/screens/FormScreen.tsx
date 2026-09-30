@@ -1,4 +1,4 @@
-import { Paper, Stack, Typography } from "@mui/material";
+import { Alert, AlertTitle, Paper, Stack, Typography } from "@mui/material";
 import axios from "axios";
 import type { ChangeEvent, FC } from "react";
 import { useCallback, useEffect, useState } from "react";
@@ -15,6 +15,7 @@ import {
     closeFrame,
 } from "../../store/features/frameStackSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { extractApiErrorMessages } from "../../utils/api-error";
 import { FormFieldType } from "../forms/common";
 import { FormCheckboxField } from "../forms/FormCheckboxField";
 import { FormFieldNumericInput } from "../forms/FormFieldNumericInput";
@@ -172,6 +173,8 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
   const [showErrors, setShowErrors] = useState(
     formScreenShowErrorsCache.get(frameId) ?? false,
   );
+  const [submitErrors, setSubmitErrors] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const revealErrors = () => {
     formScreenShowErrorsCache.set(frameId, true);
@@ -384,6 +387,8 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
       fields,
       getFormScreenCustomMappings(frameId),
     );
+    setSubmitErrors([]);
+    setIsSubmitting(true);
     try {
       await axios({
         method,
@@ -396,20 +401,10 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
           : undefined,
       });
     } catch (error) {
-      // TODO: make pretty error display
-      const serverMessage: unknown = axios.isAxiosError(error)
-        ? (error.response?.data as { message?: unknown } | undefined)?.message
-        : undefined;
-      alert(
-        Array.isArray(serverMessage)
-          ? serverMessage.join("\n")
-          : typeof serverMessage === "string"
-            ? serverMessage
-            : error instanceof Error
-              ? error.message
-              : String(error),
-      );
+      setSubmitErrors(extractApiErrorMessages(error));
       return;
+    } finally {
+      setIsSubmitting(false);
     }
     // TODO: display a success message
     formScreenDraftCache.delete(frameId);
@@ -554,8 +549,28 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
                   );
               }
             })}
+            {submitErrors.length > 0 && (
+              <Alert
+                severity="error"
+                onClose={() => setSubmitErrors([])}
+                className="form-screen-submit-error"
+              >
+                <AlertTitle>Could not save</AlertTitle>
+                {submitErrors.length === 1 ? (
+                  submitErrors[0]
+                ) : (
+                  <ul className="form-screen-submit-error-list">
+                    {submitErrors.map(message => (
+                      <li key={message}>{message}</li>
+                    ))}
+                  </ul>
+                )}
+              </Alert>
+            )}
             <MainActions
-              confirmEnabled={errorCount === 0 && pendingFields.size === 0}
+              confirmEnabled={
+                errorCount === 0 && pendingFields.size === 0 && !isSubmitting
+              }
               errorCount={errorCount}
               onShowErrors={() => {
                 revealErrors();
