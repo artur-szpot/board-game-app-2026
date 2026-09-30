@@ -12,8 +12,9 @@
 
 - User browser -> frontend (port 3002)
 - frontend -> game-backend (port 3001)
+- frontend -> randomizer-backend (port 3003, CORS + game-backend JWT) for helper randomization, teams and players
 - game-backend -> PostgreSQL (port 5432)
-- randomizer-backend (port 3003) runs independently and can also use DB env settings
+- randomizer-backend -> PostgreSQL (read-only teams/players)
 
 ## Compose entrypoints
 
@@ -29,7 +30,7 @@
 - Core module areas:
   - auth module
   - db module
-  - game modules: games, tags, locations, helpers, scoring-schemas, game-scores, search
+  - game modules: games, tags, locations, helpers, sets, translations, scoring-schemas, game-scores, search
 
 ### Backend API families
 
@@ -45,6 +46,8 @@
   - /game-api/tags
   - /game-api/locations
   - /game-api/helpers
+  - /game-api/sets
+  - /game-api/translations
   - /game-api/scoring-schemas
   - /game-api/game-scores
   - /game-api/search
@@ -61,6 +64,15 @@
   number. Subtotals and totals are never persisted; they are recomputed on read by
   frontend/src/utils/score-calculation.ts.
 - `game_scores` has no schema column of its own; reads join `scoring_schemas` through `schema_id`.
+
+### Helpers
+
+- `helpers.logic` is a versioned step list (team-and-players, single-select, multi-select, roll, deal, display)
+  validated by game-backend/src/games/helpers/logic/helper-logic.validator.ts on create/update.
+- Helpers reference `sets` by ID; `helper_sets` link rows (rewritten in the helper write transaction) block set deletion.
+- Labels are i18n tuples resolved by `POST /game-api/translations/lookup` with per-key English fallback.
+- The runner is stateless on the server: frontend/src/components/helper-runner drives steps client-side and calls
+  randomizer-backend `/dice`, `/choose`, `/teams` and `/players` directly.
 
 ## Frontend architecture
 

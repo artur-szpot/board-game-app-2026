@@ -41,6 +41,7 @@ services:
       context: frontend
       args:
         VITE_API_URL: http://localhost:3001
+        VITE_RANDOMIZER_URL: http://localhost:3003
     ports:
       - 3002:80
     healthcheck:

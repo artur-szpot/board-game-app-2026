@@ -51,6 +51,7 @@ services:
       dockerfile: Dockerfile.dev
     environment:
       VITE_API_URL: http://localhost:3001
+      VITE_RANDOMIZER_URL: http://localhost:3003
       CHOKIDAR_USEPOLLING: "true"
       CHOKIDAR_INTERVAL: "200"
     ports:

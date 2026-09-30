@@ -11,6 +11,7 @@ import { CreateHelperDto } from '../../../games/helpers/dto/in/create-helper.dto
 import { HelperDto } from '../../../games/helpers/dto/in/helper.dto';
 import { UpdateHelperDto } from '../../../games/helpers/dto/in/update-helper.dto';
 import { HelperRepository } from '../../repositories/helper.repository';
+import { PostgresConnection } from './PostgresConnection';
 import { PostgresConnector } from './PostgresConnector';
 
 @Injectable()
@@ -56,6 +57,14 @@ export class PostgresHelperRepository implements HelperRepository {
       RETURNING id, owner_id AS "ownerId", private, name, logic, created_on AS "createdOn", updated_on AS "updatedOn";
     `;
   };
+
+  private readonly DELETE_HELPER_SETS_SQL =
+    'DELETE FROM helper_sets WHERE helper_id = $1;';
+
+  private readonly INSERT_HELPER_SETS_SQL = `
+    INSERT INTO helper_sets (helper_id, set_id)
+    SELECT $1, UNNEST($2::VARCHAR(40)[]);
+  `;
 
   private readonly DELETE_HELPER_SQL = `
     DELETE FROM helpers
@@ -194,19 +203,55 @@ export class PostgresHelperRepository implements HelperRepository {
     input: CreateHelperDto,
     ownerId: string,
     isPrivate = true,
+    setIds: string[] = [],
   ): Promise<HelperDto> {
     const id = createId();
-    const result = await this.connector.getOne<HelperDto>(
-      this.CREATE_HELPER_SQL,
-      [id, ownerId, isPrivate, input.name, input.logic],
-    );
-    return result;
+    return this.inTransaction(async (connection) => {
+      const result = await connection.query<HelperDto>(this.CREATE_HELPER_SQL, [
+        id,
+        ownerId,
+        isPrivate,
+        input.name,
+        JSON.stringify(input.logic),
+      ]);
+      await this.replaceSetLinks(connection, id, setIds);
+      return result.rows[0];
+    });
+  }
+
+  private async replaceSetLinks(
+    connection: PostgresConnection,
+    helperId: string,
+    setIds: string[],
+  ) {
+    await connection.query(this.DELETE_HELPER_SETS_SQL, [helperId]);
+    if (setIds.length) {
+      await connection.query(this.INSERT_HELPER_SETS_SQL, [helperId, setIds]);
+    }
+  }
+
+  private async inTransaction<T>(
+    work: (connection: PostgresConnection) => Promise<T>,
+  ): Promise<T> {
+    const connection = await this.connector.getConnection();
+    try {
+      await connection.query('BEGIN');
+      const result = await work(connection);
+      await connection.query('COMMIT');
+      return result;
+    } catch (error) {
+      await connection.query('ROLLBACK');
+      throw error;
+    } finally {
+      connection.release();
+    }
   }
 
   public async updateHelper(
     helperId: string,
     input: UpdateHelperDto,
     itemOwnership?: ItemOwnershipDto,
+    setIds?: string[],
   ): Promise<HelperDto> {
     const existing = await this.getHelperById(helperId, itemOwnership);
 
@@ -219,15 +264,21 @@ export class PostgresHelperRepository implements HelperRepository {
       parameters.push(input.name);
     }
     if (input.logic !== undefined) {
-      parameters.push(input.logic);
+      parameters.push(JSON.stringify(input.logic));
     }
     if (input.private !== undefined) {
       parameters.push(input.private);
     }
-    return this.connector.getOne<HelperDto>(
-      this.UPDATE_HELPER_SQL(input),
-      parameters,
-    );
+    return this.inTransaction(async (connection) => {
+      const result = await connection.query<HelperDto>(
+        this.UPDATE_HELPER_SQL(input),
+        parameters,
+      );
+      if (setIds) {
+        await this.replaceSetLinks(connection, helperId, setIds);
+      }
+      return result.rows[0];
+    });
   }
 
   public async deleteHelper(

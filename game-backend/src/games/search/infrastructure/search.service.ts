@@ -24,6 +24,7 @@ import {
     SCORING_SCHEMA_GATEWAY,
     ScoringSchemaGateway,
 } from '../../scoring-schemas/infrastructure/scoring-schema.gateway';
+import { SET_GATEWAY, SetGateway } from '../../sets/infrastructure/set.gateway';
 import { TAG_GATEWAY, TagGateway } from '../../tags/infrastructure/tag.gateway';
 import { SearchQueryDto } from '../dto/in/search-query.dto';
 import { SearchResponse, SearchResult } from '../dto/out/search.response';
@@ -47,6 +48,8 @@ export class SearchService implements SearchGateway {
     private readonly helperGateway: HelperGateway,
     @Inject(SCORING_SCHEMA_GATEWAY)
     private readonly scoringSchemaGateway: ScoringSchemaGateway,
+    @Inject(SET_GATEWAY)
+    private readonly setGateway: SetGateway,
   ) {}
 
   private toShortResponse(
@@ -249,6 +252,35 @@ export class SearchService implements SearchGateway {
               break;
             }
             const response = await this.scoringSchemaGateway.getMany({
+              ...baseDto,
+              pagination: {
+                pageNumber: 0,
+                pageSize: slice.pageSize,
+                offset: slice.offset,
+              },
+            });
+            items = response.page;
+            items.forEach((item) =>
+              results.push(
+                this.toShortResponse(
+                  type,
+                  item,
+                  includeDetail ? item : undefined,
+                ),
+              ),
+            );
+            break;
+          }
+          case GameDataType.SET: {
+            const countResponse = await this.setGateway.getMany(baseDto);
+            typeTotal = countResponse.total;
+            const slice = this.getTypeSlice(pageWindow, typeStart, typeTotal);
+            total += typeTotal;
+            typeStart += typeTotal;
+            if (!slice || slice.pageSize === 0) {
+              break;
+            }
+            const response = await this.setGateway.getMany({
               ...baseDto,
               pagination: {
                 pageNumber: 0,

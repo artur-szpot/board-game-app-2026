@@ -5,8 +5,13 @@ import { setupListeners } from "@reduxjs/toolkit/query";
 import { currentUserSlice } from "./features/currentUserSlice";
 import { frameStackListenerMiddleware } from "./features/frameStackListeners";
 import { frameStackSlice } from "./features/frameStackSlice";
+import { settingsSlice } from "./features/settingsSlice";
 
-const rootReducer = combineSlices(currentUserSlice, frameStackSlice);
+const rootReducer = combineSlices(
+  currentUserSlice,
+  frameStackSlice,
+  settingsSlice,
+);
 export type RootState = ReturnType<typeof rootReducer>;
 
 export const makeStore = (preloadedState?: Partial<RootState>) => {

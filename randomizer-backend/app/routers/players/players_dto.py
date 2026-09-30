@@ -1,8 +1,6 @@
-from fastapi import APIRouter
 from pydantic import BaseModel
 
-router = APIRouter()
 
-
-class TeamsRequest(BaseModel):
-    min_players: str | None
+class NamedItem(BaseModel):
+    id: str
+    name: str

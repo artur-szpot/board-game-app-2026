@@ -1,10 +1,11 @@
 import type { GameDataType } from "../../components/screens/selection-strategies";
 import type {
-  GameResponseDto,
-  HelperResponseDto,
-  LocationResponseDto,
-  ScoringSchemaResponseDto,
-  TagResponseDto,
+    GameResponseDto,
+    HelperResponseDto,
+    LocationResponseDto,
+    ScoringSchemaResponseDto,
+    SetResponseDto,
+    TagResponseDto,
 } from "../../dto/collection-items.dto";
 
 export type CollectionPanelCategory =
@@ -12,6 +13,7 @@ export type CollectionPanelCategory =
   | GameDataType.TAG
   | GameDataType.LOCATION
   | GameDataType.HELPER
+  | GameDataType.SET
   | GameDataType.SCORING_SCHEMA;
 
 export type CollectionPanelProps = {
@@ -23,6 +25,7 @@ export type CollectionPanelDetailsByType = {
   [GameDataType.TAG]: TagResponseDto;
   [GameDataType.LOCATION]: LocationResponseDto;
   [GameDataType.HELPER]: HelperResponseDto;
+  [GameDataType.SET]: SetResponseDto;
   [GameDataType.SCORING_SCHEMA]: ScoringSchemaResponseDto;
 };
 

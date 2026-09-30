@@ -1,4 +1,5 @@
 import type { GameLength } from "./game-length.enum";
+import type { HelperLogic, SetDataDto } from "./helper-logic.dto";
 import type { ScoringSchemaDefinition } from "./scoring-schema.dto";
 
 export type GameLocationPathDto = {
@@ -24,7 +25,17 @@ export type HelperResponseDto = {
   ownerId: string;
   private: boolean;
   name: string;
-  logic: Record<string, unknown>;
+  logic: HelperLogic;
+  createdOn: string;
+  updatedOn: string;
+};
+
+export type SetResponseDto = {
+  id: string;
+  ownerId: string;
+  private: boolean;
+  name: string;
+  data: SetDataDto;
   createdOn: string;
   updatedOn: string;
 };

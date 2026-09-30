@@ -8,7 +8,9 @@ import { PostgresLocationRepository } from './connectors/postgres/location.pg-re
 import { PostgresPermissionRepository } from './connectors/postgres/permission.pg-repository';
 import { PostgresRoleRepository } from './connectors/postgres/role.pg-repository';
 import { PostgresScoringSchemaRepository } from './connectors/postgres/scoring-schema.pg-repository';
+import { PostgresSetRepository } from './connectors/postgres/set.pg-repository';
 import { PostgresTagRepository } from './connectors/postgres/tag.pg-repository';
+import { PostgresTranslationRepository } from './connectors/postgres/translation.pg-repository';
 import { PostgresUserRepository } from './connectors/postgres/user.pg-repository';
 import { GAME_SCORE_REPOSITORY } from './repositories/game-score.repository';
 import { GAME_REPOSITORY } from './repositories/game.repository';
@@ -17,7 +19,9 @@ import { LOCATION_REPOSITORY } from './repositories/location.repository';
 import { PERMISSION_REPOSITORY } from './repositories/permission.repository';
 import { ROLE_REPOSITORY } from './repositories/role.repository';
 import { SCORING_SCHEMA_REPOSITORY } from './repositories/scoring-schema.repository';
+import { SET_REPOSITORY } from './repositories/set.repository';
 import { TAG_REPOSITORY } from './repositories/tag.repository';
+import { TRANSLATION_REPOSITORY } from './repositories/translation.repository';
 import { USER_REPOSITORY } from './repositories/user.repository';
 
 const userProvider = {
@@ -56,6 +60,14 @@ const gameProvider = {
   provide: GAME_REPOSITORY,
   useClass: PostgresGameRepository,
 };
+const setProvider = {
+  provide: SET_REPOSITORY,
+  useClass: PostgresSetRepository,
+};
+const translationProvider = {
+  provide: TRANSLATION_REPOSITORY,
+  useClass: PostgresTranslationRepository,
+};
 
 @Module({
   providers: [
@@ -69,6 +81,8 @@ const gameProvider = {
     scoringSchemaProvider,
     gameScoreProvider,
     gameProvider,
+    setProvider,
+    translationProvider,
   ],
   exports: [
     PostgresConnector,
@@ -81,6 +95,8 @@ const gameProvider = {
     scoringSchemaProvider,
     gameScoreProvider,
     gameProvider,
+    setProvider,
+    translationProvider,
   ],
 })
 export class DbModule {}

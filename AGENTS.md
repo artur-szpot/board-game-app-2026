@@ -19,19 +19,19 @@ These scripts run docker compose from the repository root.
 ## Service boundaries
 
 - frontend calls game-backend as the primary app API
-- randomizer-backend currently exposes /d6 and is independent
-- game-backend reads and writes PostgreSQL
+- frontend calls randomizer-backend directly (VITE_RANDOMIZER_URL) for helper randomization, teams and players; randomizer verifies game-backend JWTs with the shared AUTH_SECRET
+- game-backend reads and writes PostgreSQL; randomizer-backend reads teams/players
 
 ## Backend route areas
 
 - Auth and admin: auth, users, roles, permissions, admin/search
-- Game domain: game-api/games, game-api/tags, game-api/locations, game-api/helpers, game-api/scoring-schemas, game-api/game-scores, game-api/search
+- Game domain: game-api/games, game-api/tags, game-api/locations, game-api/helpers, game-api/sets, game-api/translations, game-api/scoring-schemas, game-api/game-scores, game-api/search
 
 ## Frontend route areas
 
 - /signin, /signup, /signout
 - /admin/\*
-- /collection/\*
+- /collection/\* (including /collection/helpers/:id, the helper runner)
 
 ## Conventions for code changes
 

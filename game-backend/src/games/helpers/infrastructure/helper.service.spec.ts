@@ -3,6 +3,7 @@ import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { SYSTEM_OWNER_ID } from '@common/constants/system-owner';
 import { CustomNotFoundError } from '@common/errors/service-errors';
 
+import { buildTestHelperLogic } from '../logic/test-helper-logic.fixture';
 import { HelperService } from './helper.service';
 
 describe('HelperService', () => {
@@ -16,11 +17,72 @@ describe('HelperService', () => {
     updateHelper: jest.fn(),
     deleteHelper: jest.fn(),
   };
+  const setGateway = {
+    getById: jest.fn(),
+    getByIds: jest.fn(),
+    getMany: jest.fn(),
+    create: jest.fn(),
+    createSystem: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+  };
 
-  const service = new HelperService(repository);
+  const service = new HelperService(repository, setGateway);
+  const logic = buildTestHelperLogic();
 
   beforeEach(() => {
     jest.clearAllMocks();
+    setGateway.getByIds.mockResolvedValue([
+      { id: 'set-1', ownerId: SYSTEM_OWNER_ID },
+    ]);
+  });
+
+  it('rejects invalid helper logic', async () => {
+    repository.getHelperByName.mockResolvedValue(null);
+
+    await expect(
+      service.create({ name: 'Helper', logic: { a: 1 } }, 'user-1'),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(repository.createHelper).not.toHaveBeenCalled();
+  });
+
+  it('rejects logic referencing sets the owner cannot see', async () => {
+    repository.getHelperByName.mockResolvedValue(null);
+    setGateway.getByIds.mockResolvedValue([]);
+
+    await expect(
+      service.create({ name: 'Helper', logic }, 'user-1'),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(setGateway.getByIds).toHaveBeenCalledWith(['set-1'], {
+      userId: 'user-1',
+      hasCollectionSuperuserPermission: false,
+    });
+  });
+
+  it('rejects SYSTEM helpers referencing non-SYSTEM sets', async () => {
+    repository.getHelperByName.mockResolvedValue(null);
+    setGateway.getByIds.mockResolvedValue([{ id: 'set-1', ownerId: 'user-1' }]);
+
+    await expect(
+      service.createSystem({ name: 'Helper', logic }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('relinks sets when logic is updated', async () => {
+    repository.getHelperById.mockResolvedValue({
+      id: '1',
+      ownerId: 'user-1',
+    });
+    repository.updateHelper.mockResolvedValue({ id: '1', logic });
+
+    await service.update('1', { logic }, { userId: 'user-1' });
+
+    expect(repository.updateHelper).toHaveBeenCalledWith(
+      '1',
+      { logic },
+      { userId: 'user-1', hasCollectionSuperuserPermission: false },
+      ['set-1'],
+    );
   });
 
   it('throws not found when helper is missing', async () => {
@@ -46,26 +108,32 @@ describe('HelperService', () => {
       ownerId: 'user-1',
       private: true,
       name: 'Helper',
-      logic: { a: 1 },
+      logic,
       createdOn: '2024-01-01',
       updatedOn: '2024-01-01',
     });
 
     await expect(
-      service.create({ name: 'Helper', logic: { a: 1 } }, 'user-1'),
+      service.create({ name: 'Helper', logic }, 'user-1'),
     ).resolves.toEqual({
       id: '1',
       ownerId: 'user-1',
       private: true,
       name: 'Helper',
-      logic: { a: 1 },
+      logic,
       createdOn: '2024-01-01',
       updatedOn: '2024-01-01',
     });
+    expect(repository.createHelper).toHaveBeenCalledWith(
+      { name: 'Helper', logic },
+      'user-1',
+      true,
+      ['set-1'],
+    );
   });
 
   it('creates public SYSTEM-owned helpers', async () => {
-    const input = { name: 'Shared Helper', logic: { a: 1 } };
+    const input = { name: 'Shared Helper', logic };
     repository.getHelperByName.mockResolvedValue(null);
     repository.createHelper.mockResolvedValue({
       id: 'system-helper',
@@ -82,6 +150,7 @@ describe('HelperService', () => {
       input,
       SYSTEM_OWNER_ID,
       false,
+      ['set-1'],
     );
   });
 

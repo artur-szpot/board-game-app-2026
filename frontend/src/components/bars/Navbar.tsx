@@ -1,12 +1,17 @@
-import { AppBar, Box, Button, Toolbar } from "@mui/material";
+import { AppBar, Box, Button, MenuItem, Select, Toolbar } from "@mui/material";
 import type React from "react";
 import { Link as RouterLink } from "react-router";
 
 import {
-  selectAccessToken,
-  selectPermissions,
+    selectAccessToken,
+    selectPermissions,
 } from "../../store/features/currentUserSlice";
 import { resetToBottomFrame } from "../../store/features/frameStackSlice";
+import {
+    selectLanguage,
+    setLanguage,
+    SUPPORTED_LANGUAGES,
+} from "../../store/features/settingsSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 
 import { PermissionType } from "../../dto/user-data.dto";
@@ -16,6 +21,7 @@ export const Navbar: React.FC = () => {
   const dispatch = useAppDispatch();
   const accessToken = useAppSelector(selectAccessToken);
   const permissions = useAppSelector(selectPermissions);
+  const language = useAppSelector(selectLanguage);
 
   return (
     <AppBar position="static" color="primary" className="navbar">
@@ -26,6 +32,20 @@ export const Navbar: React.FC = () => {
           </RouterLink>
         </Box>
         <Box className="nav-actions">
+          <Select
+            size="small"
+            variant="standard"
+            value={language}
+            onChange={event => dispatch(setLanguage(event.target.value))}
+            inputProps={{ "aria-label": "Language" }}
+            sx={{ color: "inherit", mr: 2 }}
+          >
+            {SUPPORTED_LANGUAGES.map(option => (
+              <MenuItem key={option} value={option}>
+                {option.toUpperCase()}
+              </MenuItem>
+            ))}
+          </Select>
           {accessToken ? (
             <>
               {permissions?.some(

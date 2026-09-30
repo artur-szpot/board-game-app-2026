@@ -4,10 +4,16 @@ import { GAME_GATEWAY } from '../../games/infrastructure/game.gateway';
 import { HELPER_GATEWAY } from '../../helpers/infrastructure/helper.gateway';
 import { LOCATION_GATEWAY } from '../../locations/infrastructure/location.gateway';
 import { SCORING_SCHEMA_GATEWAY } from '../../scoring-schemas/infrastructure/scoring-schema.gateway';
+import { SET_GATEWAY } from '../../sets/infrastructure/set.gateway';
 import { TAG_GATEWAY } from '../../tags/infrastructure/tag.gateway';
 
 import { GameDataType } from '@common/enums/GameDataType.enum';
 import { SearchService } from './search.service';
+
+const emptySetGateway = {
+  provide: SET_GATEWAY,
+  useValue: { getMany: jest.fn().mockResolvedValue({ page: [], total: 0 }) },
+};
 
 describe('SearchService', () => {
   it('returns combined short results for requested types', async () => {
@@ -53,6 +59,7 @@ describe('SearchService', () => {
             getMany: jest.fn().mockResolvedValue({ page: [], total: 0 }),
           },
         },
+        emptySetGateway,
       ],
     }).compile();
 
@@ -111,6 +118,7 @@ describe('SearchService', () => {
             getMany: jest.fn().mockResolvedValue({ page: [], total: 0 }),
           },
         },
+        emptySetGateway,
       ],
     }).compile();
 
@@ -196,6 +204,7 @@ describe('SearchService', () => {
             getMany: jest.fn().mockResolvedValue({ page: [], total: 0 }),
           },
         },
+        emptySetGateway,
       ],
     }).compile();
 

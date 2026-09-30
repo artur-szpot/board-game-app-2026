@@ -17,8 +17,8 @@ Use this file to capture operational context, decisions, and any remaining unkno
 - Environment expectations:
   - Required env variables by service:
     - game-backend: AUTH_SECRET, PORT, DATABASE_HOST, DATABASE_PORT, DATABASE_NAME, DATABASE_USER, DATABASE_PASSWORD, NODE_ENV.
-    - randomizer-backend: uses backend env values when DB connectivity check is needed; PORT is configured via compose.
-    - frontend: VITE_API_URL is configured in compose and not sourced from committed secrets files.
+    - randomizer-backend: AUTH*SECRET (verifies game-backend JWTs, HS256) and DATABASE*\* from backend env; optional CORS_ORIGINS (comma separated, default http://localhost:3002); PORT is configured via compose.
+    - frontend: VITE_API_URL and VITE_RANDOMIZER_URL are configured in compose and not sourced from committed secrets files.
   - Required secrets management approach: do not commit real secrets; populate local files under secrets/ from templates in secrets.example/.
 
 - Database migration approach:
@@ -34,7 +34,7 @@ Use this file to capture operational context, decisions, and any remaining unkno
 - Pagination mapping note: Material UI Pagination is one-based for display, while frontend request state and backend pageNumber are zero-based. Convert with +1/-1 at the UI boundary.
 - EntityPanel pagination is URL-driven: `?page` is one-based and `?pageSize` must be one of the offered options; both are parsed in `frontend/src/routes/entity-panel/pagination-params.ts` and omitted from the URL when they equal defaults. Updates use `setSearchParams(..., { replace: true })`, so paging never adds history entries.
 - game-api prefixes are stable and should not be renamed.
-- randomizer-backend is intentionally lightweight and isolated.
+- randomizer-backend is intentionally lightweight: stateless randomization plus read-only teams/players lookup; it trusts game-backend JWTs rather than having its own auth.
 - Collection ownership scoping baseline: games, tags, locations, helpers, scoring schemas, and game scores are owner-scoped for non-superusers on reads; writes remain owner-bound.
 - Shared collection ownership: `SYSTEM` is a reserved, non-login user ID used as the immutable owner of shared tags, helpers, and scoring schemas.
 - Shared collection visibility: authenticated users can read their own and `SYSTEM`-owned tags, helpers, and scoring schemas; `private` remains ignored for read authorization.
@@ -50,6 +50,15 @@ Use this file to capture operational context, decisions, and any remaining unkno
 - Tag details and collection cards render a `Public` badge for `SYSTEM`-owned tags and a parent-name badge from hydrated `tag.parent` data.
 - `GameBadge` accepts an optional `to`; when set the badge renders as a router link (`clickable` MUI Chip) so entity-backed badges navigate to their detail route. Tag and parent-tag badges supply it; attribute badges (`PLAYER_COUNT`, `GAME_LENGTH`, `PUBLIC`) stay inert.
 - Game details location cards are links too: `GameLocationDto.isGameId = true` means the entry is a game, so it targets `/collection/games/:id`; otherwise `/collection/locations/:id`.
+
+## Helpers
+
+- Helper `logic` is a versioned JSON document (`schema: "helper"`, `version: "2026.0"`) validated by `validateHelperLogic` in game-backend/src/games/helpers/logic. Step schemas: team-and-players, single-select, multi-select, roll, deal, display (must be last). Types live in both helper-logic.types.ts (backend) and frontend/src/dto/helper-logic.dto.ts; keep them aligned.
+- Reserved variables `TEAM`/`PLAYERS` come from the team-and-players step; `PLAYERS` holds indices into the chosen roster, and `deal` with `source: "PLAYERS"` picks player indices.
+- Steps may carry `when: { variable, includes }` against an enum/enum-list variable set earlier; skipped automatic steps leave their targets unset and display rows for unset variables are hidden.
+- Labels are `[code, params?]` tuples resolved via `POST /game-api/translations/lookup` (per-key English fallback on the backend). Enum values use `${i18nPrefix}.enum.<enum>.<value>`. Runner UI strings use `helper.ui.*` with built-in English defaults in helper-i18n.ts.
+- Sets (`sets` table, `{ items: [{ value, label }] }`) are referenced by ID from `logic.sets`; `helper_sets` link rows are rewritten on helper create/update and use `ON DELETE RESTRICT`, so referenced sets cannot be deleted. SYSTEM helpers may only reference SYSTEM sets.
+- The runner (frontend/src/components/helper-runner) keeps all state client-side in a `useReducer`; automatic steps (roll/deal) call randomizer-backend `/dice` and `/choose` directly. Reroll re-runs every automatic step with the current choices.
 
 ## Frontend Frame Stack Notes
 

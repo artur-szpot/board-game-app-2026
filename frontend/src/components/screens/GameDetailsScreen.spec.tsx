@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import axios from "axios";
-import { MemoryRouter } from "react-router";
+import { MemoryRouter, Route, Routes } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GameDetailsScreen } from "./GameDetailsScreen";
@@ -96,5 +97,55 @@ describe("GameDetailsScreen", () => {
     expect(
       screen.getByRole("link", { name: /Gloomhaven box/ }),
     ).toHaveAttribute("href", "/collection/games/game-2");
+  });
+
+  it("runs the only helper directly", async () => {
+    vi.spyOn(axios, "get").mockResolvedValueOnce({
+      data: {
+        ...game,
+        helperIds: ["helper-1"],
+        helpers: [{ id: "helper-1", name: "Setup" }],
+      },
+    } as never);
+
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter initialEntries={["/collection/games/game-1"]}>
+        <Routes>
+          <Route
+            path="/collection/games/:id"
+            element={
+              <GameDetailsScreen
+                gameId="game-1"
+                openedAsFrame={false}
+                frameId="frame-1"
+              />
+            }
+          />
+          <Route path="/collection/helpers/:id" element={<p>Runner page</p>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    await user.click(await screen.findByRole("button", { name: "Run helper" }));
+
+    expect(await screen.findByText("Runner page")).toBeInTheDocument();
+  });
+
+  it("disables running helpers when the game has none", async () => {
+    vi.spyOn(axios, "get").mockResolvedValueOnce({ data: game } as never);
+
+    render(
+      <MemoryRouter>
+        <GameDetailsScreen
+          gameId="game-1"
+          openedAsFrame={false}
+          frameId="frame-1"
+        />
+      </MemoryRouter>,
+    );
+
+    await screen.findByRole("heading", { name: "Brass" });
+    expect(screen.getByRole("button", { name: "Run helper" })).toBeDisabled();
   });
 });

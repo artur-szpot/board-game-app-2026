@@ -53,7 +53,8 @@ export const mapFormValuesToResults = (
       if (value === undefined) {
         return;
       }
-      mapped[field.name] = value;
+      mapped[field.name] =
+        field.json && value ? (JSON.parse(value) as object) : value;
     });
   fields
     .filter(
@@ -147,7 +148,7 @@ export type FormScreenProps = {
   title: string;
   fields: FormScreenField[];
   action: string;
-  method: "POST" | "PATCH";
+  method: "POST" | "PATCH" | "PUT";
   asyncValidators?: FormAsyncValidator[];
 };
 

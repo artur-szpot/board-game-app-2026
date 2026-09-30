@@ -17,6 +17,9 @@ export type FormFieldTextProps = FormFieldProps & {
   kind: FormFieldType.TEXT;
   required?: boolean;
   initialValue?: string;
+  multiline?: boolean;
+  /** Value must be a JSON object and is submitted parsed. */
+  json?: boolean;
 };
 
 export type FormFieldTextPropsFull = FormFieldTextProps & {
@@ -31,12 +34,16 @@ export const formText = ({
   required,
   initialValue,
   validators,
+  multiline,
+  json,
 }: {
   name: string;
   label: string;
   required?: boolean;
   initialValue?: string;
   validators?: FieldValidator[];
+  multiline?: boolean;
+  json?: boolean;
 }): FormFieldTextProps => ({
   kind: FormFieldType.TEXT,
   label,
@@ -44,6 +51,8 @@ export const formText = ({
   required,
   initialValue,
   validators,
+  multiline,
+  json,
 });
 
 export const FormTextField: FC<FormFieldTextPropsFull> = ({
@@ -57,6 +66,7 @@ export const FormTextField: FC<FormFieldTextPropsFull> = ({
   showErrors,
   errors,
   isChecking = false,
+  multiline = false,
 }: FormFieldTextPropsFull) => {
   const hasRequiredPermissions = useHasRequiredPermissions(requiredPermissions);
   const isErrored = hasVisibleErrors({ showErrors, errors });
@@ -86,6 +96,8 @@ export const FormTextField: FC<FormFieldTextPropsFull> = ({
         name={name}
         label={label}
         type="text"
+        multiline={multiline}
+        minRows={multiline ? 12 : undefined}
         value={value}
         onChange={handleChange}
         error={isErrored}
@@ -95,6 +107,7 @@ export const FormTextField: FC<FormFieldTextPropsFull> = ({
         slotProps={{
           htmlInput: {
             required,
+            style: multiline ? { fontFamily: "monospace" } : undefined,
           },
           input: {
             endAdornment: (
