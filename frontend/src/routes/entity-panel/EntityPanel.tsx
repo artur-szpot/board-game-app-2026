@@ -38,12 +38,19 @@ import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { buildListReturnState } from "../../utils/list-return-state";
 
 import { EntityPanelContent } from "./EntityPanelContent";
+import { EntityPanelFilters } from "./EntityPanelFilters";
 import type {
     EntityPanelProps,
     EntityPanelTab,
     SearchResponse,
 } from "./entity-panel-types";
 import { DEFAULT_PAGE_SIZE } from "./entity-panel-types";
+import type { EntityPanelFilterValues } from "./filter-params";
+import {
+    buildFilterSearch,
+    clearFilterSearch,
+    parseFilterParams,
+} from "./filter-params";
 import {
     buildPaginationSearch,
     PAGE_SIZE_OPTIONS,
@@ -127,6 +134,42 @@ export const EntityPanel = <
 
   const labeledTabs = useMemo(() => withDefaultLabels(tabs), [tabs]);
   const activeTab = labeledTabs.find(tab => tab.category === content);
+  const filterDefinitions = useMemo(
+    () => activeTab?.filters ?? [],
+    [activeTab],
+  );
+  const filterValues = useMemo(
+    () => parseFilterParams(searchParams, filterDefinitions),
+    [filterDefinitions, searchParams],
+  );
+  // Changing a filter invalidates the current page, so pagination resets with it.
+  const setFilters = useCallback(
+    (patch: EntityPanelFilterValues) => {
+      setSearchParams(
+        current =>
+          buildPaginationSearch(
+            buildFilterSearch(current, patch, filterDefinitions),
+            0,
+            currentPageSize,
+            pageSize,
+          ),
+        { replace: true },
+      );
+    },
+    [currentPageSize, filterDefinitions, pageSize, setSearchParams],
+  );
+  const clearFilters = useCallback(() => {
+    setSearchParams(
+      current =>
+        buildPaginationSearch(
+          clearFilterSearch(current),
+          0,
+          currentPageSize,
+          pageSize,
+        ),
+      { replace: true },
+    );
+  }, [currentPageSize, pageSize, setSearchParams]);
   const isTopFrameSelf = topFrame?.frameType === FrameTypeEnum.SELF;
   const hasSystemCollectionFullPermission = useMemo(
     () =>
@@ -209,6 +252,8 @@ export const EntityPanel = <
         {
           types: [activeTab.category],
           searchTerm: trimmedSearchTerm === "" ? undefined : trimmedSearchTerm,
+          filters:
+            Object.keys(filterValues).length > 0 ? filterValues : undefined,
           includeDetail,
           pagination: {
             pageNumber: page,
@@ -256,6 +301,7 @@ export const EntityPanel = <
     activeTab,
     currentPageSize,
     fetchErrorMessage,
+    filterValues,
     getItemsFromResponse,
     includeDetail,
     isTopFrameSelf,
@@ -276,8 +322,9 @@ export const EntityPanel = <
     }
     previousContentRef.current = content;
     setSearchTerm("");
+    clearFilters();
     setPagination(0, currentPageSize);
-  }, [content, currentPageSize, setPagination]);
+  }, [clearFilters, content, currentPageSize, setPagination]);
 
   useEffect(() => {
     const timer = window.setTimeout(
@@ -498,6 +545,14 @@ export const EntityPanel = <
               }}
             />
           </Box>
+          {filterDefinitions.length > 0 && (
+            <EntityPanelFilters
+              definitions={filterDefinitions}
+              values={filterValues}
+              onChange={setFilters}
+              onClear={clearFilters}
+            />
+          )}
           <EntityPanelContent
             tab={activeTab}
             items={items}

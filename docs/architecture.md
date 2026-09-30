@@ -52,6 +52,17 @@
   - /game-api/game-scores
   - /game-api/search
 
+### Collection filters
+
+- `POST /game-api/search` accepts `filters` as a flat `Record<string, string>` map; the games
+  repository understands `playerCount`, `tagIds`, `locationIds`, `hasHelpers` and `length`.
+- `tagIds` and `locationIds` are comma-separated id lists with match-ALL semantics; `locationIds`
+  matches both `game_locations` and `game_game_locations` links.
+- Games with a missing `min_players`/`max_players` bound match any `playerCount`.
+- Unsupported filter keys and invalid values are ignored, like unsupported sort keys.
+- The frontend stores active filters in the URL as `f_<key>` parameters; changing a filter resets
+  pagination, and switching collection tabs clears them.
+
 ### Scoring
 
 - `scoring_schemas.schema` holds a versioned JSONB definition with a strict three-level shape:

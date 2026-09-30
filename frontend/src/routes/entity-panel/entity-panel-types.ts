@@ -1,6 +1,48 @@
 import type { UnknownAction } from "@reduxjs/toolkit";
 
 import type { FormScreenProps } from "../../components/screens/FormScreenProps";
+import type { GameDataType } from "../../components/screens/selection-strategies";
+
+export enum EntityPanelFilterKind {
+  NUMBER = "NUMBER",
+  SELECT = "SELECT",
+  TRI_STATE = "TRI_STATE",
+  ENTITY_SELECTION = "ENTITY_SELECTION",
+}
+
+type EntityPanelFilterBase = {
+  /** Sent to the API in the filters map and used as the URL parameter suffix. */
+  key: string;
+  label: string;
+};
+
+export type EntityPanelNumberFilter = EntityPanelFilterBase & {
+  kind: EntityPanelFilterKind.NUMBER;
+};
+
+export type EntityPanelSelectFilter = EntityPanelFilterBase & {
+  kind: EntityPanelFilterKind.SELECT;
+  options: { value: string; label: string }[];
+};
+
+export type EntityPanelTriStateFilter = EntityPanelFilterBase & {
+  kind: EntityPanelFilterKind.TRI_STATE;
+  trueLabel: string;
+  falseLabel: string;
+};
+
+export type EntityPanelEntitySelectionFilter = EntityPanelFilterBase & {
+  kind: EntityPanelFilterKind.ENTITY_SELECTION;
+  dataTypes: GameDataType[];
+  /** Used to resolve names of the ids restored from the URL, as `${endpoint}/${id}`. */
+  detailEndpoint: string;
+};
+
+export type EntityPanelFilterDefinition =
+  | EntityPanelNumberFilter
+  | EntityPanelSelectFilter
+  | EntityPanelTriStateFilter
+  | EntityPanelEntitySelectionFilter;
 
 export type EntityPanelTab<Category extends string, Item> = {
   category: Category;
@@ -13,6 +55,7 @@ export type EntityPanelTab<Category extends string, Item> = {
   viewScreen?: (item: Item) => UnknownAction;
   editScreen?: (item: Item) => UnknownAction;
   deleteEndpoint?: (item: Item) => string;
+  filters?: EntityPanelFilterDefinition[];
 };
 
 type SearchResultWithDetail<Type extends string, Detail> = {

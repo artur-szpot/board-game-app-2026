@@ -2,12 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { createId } from '@paralleldrive/cuid2';
 
 import {
-  GetManyItemsDto,
-  ItemOwnershipDto,
+    GetManyItemsDto,
+    ItemOwnershipDto,
 } from '@common/dto/in/get-many-items.dto';
 import { CustomNotFoundError } from '@common/errors/service-errors';
 
 import { CreateGameDto } from '../../../games/games/dto/in/create-game.dto';
+import { GameLength } from '../../../games/games/dto/in/game-length.enum';
 import { GameDto } from '../../../games/games/dto/in/game.dto';
 import { UpdateGameDto } from '../../../games/games/dto/in/update-game.dto';
 import { GameRepository } from '../../repositories/game.repository';
@@ -171,15 +172,31 @@ export class PostgresGameRepository implements GameRepository {
     return clauses.length > 0 ? clauses.join(', ') : 'name ASC';
   }
 
+  private parseIdList(value?: string): string[] {
+    if (!value) {
+      return [];
+    }
+
+    return [
+      ...new Set(
+        value
+          .split(',')
+          .map((id) => id.trim())
+          .filter((id) => id.length > 0),
+      ),
+    ];
+  }
+
   private buildSearchArgs(dto?: GetManyItemsDto) {
     const {
       pagination,
       searchTerm,
       sort,
+      filters,
       userId,
       hasCollectionSuperuserPermission,
     } = dto ?? {};
-    const args: string[] = [];
+    const args: (string | string[])[] = [];
     const predicates: string[] = [];
 
     if (searchTerm) {
@@ -192,6 +209,48 @@ export class PostgresGameRepository implements GameRepository {
     if (userId && !hasCollectionSuperuserPermission) {
       args.push(userId);
       predicates.push(`owner_id = $${args.length}`);
+    }
+
+    const playerCount = Number.parseInt(filters?.playerCount ?? '', 10);
+    if (Number.isInteger(playerCount) && playerCount > 0) {
+      args.push(String(playerCount));
+      // A missing bound means "unlimited", so such games match any player count.
+      predicates.push(
+        `(COALESCE(min_players, 0) <= $${args.length}::int AND COALESCE(max_players, 2147483647) >= $${args.length}::int)`,
+      );
+    }
+
+    const tagIds = this.parseIdList(filters?.tagIds);
+    if (tagIds.length) {
+      args.push(tagIds);
+      predicates.push(
+        `(SELECT COUNT(DISTINCT gt.tag_id) FROM game_tags gt WHERE gt.game_id = games.id AND gt.tag_id = ANY($${args.length}::text[])) = CARDINALITY($${args.length}::text[])`,
+      );
+    }
+
+    const locationIds = this.parseIdList(filters?.locationIds);
+    if (locationIds.length) {
+      args.push(locationIds);
+      predicates.push(
+        `(SELECT COUNT(DISTINCT linked.location_id) FROM (
+          SELECT gl.location_id FROM game_locations gl WHERE gl.game_id = games.id
+          UNION ALL
+          SELECT ggl.location_id FROM game_game_locations ggl WHERE ggl.game_id = games.id
+        ) linked WHERE linked.location_id = ANY($${args.length}::text[])) = CARDINALITY($${args.length}::text[])`,
+      );
+    }
+
+    if (filters?.hasHelpers === 'true' || filters?.hasHelpers === 'false') {
+      const negation = filters.hasHelpers === 'true' ? '' : 'NOT ';
+      predicates.push(
+        `${negation}EXISTS (SELECT 1 FROM game_helpers gh WHERE gh.game_id = games.id)`,
+      );
+    }
+
+    const length = filters?.length;
+    if (length && Object.values<string>(GameLength).includes(length)) {
+      args.push(length);
+      predicates.push(`length = $${args.length}::game_length`);
     }
 
     const where = predicates.length ? predicates.join(' AND ') : undefined;

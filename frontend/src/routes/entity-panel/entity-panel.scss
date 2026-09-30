@@ -53,6 +53,36 @@
   margin-top: 0.5rem;
 }
 
+.entity-panel-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.entity-panel-filters-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.entity-panel-filter-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+.entity-panel-filter-field {
+  min-width: 11rem;
+}
+
+.entity-panel-filter-selection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
 .entity-panel-controls {
   display: flex;
   align-items: center;
