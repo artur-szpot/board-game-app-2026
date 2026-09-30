@@ -1,22 +1,26 @@
 import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  Logger,
-  UnauthorizedException,
+    BadRequestException,
+    Inject,
+    Injectable,
+    Logger,
+    UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
 import { userMapper } from '@auth/modules/users/mappers/user.mapper';
-import { CustomInternalError } from '@common/errors/service-errors';
 import {
-  ROLE_REPOSITORY,
-  RoleRepository,
+    CustomBadRequestError,
+    CustomInternalError,
+    CustomUnauthorizedError,
+} from '@common/errors/service-errors';
+import {
+    ROLE_REPOSITORY,
+    RoleRepository,
 } from '@db/repositories/role.repository';
 import {
-  USER_REPOSITORY,
-  UserRepository,
+    USER_REPOSITORY,
+    UserRepository,
 } from '@db/repositories/user.repository';
 
 import { JwtDto } from '../dto/in/jwt.dto';
@@ -53,7 +57,7 @@ export class AuthService implements AuthGateway {
         return user;
       }
     }
-    throw new UnauthorizedException('Invalid login credentials.');
+    throw new CustomUnauthorizedError('Invalid login credentials.');
   }
 
   async login(dto: LoginDto): Promise<LoginResponse> {
@@ -88,13 +92,13 @@ export class AuthService implements AuthGateway {
       const existingUserByEmail =
         await this.userRepository.getUserByEmail(email);
       if (existingUserByEmail) {
-        throw new BadRequestException('E-mail address already in use');
+        throw new CustomBadRequestError('E-mail address already in use');
       }
 
       const existingUserByUsername =
         await this.userRepository.getUserByUsername(username);
       if (existingUserByUsername) {
-        throw new BadRequestException('Selected username is already in use');
+        throw new CustomBadRequestError('Selected username is already in use');
       }
 
       // Get the default 'user' role

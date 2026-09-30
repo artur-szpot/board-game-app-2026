@@ -10,6 +10,7 @@ import {
     ItemOwnershipDto,
 } from '@common/dto/in/get-many-items.dto';
 import {
+    CustomBadRequestError,
     CustomInternalError,
     CustomNotFoundError,
 } from '@common/errors/service-errors';
@@ -70,7 +71,7 @@ export class GameService implements GameGateway {
         (id) =>
           !entities.some((entity) => (entity as { id?: string }).id === id),
       );
-      throw new BadRequestException(
+      throw new CustomBadRequestError(
         `${entityName} with ID "${missingId ?? 'unknown'}" not found`,
       );
     }
@@ -95,7 +96,7 @@ export class GameService implements GameGateway {
     );
     const missingIndex = games.findIndex((game) => !game);
     if (missingIndex !== -1) {
-      throw new BadRequestException(
+      throw new CustomBadRequestError(
         `Game with ID "${uniqueIds[missingIndex]}" not found`,
       );
     }
@@ -148,7 +149,7 @@ export class GameService implements GameGateway {
     }
 
     if (gameLocationIds.includes(gameId)) {
-      throw new BadRequestException(
+      throw new CustomBadRequestError(
         'Game cannot reference itself as a location',
       );
     }
@@ -161,7 +162,7 @@ export class GameService implements GameGateway {
         new Set<string>(),
       );
       if (wouldCreateCycle) {
-        throw new BadRequestException(
+        throw new CustomBadRequestError(
           `Game location relationship would create a cycle via game ID "${locationGameId}"`,
         );
       }
@@ -181,14 +182,14 @@ export class GameService implements GameGateway {
       minPlayers !== undefined &&
       (!Number.isInteger(minPlayers) || minPlayers < 1)
     ) {
-      throw new BadRequestException('minPlayers must be a positive integer');
+      throw new CustomBadRequestError('minPlayers must be a positive integer');
     }
 
     if (
       maxPlayers !== undefined &&
       (!Number.isInteger(maxPlayers) || maxPlayers < 1)
     ) {
-      throw new BadRequestException('maxPlayers must be a positive integer');
+      throw new CustomBadRequestError('maxPlayers must be a positive integer');
     }
 
     if (
@@ -196,7 +197,7 @@ export class GameService implements GameGateway {
       maxPlayers !== undefined &&
       maxPlayers < minPlayers
     ) {
-      throw new BadRequestException(
+      throw new CustomBadRequestError(
         'maxPlayers must be greater than or equal to minPlayers',
       );
     }
@@ -214,7 +215,7 @@ export class GameService implements GameGateway {
         userId,
       );
       if (existingGame && existingGame.id !== id) {
-        throw new BadRequestException(
+        throw new CustomBadRequestError(
           `Game name "${input.name}" is already in use`,
         );
       }

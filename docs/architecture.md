@@ -137,6 +137,19 @@
 - Pagination UI control is one-based, while frontend request state and backend pageNumber are zero-based.
 - Domain entities with relation/link tables require careful merge/transform logic.
 
+## Error handling
+
+- Services throw the named errors from `@common/errors/service-errors`: `CustomBadRequestError`,
+  `CustomForbiddenError`, `CustomNotFoundError`, `CustomConflictError`, `CustomUnauthorizedError`
+  and `CustomInternalError`. They extend the matching Nest exceptions, so `instanceof` guards and
+  status codes are unchanged.
+- `CustomBadRequestError` accepts one message or many and always responds with a message array.
+- `BadRequestShapeFilter` (registered globally in main.ts) normalizes every 400 response to
+  `{ statusCode, message: string[], error, path, timestamp }`, which is what
+  `ValidationErrorResponseDto` documents; other statuses pass through untouched.
+- The frontend wraps its routes in `ErrorBoundary`, keyed by location so navigation recovers a
+  crashed screen.
+
 ## Contract and release policy
 
 - API contract single source of truth: OpenAPI (Swagger UI at /api-docs, generated spec at game-backend/openapi/openapi.json).

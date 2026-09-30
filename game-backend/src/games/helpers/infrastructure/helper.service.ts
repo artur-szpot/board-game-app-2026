@@ -8,6 +8,8 @@ import {
 
 import { SYSTEM_OWNER_ID } from '@common/constants/system-owner';
 import {
+    CustomBadRequestError,
+    CustomForbiddenError,
     CustomInternalError,
     CustomNotFoundError,
 } from '@common/errors/service-errors';
@@ -52,7 +54,7 @@ export class HelperService implements HelperGateway {
   ): Promise<string[]> {
     const errors = validateHelperLogic(logic);
     if (errors.length) {
-      throw new BadRequestException(errors);
+      throw new CustomBadRequestError(errors);
     }
     const setIds = getReferencedSetIds(logic as HelperLogic);
     const sets = await this.setGateway.getByIds(setIds, {
@@ -70,7 +72,7 @@ export class HelperService implements HelperGateway {
     );
     const missing = setIds.filter((id) => !usable.has(id));
     if (missing.length) {
-      throw new BadRequestException(
+      throw new CustomBadRequestError(
         missing.map((id) => `Set with ID "${id}" does not exist`),
       );
     }
@@ -118,7 +120,9 @@ export class HelperService implements HelperGateway {
   ) {
     const existing = await this.repository.getHelperByName(name, ownerId);
     if (existing && existing.id !== existingId) {
-      throw new BadRequestException(`Helper name "${name}" is already in use`);
+      throw new CustomBadRequestError(
+        `Helper name "${name}" is already in use`,
+      );
     }
   }
 
@@ -228,7 +232,7 @@ export class HelperService implements HelperGateway {
         existingHelper.ownerId === SYSTEM_OWNER_ID &&
         !itemOwnership?.hasSystemCollectionFullPermission
       ) {
-        throw new ForbiddenException(
+        throw new CustomForbiddenError(
           'SYSTEM_COLLECTION FULL permission is required',
         );
       }
@@ -282,7 +286,7 @@ export class HelperService implements HelperGateway {
         existingHelper.ownerId === SYSTEM_OWNER_ID &&
         !itemOwnership?.hasSystemCollectionFullPermission
       ) {
-        throw new ForbiddenException(
+        throw new CustomForbiddenError(
           'SYSTEM_COLLECTION FULL permission is required',
         );
       }

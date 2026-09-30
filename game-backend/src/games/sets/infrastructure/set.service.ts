@@ -12,6 +12,8 @@ import {
     ItemOwnershipDto,
 } from '@common/dto/in/get-many-items.dto';
 import {
+    CustomBadRequestError,
+    CustomForbiddenError,
     CustomInternalError,
     CustomNotFoundError,
 } from '@common/errors/service-errors';
@@ -64,7 +66,7 @@ export class SetService implements SetGateway {
   private ensureValidData(data: unknown) {
     const errors = validateSetData(data);
     if (errors.length) {
-      throw new BadRequestException(errors);
+      throw new CustomBadRequestError(errors);
     }
   }
 
@@ -75,7 +77,7 @@ export class SetService implements SetGateway {
   ) {
     const existing = await this.repository.getSetByName(name, ownerId);
     if (existing && existing.id !== existingId) {
-      throw new BadRequestException(`Set name "${name}" is already in use`);
+      throw new CustomBadRequestError(`Set name "${name}" is already in use`);
     }
   }
 
@@ -94,7 +96,7 @@ export class SetService implements SetGateway {
       existing.ownerId === SYSTEM_OWNER_ID &&
       !itemOwnership?.hasSystemCollectionFullPermission
     ) {
-      throw new ForbiddenException(
+      throw new CustomForbiddenError(
         'SYSTEM_COLLECTION FULL permission is required',
       );
     }
@@ -206,7 +208,7 @@ export class SetService implements SetGateway {
       const existing = await this.getWritableSet(id, itemOwnership);
       const references = await this.repository.countReferencingHelpers(id);
       if (references > 0) {
-        throw new BadRequestException(
+        throw new CustomBadRequestError(
           `Set is used by ${references} helper(s) and cannot be deleted`,
         );
       }

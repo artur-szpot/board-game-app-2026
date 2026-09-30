@@ -6,9 +6,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { buildChoiceMadeFromItems } from "../../store/features/frame-actions";
 import { invokeFrameCallback } from "../../store/features/frameCallbackRegistry";
 import {
-  closeFrame,
-  openOptionsFrame,
-  openSearchFrame,
+    closeFrame,
+    openOptionsFrame,
+    openSearchFrame,
 } from "../../store/features/frameStackSlice";
 import { formCheckbox } from "../forms/FormCheckboxField";
 import { formNumber } from "../forms/FormFieldNumericInput";
@@ -19,9 +19,9 @@ import { isGreaterThanOrEqual } from "../forms/validators";
 import { FormScreen } from "./FormScreen";
 import type { FormScreenPropsFull } from "./FormScreenProps";
 import {
-  GameDataType,
-  ResultMappingStrategy,
-  selectionStrategyChooseOne,
+    GameDataType,
+    ResultMappingStrategy,
+    selectionStrategyChooseOne,
 } from "./selection-strategies";
 
 vi.mock("axios");
@@ -190,6 +190,46 @@ describe("FormScreen", () => {
         id: "form-1",
       }),
     );
+  });
+
+  it("shows server rejection messages in the form and keeps it open", async () => {
+    const user = userEvent.setup();
+    mockedAxios.mockRejectedValue({
+      isAxiosError: true,
+      response: {
+        data: {
+          message: [
+            'Tag name "Heavy" is already in use',
+            'Parent tag with ID "x" not found',
+          ],
+        },
+      },
+    } as never);
+    vi.mocked(axios.isAxiosError).mockReturnValue(true);
+
+    render(
+      <FormScreen
+        frameId="failing-form"
+        title="Create tag"
+        method="POST"
+        action="game-api/tags"
+        fields={[formText({ name: "name", label: "Name", required: true })]}
+      />,
+    );
+
+    await user.type(screen.getByLabelText("Name"), "Heavy");
+    await user.click(screen.getByRole("button", { name: "Confirm" }));
+
+    expect(await screen.findByText("Could not save")).toBeTruthy();
+    expect(screen.getByText('Tag name "Heavy" is already in use')).toBeTruthy();
+    expect(screen.getByText('Parent tag with ID "x" not found')).toBeTruthy();
+    expect(mockDispatch).not.toHaveBeenCalledWith(
+      closeFrame({ id: "failing-form" }),
+    );
+
+    await user.click(screen.getByRole("button", { name: /close/i }));
+
+    expect(screen.queryByText("Could not save")).toBeNull();
   });
 
   it("clears text fields and caches the cleared values", async () => {

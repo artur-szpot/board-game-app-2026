@@ -3962,6 +3962,7 @@
             "example": 400
           },
           "message": {
+            "description": "Always an array: validation failures and business-rule rejections share this shape.",
             "example": [
               "email must be an email",
               "password should not be empty"
@@ -3977,19 +3978,21 @@
           },
           "path": {
             "type": "string",
-            "description": "Request path; included by some global exception filters",
+            "description": "Request path",
             "example": "/auth/login"
           },
           "timestamp": {
             "type": "string",
-            "description": "Timestamp; included by some global exception filters",
+            "description": "Time the error was produced",
             "example": "2026-08-01T07:30:00.000Z"
           }
         },
         "required": [
           "statusCode",
           "message",
-          "error"
+          "error",
+          "path",
+          "timestamp"
         ]
       },
       "HttpErrorResponseDto": {

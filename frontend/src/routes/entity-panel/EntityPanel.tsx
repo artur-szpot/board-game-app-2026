@@ -35,6 +35,7 @@ import {
     selectTopFrame,
 } from "../../store/features/frameStackSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { extractApiErrorMessages } from "../../utils/api-error";
 import { buildListReturnState } from "../../utils/list-return-state";
 
 import { EntityPanelContent } from "./EntityPanelContent";
@@ -459,8 +460,8 @@ export const EntityPanel = <
       );
       setItemPendingDelete(undefined);
       await fetchItems();
-    } catch {
-      setError("Unable to delete item");
+    } catch (error) {
+      setError(extractApiErrorMessages(error).join(" "));
     } finally {
       setIsDeleteSubmitting(false);
     }
