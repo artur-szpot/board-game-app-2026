@@ -11,6 +11,7 @@ import { Signout } from "./routes/auth/Signout";
 import { Signup } from "./routes/auth/Signup";
 import { CollectionPanel } from "./routes/collection-panel/CollectionPanel";
 import { GameDetails } from "./routes/game-details/GameDetails";
+import { HelperRunner } from "./routes/helper-runner/HelperRunner";
 import { LocationDetails } from "./routes/location-details/LocationDetails";
 import { TagDetails } from "./routes/tag-details/TagDetails";
 import { resetToBottomFrame } from "./store/features/frameStackSlice";
@@ -77,6 +78,11 @@ export const App = () => {
             <Route
               path="helpers"
               element={<CollectionPanel content={GameDataType.HELPER} />}
+            />
+            <Route path="helpers/:id" element={<HelperRunner />} />
+            <Route
+              path="sets"
+              element={<CollectionPanel content={GameDataType.SET} />}
             />
             <Route
               path="scoring-schemas"

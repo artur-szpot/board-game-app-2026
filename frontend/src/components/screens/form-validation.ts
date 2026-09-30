@@ -4,11 +4,22 @@ import { ValidatorKind } from "../forms/validators";
 import type { FormScreenField, FormScreenValues } from "./FormScreenProps";
 import type { SelectionStrategy } from "./selection-strategies";
 import {
-  isSelectionCorrect,
-  SelectionStrategyEnum,
+    isSelectionCorrect,
+    SelectionStrategyEnum,
 } from "./selection-strategies";
 
 export type FormErrors = Record<string, string[]>;
+
+const isJsonObject = (value: string): boolean => {
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return (
+      typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)
+    );
+  } catch {
+    return false;
+  }
+};
 
 const comparisonDescriptions: Record<ValidatorKind, string> = {
   [ValidatorKind.GREATER_THAN]: "greater than",
@@ -107,10 +118,15 @@ const validateFieldKind = (
   switch (field.kind) {
     case FormFieldType.CHECKBOX:
       return [];
-    case FormFieldType.TEXT:
-      return field.required && !values.stringValues[field.name]
-        ? [`${field.label} is required`]
+    case FormFieldType.TEXT: {
+      const value = values.stringValues[field.name];
+      if (!value) {
+        return field.required ? [`${field.label} is required`] : [];
+      }
+      return field.json && !isJsonObject(value)
+        ? [`${field.label} must be a valid JSON object`]
         : [];
+    }
     case FormFieldType.NUMERIC:
       return field.required && values.numericValues[field.name] === null
         ? [`${field.label} is required`]

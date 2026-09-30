@@ -2,6 +2,7 @@ import CasinoIcon from "@mui/icons-material/Casino";
 import HelpCenterIcon from "@mui/icons-material/HelpCenter";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import SettingsApplicationsIcon from "@mui/icons-material/SettingsApplications";
+import StyleIcon from "@mui/icons-material/Style";
 import TagIcon from "@mui/icons-material/Tag";
 import TocIcon from "@mui/icons-material/Toc";
 import type { JSX } from "react";
@@ -20,6 +21,8 @@ export const typeIcon = (type: GameDataType): JSX.Element => {
       return <SettingsApplicationsIcon fontSize="small" />;
     case GameDataType.SCORING_SCHEMA:
       return <TocIcon fontSize="small" />;
+    case GameDataType.SET:
+      return <StyleIcon fontSize="small" />;
     default:
       return <HelpCenterIcon fontSize="small" />;
   }

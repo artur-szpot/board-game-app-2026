@@ -2,6 +2,8 @@ FROM node:22 AS builder
 
 ARG VITE_API_URL
 ENV VITE_API_URL=${VITE_API_URL}
+ARG VITE_RANDOMIZER_URL
+ENV VITE_RANDOMIZER_URL=${VITE_RANDOMIZER_URL}
 
 COPY package.json package-lock.json ./
 RUN npm ci && npm cache clean --force

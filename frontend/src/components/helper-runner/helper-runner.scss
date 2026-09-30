@@ -1,0 +1,65 @@
+.helper-runner {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+  max-width: 960px;
+  margin: 1rem auto;
+}
+
+.helper-runner-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.helper-runner-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.helper-option-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.75rem;
+
+  button {
+    min-height: 64px;
+    font-size: 1.1rem;
+  }
+}
+
+.helper-display {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0;
+
+  dd {
+    margin: 0;
+  }
+}
+
+.helper-display-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
+}
+
+.helper-display-blocks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.helper-display-block {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  min-width: 2.5rem;
+  text-align: center;
+}

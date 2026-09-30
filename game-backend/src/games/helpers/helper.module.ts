@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 
 import { DbModule } from '@db/db.module';
 
+import { SetModule } from '../sets/set.module';
 import { HelperController } from './helper.controller';
 import { HELPER_GATEWAY } from './infrastructure/helper.gateway';
 import { HelperService } from './infrastructure/helper.service';
@@ -12,7 +13,7 @@ const helperGatewayProvider = {
 };
 
 @Module({
-  imports: [DbModule],
+  imports: [DbModule, SetModule],
   providers: [helperGatewayProvider],
   controllers: [HelperController],
   exports: [helperGatewayProvider],

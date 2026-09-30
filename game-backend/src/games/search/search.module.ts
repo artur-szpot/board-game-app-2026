@@ -6,10 +6,11 @@ import { GameModule } from '../games/game.module';
 import { HelperModule } from '../helpers/helper.module';
 import { LocationModule } from '../locations/location.module';
 import { ScoringSchemaModule } from '../scoring-schemas/scoring-schema.module';
+import { SetModule } from '../sets/set.module';
 import { TagModule } from '../tags/tag.module';
-import { SearchController } from './search.controller';
 import { SEARCH_GATEWAY } from './infrastructure/search.gateway';
 import { SearchService } from './infrastructure/search.service';
+import { SearchController } from './search.controller';
 
 const searchGatewayProvider = {
   provide: SEARCH_GATEWAY,
@@ -24,6 +25,7 @@ const searchGatewayProvider = {
     LocationModule,
     HelperModule,
     ScoringSchemaModule,
+    SetModule,
   ],
   providers: [searchGatewayProvider],
   controllers: [SearchController],

@@ -6,25 +6,26 @@ import { formSearch } from "../forms/FormSearchField";
 import { formText } from "../forms/FormTextField";
 import type { FieldValidator } from "../forms/validators";
 import {
-  isGreaterThan,
-  isGreaterThanOrEqual,
-  isLesserThan,
-  isLesserThanOrEqual,
+    isGreaterThan,
+    isGreaterThanOrEqual,
+    isLesserThan,
+    isLesserThanOrEqual,
 } from "../forms/validators";
 import {
-  countErrors,
-  describeSelectionStrategy,
-  validateField,
-  validateForm,
+    countErrors,
+    describeSelectionStrategy,
+    validateField,
+    validateForm,
 } from "./form-validation";
 import type { FormScreenField, FormScreenValues } from "./FormScreenProps";
+import { mapFormValuesToResults } from "./FormScreenProps";
 import type { SelectionStrategy } from "./selection-strategies";
 import {
-  GameDataType,
-  ResultMappingStrategy,
-  selectionStrategyChooseOne,
-  selectionStrategySelectAnyNumber,
-  selectionStrategySelectNumber,
+    GameDataType,
+    ResultMappingStrategy,
+    selectionStrategyChooseOne,
+    selectionStrategySelectAnyNumber,
+    selectionStrategySelectNumber,
 } from "./selection-strategies";
 
 const emptyValues: FormScreenValues = {
@@ -370,5 +371,31 @@ describe("countErrors", () => {
 
   it("sums messages across fields", () => {
     expect(countErrors({ name: ["a"], tags: ["b", "c"] })).toBe(3);
+  });
+});
+
+describe("JSON text fields", () => {
+  const field = formText({
+    name: "logic",
+    label: "Logic",
+    required: true,
+    multiline: true,
+    json: true,
+  });
+
+  it.each(["{", "[1, 2]", "42"])("rejects %s", value => {
+    expect(
+      validateField(field, valuesWith({ stringValues: { logic: value } }), [
+        field,
+      ]),
+    ).toEqual(["Logic must be a valid JSON object"]);
+  });
+
+  it("accepts objects and submits them parsed", () => {
+    const values = valuesWith({ stringValues: { logic: '{"a": [1]}' } });
+    expect(validateField(field, values, [field])).toEqual([]);
+    expect(mapFormValuesToResults(values, [field])).toEqual({
+      logic: { a: [1] },
+    });
   });
 });

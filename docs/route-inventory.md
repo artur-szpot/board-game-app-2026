@@ -20,6 +20,8 @@ Source: frontend/src/App.tsx
 - /collection/locations
 - /collection/locations/:id
 - /collection/helpers
+- /collection/helpers/:id (helper runner)
+- /collection/sets
 - /collection/scoring-schemas
 
 Collection and admin list routes accept optional `?page` (one-based) and `?pageSize` query parameters.
@@ -59,7 +61,15 @@ Collection and admin list routes accept optional `?page` (one-based) and `?pageS
 - DELETE /game-api/locations/:id
 - GET /game-api/helpers/:id
 - POST /game-api/helpers
+- POST /game-api/helpers/system
+- PUT /game-api/helpers/:id
 - DELETE /game-api/helpers/:id
+- GET /game-api/sets/:id
+- POST /game-api/sets
+- POST /game-api/sets/system
+- PUT /game-api/sets/:id
+- DELETE /game-api/sets/:id (400 while any helper references the set)
+- POST /game-api/translations/lookup
 - GET /game-api/scoring-schemas/:id
 - POST /game-api/scoring-schemas
 - PATCH /game-api/scoring-schemas/:id
@@ -73,7 +83,15 @@ Collection and admin list routes accept optional `?page` (one-based) and `?pageS
 
 ## Randomizer backend routes
 
+All routes except /health\* require a game-backend JWT (`Authorization: Bearer`). The frontend calls them directly via `VITE_RANDOMIZER_URL`.
+
 - GET /d6
+- GET /dice?dice_query=XdY
+- POST /choose
+- POST /shuffle
+- POST /spread-rectangle
+- GET /teams (caller- and SYSTEM-owned teams, `[{ id, name }]`)
+- GET /players?team_id= (`[{ id, name }]`)
 
 ## Validation reminder
 

@@ -1,30 +1,23 @@
 from typing import Annotated, List
 
-from fastapi import APIRouter
-from fastapi.params import Query
+from fastapi import APIRouter, Depends
 
-from .players_dto import TeamsRequest
+from app.auth import CurrentUser, get_current_user
+
+from . import players_repository
+from .players_dto import NamedItem
 
 router = APIRouter()
 
 
-# Return all teams a user has access to.
-# TODO: access control, read those from database
-@router.get("/teams", response_model=List[str])
-def get_teams(query: Annotated[TeamsRequest, Query()]) -> List[str]:
-    return ["S", "ABC", "123"]
+# Teams owned by the caller or shared by SYSTEM.
+@router.get("/teams", response_model=List[NamedItem])
+def get_teams(user: Annotated[CurrentUser, Depends(get_current_user)]) -> List[NamedItem]:
+    return players_repository.get_teams(user.id)
 
 
-# Return all players from a chosen team.
-# TODO: access control, read those from database
-@router.get("/players", response_model=List[str])
-def get_players(team: str) -> List[str]:
-    match team:
-        case "S":
-            return ["B", "D", "M", "A", "E", "R"]
-        case "ABC":
-            return ["A", "B", "C", "D", "E", "F", "G"]
-        case "123":
-            return ["1", "2", "3", "4", "5", "6", "7"]
-        case _:
-            return []
+@router.get("/players", response_model=List[NamedItem])
+def get_players(
+    team_id: str, user: Annotated[CurrentUser, Depends(get_current_user)]
+) -> List[NamedItem]:
+    return players_repository.get_team_players(team_id, user.id)

@@ -123,4 +123,14 @@ SET
 	note = EXCLUDED.note,
 	updated_on = CURRENT_TIMESTAMP;
 
+INSERT INTO game_helpers (game_id, helper_id)
+VALUES
+	('test-game-01', 'helper-istanbul'),
+	('test-game-01', 'helper-sample-draft'),
+	('test-game-07', 'helper-istanbul')
+ON CONFLICT (game_id, helper_id)
+DO UPDATE
+SET
+	updated_on = CURRENT_TIMESTAMP;
+
 COMMIT;

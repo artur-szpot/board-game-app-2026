@@ -7,12 +7,12 @@ import { selectAccessToken } from "../../store/features/currentUserSlice";
 import { getFormScreenCustomMappings } from "../../store/features/formScreenCustomMappingRegistry";
 import { resultMapper } from "../../store/features/frame-actions";
 import type {
-  FrameCallbackContent,
-  FrameCallbackReceiver,
+    FrameCallbackContent,
+    FrameCallbackReceiver,
 } from "../../store/features/frameStackSlice";
 import {
-  addCallbackReceiverToTopFrame,
-  closeFrame,
+    addCallbackReceiverToTopFrame,
+    closeFrame,
 } from "../../store/features/frameStackSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { FormFieldType } from "../forms/common";
@@ -25,15 +25,15 @@ import { MainActions } from "../MainActions";
 import type { FormErrors } from "./form-validation";
 import { countErrors, validateForm } from "./form-validation";
 import {
-  mapFormValuesToResults,
-  type FormScreenField,
-  type FormScreenPropsFull,
-  type FormScreenValues,
+    mapFormValuesToResults,
+    type FormScreenField,
+    type FormScreenPropsFull,
+    type FormScreenValues,
 } from "./FormScreenProps";
 import {
-  isSameSelectionResult,
-  type SelectionResult,
-  type SelectionScreenProps,
+    isSameSelectionResult,
+    type SelectionResult,
+    type SelectionScreenProps,
 } from "./selection-strategies";
 import { useFormAsyncValidators } from "./useFormAsyncValidators";
 
@@ -397,7 +397,18 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
       });
     } catch (error) {
       // TODO: make pretty error display
-      alert(error instanceof Error ? error.message : String(error));
+      const serverMessage: unknown = axios.isAxiosError(error)
+        ? (error.response?.data as { message?: unknown } | undefined)?.message
+        : undefined;
+      alert(
+        Array.isArray(serverMessage)
+          ? serverMessage.join("\n")
+          : typeof serverMessage === "string"
+            ? serverMessage
+            : error instanceof Error
+              ? error.message
+              : String(error),
+      );
       return;
     }
     // TODO: display a success message

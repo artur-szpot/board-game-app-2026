@@ -6,6 +6,7 @@ import type {
     TagResponseDto,
 } from "../../../dto/collection-items.dto";
 import { FormFieldType } from "../../forms/common";
+import { buildTestHelperLogic } from "../../helper-runner/test-helper-logic";
 import { GameDataType } from "../selection-strategies";
 import { buildEditGameScreen } from "./edit-game";
 import { buildEditLocationScreen } from "./edit-location";
@@ -50,7 +51,7 @@ describe("edit form definitions", () => {
           ownerId: "user-1",
           private: true,
           name: "Round helper",
-          logic: {},
+          logic: buildTestHelperLogic(),
           createdOn: "2026-01-01T00:00:00.000Z",
           updatedOn: "2026-01-02T00:00:00.000Z",
         },

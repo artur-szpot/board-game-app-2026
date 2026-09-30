@@ -1,37 +1,25 @@
 import logging
 import os
 from contextlib import asynccontextmanager
-from typing import Optional
 
 import psycopg
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app.auth import get_current_user
+from app.db import build_db_dsn
 from app.routers.dice.dice_controller import router as dice_router
 from app.routers.players.players_controller import router as players_router
 from app.routers.shuffle.shuffle_controller import router as shuffle_router
 
 logger = logging.getLogger(__name__)
 
-
-def _build_db_dsn() -> Optional[str]:
-    host = os.getenv("DB_HOST")
-    port = os.getenv("DB_PORT")
-    db_name = os.getenv("DB_NAME")
-    user = os.getenv("DB_USER")
-    password = os.getenv("DB_PASSWORD")
-
-    if not all([host, port, db_name, user, password]):
-        return None
-
-    return (
-        f"host={host} port={port} dbname={db_name} "
-        f"user={user} password={password} connect_timeout=3"
-    )
+DEFAULT_CORS_ORIGINS = "http://localhost:3002"
 
 
 def _check_database_connection() -> bool:
-    dsn = _build_db_dsn()
+    dsn = build_db_dsn()
     if not dsn:
         logger.info("Database settings not provided; skipping connectivity check")
         return True
@@ -56,9 +44,20 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-app.include_router(dice_router)
-app.include_router(players_router)
-app.include_router(shuffle_router)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        origin.strip()
+        for origin in os.getenv("CORS_ORIGINS", DEFAULT_CORS_ORIGINS).split(",")
+        if origin.strip()
+    ],
+    allow_methods=["GET", "POST"],
+    allow_headers=["Authorization", "Content-Type"],
+)
+_authenticated = [Depends(get_current_user)]
+app.include_router(dice_router, dependencies=_authenticated)
+app.include_router(players_router, dependencies=_authenticated)
+app.include_router(shuffle_router, dependencies=_authenticated)
 
 
 @app.get("/health")

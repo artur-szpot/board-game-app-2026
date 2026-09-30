@@ -181,6 +181,39 @@ export const GameDetailsScreen = ({
     [dispatch, game],
   );
 
+  const helpers = game?.helpers ?? [];
+
+  const handleRunHelper = () => {
+    const runHelper = (helperId: string) =>
+      void navigate(`/collection/helpers/${helperId}`);
+
+    if (helpers.length === 1) {
+      runHelper(helpers[0].id);
+      return;
+    }
+
+    dispatch(
+      openOptionsFrame({
+        params: {
+          title: "Choose a helper",
+          dataType: GameDataType.HELPER,
+          strategy: selectionStrategyChooseOne(),
+          options: helpers.map(helper => ({
+            value: helper.id,
+            label: helper.name,
+          })),
+        },
+        callbackEmitter: result => {
+          const chosenId =
+            resultMapper.toChoiceMade(result).payload.chosen[0]?.value;
+          if (typeof chosenId === "string") {
+            runHelper(chosenId);
+          }
+        },
+      }),
+    );
+  };
+
   const handleEnterScores = () => {
     if (!game || scoringSchemas.length === 0) {
       return;
@@ -322,6 +355,16 @@ export const GameDetailsScreen = ({
             disabled={!ready || scoringSchemas.length === 0}
           >
             Enter scores
+          </Button>
+          <Button
+            variant="outlined"
+            color="inherit"
+            type="button"
+            startIcon={<CasinoIcon />}
+            onClick={handleRunHelper}
+            disabled={!ready || helpers.length === 0}
+          >
+            Run helper
           </Button>
           <Button
             variant="outlined"

@@ -23,11 +23,13 @@ export interface HelperRepository {
     input: CreateHelperDto,
     ownerId: string,
     isPrivate?: boolean,
+    setIds?: string[],
   ): Promise<HelperDto>;
   updateHelper(
     helperId: string,
     input: UpdateHelperDto,
     itemOwnership?: ItemOwnershipDto,
+    setIds?: string[],
   ): Promise<HelperDto>;
   deleteHelper(
     helperId: string,

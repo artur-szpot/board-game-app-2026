@@ -11,7 +11,9 @@ import { HelperModule } from './games/helpers/helper.module';
 import { LocationModule } from './games/locations/location.module';
 import { ScoringSchemaModule } from './games/scoring-schemas/scoring-schema.module';
 import { SearchModule } from './games/search/search.module';
+import { SetModule } from './games/sets/set.module';
 import { TagModule } from './games/tags/tag.module';
+import { TranslationModule } from './games/translations/translation.module';
 import { HealthModule } from './health/health.module';
 
 @Module({
@@ -23,9 +25,11 @@ import { HealthModule } from './health/health.module';
     TagModule,
     ScoringSchemaModule,
     GameScoreModule,
+    SetModule,
     HelperModule,
     GameModule,
     SearchModule,
+    TranslationModule,
     HealthModule,
   ],
 })

@@ -6,11 +6,19 @@ import { createTagScreen } from "../../components/screens/definitions/create-tag
 import { buildEditGameScreen } from "../../components/screens/definitions/edit-game";
 import { buildEditLocationScreen } from "../../components/screens/definitions/edit-location";
 import { buildEditTagScreen } from "../../components/screens/definitions/edit-tag";
+import {
+    buildEditHelperScreen,
+    buildEditSetScreen,
+    createHelperScreen,
+    createSetScreen,
+} from "../../components/screens/definitions/helpers-and-sets";
 import { GameDataType } from "../../components/screens/selection-strategies";
 import type {
     GameResponseDto,
+    HelperResponseDto,
     LocationResponseDto,
     ScoringSchemaResponseDto,
+    SetResponseDto,
     TagResponseDto,
 } from "../../dto/collection-items.dto";
 import {
@@ -67,8 +75,23 @@ const COLLECTION_TABS: EntityPanelTab<
     category: GameDataType.HELPER,
     routeSegment: "helpers",
     label: "Helpers",
+    createScreen: createHelperScreen,
+    editScreen: item =>
+      openFormFrame({
+        params: buildEditHelperScreen(item as HelperResponseDto),
+      }),
+    viewPath: item => `/collection/helpers/${item.id}`,
     deleteEndpoint: (item: CollectionPanelItem) =>
       `game-api/helpers/${item.id}`,
+  },
+  {
+    category: GameDataType.SET,
+    routeSegment: "sets",
+    label: "Sets",
+    createScreen: createSetScreen,
+    editScreen: item =>
+      openFormFrame({ params: buildEditSetScreen(item as SetResponseDto) }),
+    deleteEndpoint: (item: CollectionPanelItem) => `game-api/sets/${item.id}`,
   },
   {
     category: GameDataType.SCORING_SCHEMA,
