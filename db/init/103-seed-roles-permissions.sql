@@ -28,6 +28,14 @@ VALUES (
    'SYSTEM_COLLECTION',
    'FULL'
 ), (
+   'admin',
+   'DATA_MANAGEMENT',
+   'FULL'
+), (
+   'user',
+   'DATA_MANAGEMENT',
+   'READ'
+), (
    'user',
    'GAME_COLLECTIONS',
    'FULL'

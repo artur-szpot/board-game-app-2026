@@ -85,6 +85,47 @@
 - The runner is stateless on the server: frontend/src/components/helper-runner drives steps client-side and calls
   randomizer-backend `/dice`, `/choose`, `/teams` and `/players` directly.
 
+### Helper data sets
+
+- The collection's "Helper data sets" tab uses a dedicated create/edit frame, not the generic JSON form.
+- Set names, property names, and item names match `^[a-z][a-zA-Z0-9]*$`. Property and item names are
+  unique within their set; set names remain unique per owner.
+- `sets.data` stores ordered property names and ordered named items, for example:
+  `{ "properties": ["city"], "items": [{ "name": "alice", "properties": { "city": "Paris" } }] }`.
+  Require at least one property and item. Every item's property map has exactly the declared keys
+  with string values; empty values are allowed. Items have no persisted numeric IDs.
+- The editor auto-appends an empty property input when its last row is edited. Only the trailing
+  empty placeholder is omitted on save; empty intermediate rows remain visible and invalid.
+  Renaming a property preserves item values, removing it forgets them, and adding it creates empty
+  inputs. Removing the lone property clears its input.
+- Item names are camelCase identifiers; display labels come from translations keyed by
+  `helper.set.<setName>.<itemName>`, with the existing language fallback/missing-key behavior.
+  Renaming a set or item changes its translation key; translations are not automatically renamed.
+- Helper deals randomize temporary zero-based indices into the loaded item array; numeric helper
+  variables and player selection are unchanged. Helper aliases are not used as translation set names.
+  Named temporary subsets and property-expression/display syntax are outside this editor change.
+- Old integer/label set payloads are unsupported: recreate sets or explicitly replace their data
+  in the editor. The runner reports incompatible sets instead of silently selecting nothing.
+  Updated bootstrap seeds do not migrate existing databases. Helper set references and deletion
+  protection remain based on the set's database ID.
+
+### Data management permissions
+
+- `DATA_MANAGEMENT READ` grants helper/data set tab access, search, and read-only definition forms;
+  `FULL` additionally grants create/update/delete, subject to existing ownership restrictions.
+  SYSTEM writes also require `SYSTEM_COLLECTION FULL`.
+- Default roles grant `DATA_MANAGEMENT FULL` to admin and `READ` to user. Existing installations
+  must apply `db/migrations/20261003-data-management.sql` using psql autocommit (not `--single-transaction`);
+  the enum addition must commit before it is used. Users must sign in again to refresh JWT permissions.
+- Game details still show assigned helper/data set information without DATA_MANAGEMENT, but do not
+  offer definition/data set management links. Running assigned helpers remains available via
+  `GET /game-api/games/:id/helpers/:helperId` with `GAME_COLLECTIONS READ`. This endpoint checks
+  game visibility and helper assignment, returning only that helper's accessible referenced sets.
+- Direct helper/data set reads require DATA_MANAGEMENT READ; a direct runner URL without a game
+  context also requires it. A `gameId` runner query uses the scoped endpoint, never a permission bypass.
+- Collection search checks permissions per requested type: helpers/sets require DATA_MANAGEMENT READ;
+  other game entity types retain GAME_COLLECTIONS FULL. Mixed unauthorized searches fail with 403.
+
 ## Frontend architecture
 
 - Framework: React 19 + React Router + Redux Toolkit + Material UI
@@ -108,6 +149,8 @@
   - openGameDetailsFrame pushes a game details frame that can be opened from route or frame contexts.
   - openScoringSchemaEditorFrame and openScoreEntryFrame push the scoring screens, which hold their own
     draft state because their shapes are too dynamic for the generic FormScreen field descriptors.
+  - openSetEditorFrame pushes the helper data set editor, with local draft row identities that are
+    never persisted as item IDs.
   - closeFrame pops only the current top frame and can carry a typed result payload.
   - sameFrameResult emits typed result payload on the current frame without stack changes.
   - resetToBottomFrame collapses stack to SELF.

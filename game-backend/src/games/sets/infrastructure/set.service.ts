@@ -1,21 +1,21 @@
 import {
-    BadRequestException,
-    ForbiddenException,
-    Inject,
-    Injectable,
-    Logger,
+  BadRequestException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  Logger,
 } from '@nestjs/common';
 
 import { SYSTEM_OWNER_ID } from '@common/constants/system-owner';
 import {
-    GetManyItemsDto,
-    ItemOwnershipDto,
+  GetManyItemsDto,
+  ItemOwnershipDto,
 } from '@common/dto/in/get-many-items.dto';
 import {
-    CustomBadRequestError,
-    CustomForbiddenError,
-    CustomInternalError,
-    CustomNotFoundError,
+  CustomBadRequestError,
+  CustomForbiddenError,
+  CustomInternalError,
+  CustomNotFoundError,
 } from '@common/errors/service-errors';
 import { validateUpdateDtoNotEmpty } from '@common/helpers/validate-update-dto-not-empty';
 import { Paginated } from '@common/pagination/Paginated';
@@ -25,7 +25,7 @@ import { CreateSetDto } from '../dto/in/create-set.dto';
 import { SetDto } from '../dto/in/set.dto';
 import { UpdateSetDto } from '../dto/in/update-set.dto';
 import { SetResponse } from '../dto/out/set.response';
-import { validateSetData } from '../set-data.validator';
+import { SET_IDENTIFIER, validateSetData } from '../set-data.validator';
 import { SetGateway } from './set.gateway';
 
 const KNOWN_ERRORS = [
@@ -67,6 +67,12 @@ export class SetService implements SetGateway {
     const errors = validateSetData(data);
     if (errors.length) {
       throw new CustomBadRequestError(errors);
+    }
+  }
+
+  private ensureValidName(name: string) {
+    if (typeof name !== 'string' || !SET_IDENTIFIER.test(name)) {
+      throw new CustomBadRequestError('name must be camelCase');
     }
   }
 
@@ -149,6 +155,7 @@ export class SetService implements SetGateway {
     if (!userId) {
       throw new CustomInternalError('creating the set');
     }
+    this.ensureValidName(input.name);
     this.ensureValidData(input.data);
     try {
       await this.ensureUniqueName(input.name, userId);
@@ -159,6 +166,7 @@ export class SetService implements SetGateway {
   }
 
   public async createSystem(input: CreateSetDto): Promise<SetResponse> {
+    this.ensureValidName(input.name);
     this.ensureValidData(input.data);
     try {
       await this.ensureUniqueName(input.name, SYSTEM_OWNER_ID);
@@ -179,6 +187,9 @@ export class SetService implements SetGateway {
       throw new CustomInternalError('updating the set');
     }
     validateUpdateDtoNotEmpty(input);
+    if (input.name !== undefined) {
+      this.ensureValidName(input.name);
+    }
     if (input.data !== undefined) {
       this.ensureValidData(input.data);
     }

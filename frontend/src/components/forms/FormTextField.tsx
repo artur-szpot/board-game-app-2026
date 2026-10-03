@@ -1,9 +1,9 @@
 import ClearIcon from "@mui/icons-material/Clear";
 import {
-    CircularProgress,
-    IconButton,
-    InputAdornment,
-    TextField,
+  CircularProgress,
+  IconButton,
+  InputAdornment,
+  TextField,
 } from "@mui/material";
 import { useEffect, useState, type ChangeEvent, type FC } from "react";
 
@@ -23,6 +23,7 @@ export type FormFieldTextProps = FormFieldProps & {
 };
 
 export type FormFieldTextPropsFull = FormFieldTextProps & {
+  readOnly?: boolean;
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onClear: () => void;
   value: string;
@@ -67,6 +68,7 @@ export const FormTextField: FC<FormFieldTextPropsFull> = ({
   errors,
   isChecking = false,
   multiline = false,
+  readOnly = false,
 }: FormFieldTextPropsFull) => {
   const hasRequiredPermissions = useHasRequiredPermissions(requiredPermissions);
   const isErrored = hasVisibleErrors({ showErrors, errors });
@@ -99,7 +101,7 @@ export const FormTextField: FC<FormFieldTextPropsFull> = ({
         multiline={multiline}
         minRows={multiline ? 12 : undefined}
         value={value}
-        onChange={handleChange}
+        onChange={readOnly ? undefined : handleChange}
         error={isErrored}
         color={isChecking ? "info" : undefined}
         focused={isChecking || undefined}
@@ -110,7 +112,8 @@ export const FormTextField: FC<FormFieldTextPropsFull> = ({
             style: multiline ? { fontFamily: "monospace" } : undefined,
           },
           input: {
-            endAdornment: (
+            readOnly,
+            endAdornment: !readOnly && (
               <InputAdornment position="end">
                 {isChecking && (
                   <CircularProgress

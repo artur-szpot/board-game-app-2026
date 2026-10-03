@@ -1,4 +1,6 @@
 import { Test } from '@nestjs/testing';
+import { PermissionType } from '@auth/modules/permissions/enums/permission-type.enum';
+import { PermissionLevel } from '@auth/modules/permissions/enums/permission-level.enum';
 
 import { GameDataType } from '@common/enums/GameDataType.enum';
 import { SEARCH_GATEWAY } from './infrastructure/search.gateway';
@@ -16,7 +18,11 @@ describe('SearchController', () => {
     const controller = moduleRef.get(SearchController);
     await expect(
       controller.search({ types: [GameDataType.GAME] }, 'user-1', {
-        user: { permissions: [] },
+        user: {
+          permissions: [
+            [PermissionType.GAME_COLLECTIONS, PermissionLevel.FULL],
+          ],
+        },
       } as never),
     ).resolves.toEqual({ results: [], total: 0 });
     expect(search).toHaveBeenCalledWith(

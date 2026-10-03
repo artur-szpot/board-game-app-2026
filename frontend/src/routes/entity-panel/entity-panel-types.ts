@@ -1,4 +1,5 @@
 import type { UnknownAction } from "@reduxjs/toolkit";
+import type { PermissionType } from "../../dto/user-data.dto";
 
 import type { FormScreenProps } from "../../components/screens/FormScreenProps";
 import type { GameDataType } from "../../components/screens/selection-strategies";
@@ -46,6 +47,7 @@ export type EntityPanelFilterDefinition =
 
 export type EntityPanelTab<Category extends string, Item> = {
   category: Category;
+  requiredPermission?: PermissionType;
   label?: string;
   routeSegment?: string;
   createScreen?: FormScreenProps;

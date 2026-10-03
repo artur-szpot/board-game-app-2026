@@ -18,12 +18,15 @@ describe('SetService', () => {
     deleteSet: jest.fn(),
   };
   const service = new SetService(repository);
-  const data = { items: [{ value: 1, label: ['helper.card.one'] }] };
+  const data = {
+    properties: ['category'],
+    items: [{ name: 'card1', properties: { category: '' } }],
+  };
   const set = {
     id: 'set-1',
     ownerId: 'user-1',
     private: true,
-    name: 'Cards',
+    name: 'cards',
     data,
     createdOn: '2026-01-01',
     updatedOn: '2026-01-01',
@@ -36,7 +39,7 @@ describe('SetService', () => {
   it('rejects invalid set data before touching the database', async () => {
     await expect(
       service.create(
-        { name: 'Cards', data: { items: [{ value: 'x' }] } },
+        { name: 'cards', data: { items: [{ value: 'x' }] } },
         'user-1',
       ),
     ).rejects.toBeInstanceOf(BadRequestException);
@@ -48,10 +51,10 @@ describe('SetService', () => {
     repository.createSet.mockResolvedValue(set);
 
     await expect(
-      service.create({ name: 'Cards', data }, 'user-1'),
+      service.create({ name: 'cards', data }, 'user-1'),
     ).resolves.toEqual(set);
     expect(repository.createSet).toHaveBeenCalledWith(
-      { name: 'Cards', data },
+      { name: 'cards', data },
       'user-1',
     );
   });
@@ -92,7 +95,40 @@ describe('SetService', () => {
     });
 
     await expect(
-      service.update('set-1', { name: 'New' }, { userId: 'user-1' }),
+      service.update('set-1', { name: 'newName' }, { userId: 'user-1' }),
     ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it.each(['Cards', '', 'new name', 'card-name'])(
+    'rejects invalid set name %s for every write path',
+    async (name) => {
+      await expect(
+        service.create({ name, data }, 'user-1'),
+      ).rejects.toBeInstanceOf(BadRequestException);
+      await expect(service.createSystem({ name, data })).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
+      await expect(
+        service.update('set-1', { name }, { userId: 'user-1' }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+      expect(repository.createSet).not.toHaveBeenCalled();
+      expect(repository.updateSet).not.toHaveBeenCalled();
+    },
+  );
+
+  it('updates set data without changing names or ownership', async () => {
+    repository.getSetById.mockResolvedValue(set);
+    repository.updateSet.mockResolvedValue(set);
+    await expect(
+      service.update('set-1', { data }, { userId: 'user-1' }),
+    ).resolves.toEqual(set);
+    expect(repository.updateSet).toHaveBeenCalledWith(
+      'set-1',
+      { data },
+      {
+        userId: 'user-1',
+        hasCollectionSuperuserPermission: false,
+      },
+    );
   });
 });

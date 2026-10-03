@@ -13,6 +13,7 @@ import { LocationController } from './locations/location.controller';
 import { ScoringSchemaController } from './scoring-schemas/scoring-schema.controller';
 import { SearchController } from './search/search.controller';
 import { TagController } from './tags/tag.controller';
+import { SetController } from './sets/set.controller';
 
 const expectControllerGuards = (controller: object) => {
   const guards = Reflect.getMetadata(GUARDS_METADATA, controller) ?? [];
@@ -41,6 +42,7 @@ describe('Game API auth/permissions metadata', () => {
     expectControllerGuards(LocationController);
     expectControllerGuards(GameController);
     expectControllerGuards(HelperController);
+    expectControllerGuards(SetController);
     expectControllerGuards(ScoringSchemaController);
     expectControllerGuards(GameScoreController);
     expectControllerGuards(SearchController);
@@ -66,6 +68,7 @@ describe('Game API auth/permissions metadata', () => {
       HelperController.prototype,
       'getById',
       PermissionLevel.READ,
+      PermissionType.DATA_MANAGEMENT,
     );
     expectRequiredPermission(
       ScoringSchemaController.prototype,
@@ -132,16 +135,19 @@ describe('Game API auth/permissions metadata', () => {
       HelperController.prototype,
       'create',
       PermissionLevel.FULL,
+      PermissionType.DATA_MANAGEMENT,
     );
     expectRequiredPermission(
       HelperController.prototype,
       'update',
       PermissionLevel.FULL,
+      PermissionType.DATA_MANAGEMENT,
     );
     expectRequiredPermission(
       HelperController.prototype,
       'delete',
       PermissionLevel.FULL,
+      PermissionType.DATA_MANAGEMENT,
     );
 
     expectRequiredPermission(
@@ -176,11 +182,9 @@ describe('Game API auth/permissions metadata', () => {
       PermissionLevel.FULL,
     );
 
-    expectRequiredPermission(
-      SearchController.prototype,
-      'search',
-      PermissionLevel.FULL,
-    );
+    expect(
+      Reflect.getMetadata(PERMISSIONS_KEY, SearchController.prototype.search),
+    ).toEqual([]);
   });
 
   it('requires SYSTEM_COLLECTION FULL for SYSTEM create handlers', () => {
@@ -190,17 +194,51 @@ describe('Game API auth/permissions metadata', () => {
       PermissionLevel.FULL,
       PermissionType.SYSTEM_COLLECTION,
     );
-    expectRequiredPermission(
-      HelperController.prototype,
-      'createSystem',
-      PermissionLevel.FULL,
-      PermissionType.SYSTEM_COLLECTION,
-    );
+    expect(
+      Reflect.getMetadata(
+        PERMISSIONS_KEY,
+        HelperController.prototype.createSystem,
+      ),
+    ).toEqual([
+      [PermissionType.DATA_MANAGEMENT, PermissionLevel.FULL],
+      [PermissionType.SYSTEM_COLLECTION, PermissionLevel.FULL],
+    ]);
     expectRequiredPermission(
       ScoringSchemaController.prototype,
       'createSystem',
       PermissionLevel.FULL,
       PermissionType.SYSTEM_COLLECTION,
     );
+  });
+
+  it('uses DATA_MANAGEMENT for sets and game READ for assigned helper execution', () => {
+    expectRequiredPermission(
+      SetController.prototype,
+      'getById',
+      PermissionLevel.READ,
+      PermissionType.DATA_MANAGEMENT,
+    );
+    for (const method of ['create', 'update', 'delete']) {
+      expectRequiredPermission(
+        SetController.prototype,
+        method,
+        PermissionLevel.FULL,
+        PermissionType.DATA_MANAGEMENT,
+      );
+    }
+    expectRequiredPermission(
+      GameController.prototype,
+      'getAssignedHelper',
+      PermissionLevel.READ,
+    );
+    expect(
+      Reflect.getMetadata(
+        PERMISSIONS_KEY,
+        SetController.prototype.createSystem,
+      ),
+    ).toEqual([
+      [PermissionType.DATA_MANAGEMENT, PermissionLevel.FULL],
+      [PermissionType.SYSTEM_COLLECTION, PermissionLevel.FULL],
+    ]);
   });
 });

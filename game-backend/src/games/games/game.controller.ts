@@ -7,32 +7,38 @@ import { PermissionLevel } from '@auth/modules/permissions/enums/permission-leve
 import { PermissionType } from '@auth/modules/permissions/enums/permission-type.enum';
 import { UserId } from '@common/decorators/user-id.decorator';
 import {
-    HttpErrorResponseDto,
-    ValidationErrorResponseDto,
+  CustomNotFoundError,
+  CustomBadRequestError,
+} from '@common/errors/service-errors';
+import { SET_GATEWAY, SetGateway } from '../sets/infrastructure/set.gateway';
+import { GameHelperResponse } from './dto/out/game-helper.response';
+import {
+  HttpErrorResponseDto,
+  ValidationErrorResponseDto,
 } from '@common/openapi/error-response.dto';
 import {
-    Body,
-    Controller,
-    Delete,
-    Get,
-    Inject,
-    Param,
-    Patch,
-    Post,
-    Req,
-    UseGuards,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Inject,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import {
-    ApiBadRequestResponse,
-    ApiBearerAuth,
-    ApiBody,
-    ApiForbiddenResponse,
-    ApiNotFoundResponse,
-    ApiOkResponse,
-    ApiOperation,
-    ApiParam,
-    ApiTags,
-    ApiUnauthorizedResponse,
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiBody,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 
 import { CreateGameDto } from './dto/in/create-game.dto';
@@ -51,7 +57,65 @@ export class GameController {
   constructor(
     @Inject(GAME_GATEWAY)
     private readonly gameGateway: GameGateway,
+    @Inject(SET_GATEWAY)
+    private readonly setGateway: SetGateway,
   ) {}
+
+  @Get(':id/helpers/:helperId')
+  @ApiOperation({
+    summary:
+      'Load an assigned helper and its data sets for running from a visible game',
+  })
+  @ApiParam({ name: 'id', type: String })
+  @ApiParam({ name: 'helperId', type: String })
+  @ApiOkResponse({ type: GameHelperResponse })
+  @ApiNotFoundResponse({ type: HttpErrorResponseDto })
+  @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.READ])
+  public async getAssignedHelper(
+    @Param('id') id: string,
+    @Param('helperId') helperId: string,
+    @UserId() userId: string,
+    @Req() req: { user: JwtDto },
+  ): Promise<GameHelperResponse> {
+    const ownership = {
+      userId,
+      hasCollectionSuperuserPermission: hasCollectionSuperuserPermission(
+        req.user.permissions,
+      ),
+    };
+    const game = await this.gameGateway.getById(id, ownership);
+    const helper = game.helpers.find((item) => item.id === helperId);
+    if (!helper) {
+      throw new CustomNotFoundError('helper assigned to this game');
+    }
+    if (
+      !('sets' in helper.logic) ||
+      typeof helper.logic.sets !== 'object' ||
+      helper.logic.sets === null ||
+      Array.isArray(helper.logic.sets)
+    ) {
+      throw new CustomBadRequestError(
+        'Assigned helper has invalid set references',
+      );
+    }
+    const ids = [...new Set(Object.values(helper.logic.sets))];
+    if (
+      !ids.every((value: unknown): value is string => typeof value === 'string')
+    ) {
+      throw new CustomBadRequestError(
+        'Assigned helper has invalid set references',
+      );
+    }
+    const sets = ids.length
+      ? await this.setGateway.getByIds(ids, ownership)
+      : [];
+    if (sets.length !== ids.length) {
+      throw new CustomNotFoundError(
+        'data sets referenced by the assigned helper',
+      );
+    }
+    return { helper, sets };
+  }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get game by ID' })

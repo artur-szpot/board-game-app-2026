@@ -8,32 +8,32 @@ import { PermissionLevel } from '@auth/modules/permissions/enums/permission-leve
 import { PermissionType } from '@auth/modules/permissions/enums/permission-type.enum';
 import { UserId } from '@common/decorators/user-id.decorator';
 import {
-    HttpErrorResponseDto,
-    ValidationErrorResponseDto,
+  HttpErrorResponseDto,
+  ValidationErrorResponseDto,
 } from '@common/openapi/error-response.dto';
 import {
-    Body,
-    Controller,
-    Delete,
-    Get,
-    Inject,
-    Param,
-    Post,
-    Put,
-    Req,
-    UseGuards,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Inject,
+  Param,
+  Post,
+  Put,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import {
-    ApiBadRequestResponse,
-    ApiBearerAuth,
-    ApiBody,
-    ApiForbiddenResponse,
-    ApiNotFoundResponse,
-    ApiOkResponse,
-    ApiOperation,
-    ApiParam,
-    ApiTags,
-    ApiUnauthorizedResponse,
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiBody,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 
 import { CreateSetDto } from './dto/in/create-set.dto';
@@ -59,7 +59,7 @@ export class SetController {
   @ApiParam({ name: 'id', type: String })
   @ApiOkResponse({ type: SetResponse })
   @ApiNotFoundResponse({ type: HttpErrorResponseDto })
-  @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.READ])
+  @RequirePermissions([PermissionType.DATA_MANAGEMENT, PermissionLevel.READ])
   getById(
     @Param('id') id: string,
     @UserId() userId: string,
@@ -77,7 +77,7 @@ export class SetController {
   @ApiOperation({ summary: 'Create set' })
   @ApiBody({ type: CreateSetDto })
   @ApiOkResponse({ type: SetResponse })
-  @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.FULL])
+  @RequirePermissions([PermissionType.DATA_MANAGEMENT, PermissionLevel.FULL])
   create(
     @Body() input: CreateSetDto,
     @UserId() userId: string,
@@ -89,7 +89,10 @@ export class SetController {
   @ApiOperation({ summary: 'Create a SYSTEM-owned set' })
   @ApiBody({ type: CreateSetDto })
   @ApiOkResponse({ type: SetResponse })
-  @RequirePermissions([PermissionType.SYSTEM_COLLECTION, PermissionLevel.FULL])
+  @RequirePermissions(
+    [PermissionType.DATA_MANAGEMENT, PermissionLevel.FULL],
+    [PermissionType.SYSTEM_COLLECTION, PermissionLevel.FULL],
+  )
   createSystem(@Body() input: CreateSetDto): Promise<SetResponse> {
     return this.setGateway.createSystem(input);
   }
@@ -100,7 +103,7 @@ export class SetController {
   @ApiBody({ type: UpdateSetDto })
   @ApiOkResponse({ type: SetResponse })
   @ApiNotFoundResponse({ type: HttpErrorResponseDto })
-  @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.FULL])
+  @RequirePermissions([PermissionType.DATA_MANAGEMENT, PermissionLevel.FULL])
   update(
     @Param('id') id: string,
     @Body() input: UpdateSetDto,
@@ -121,7 +124,7 @@ export class SetController {
   @ApiParam({ name: 'id', type: String })
   @ApiOkResponse({ type: SetResponse })
   @ApiNotFoundResponse({ type: HttpErrorResponseDto })
-  @RequirePermissions([PermissionType.GAME_COLLECTIONS, PermissionLevel.FULL])
+  @RequirePermissions([PermissionType.DATA_MANAGEMENT, PermissionLevel.FULL])
   delete(
     @Param('id') id: string,
     @UserId() userId: string,

@@ -1,18 +1,18 @@
 import { useEffect, useReducer } from "react";
 
 import type { RandomizerApi } from "../../api/randomizer";
-import type { HelperLogic, SetDataDto } from "../../dto/helper-logic.dto";
+import type { HelperLogic, RunnerSetDto } from "../../dto/helper-logic.dto";
 import {
-    automaticTargets,
-    initialRunnerState,
-    planRandomization,
-    runnerReducer,
-    runRandomization,
+  automaticTargets,
+  initialRunnerState,
+  planRandomization,
+  runnerReducer,
+  runRandomization,
 } from "./helper-engine";
 
 export const useHelperRunner = (
   logic: HelperLogic,
-  sets: Record<string, SetDataDto>,
+  sets: Record<string, RunnerSetDto>,
   api: RandomizerApi,
   accessToken?: string,
 ) => {

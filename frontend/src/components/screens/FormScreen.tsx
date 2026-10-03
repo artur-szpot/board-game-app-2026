@@ -7,12 +7,12 @@ import { selectAccessToken } from "../../store/features/currentUserSlice";
 import { getFormScreenCustomMappings } from "../../store/features/formScreenCustomMappingRegistry";
 import { resultMapper } from "../../store/features/frame-actions";
 import type {
-    FrameCallbackContent,
-    FrameCallbackReceiver,
+  FrameCallbackContent,
+  FrameCallbackReceiver,
 } from "../../store/features/frameStackSlice";
 import {
-    addCallbackReceiverToTopFrame,
-    closeFrame,
+  addCallbackReceiverToTopFrame,
+  closeFrame,
 } from "../../store/features/frameStackSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { extractApiErrorMessages } from "../../utils/api-error";
@@ -26,15 +26,15 @@ import { MainActions } from "../MainActions";
 import type { FormErrors } from "./form-validation";
 import { countErrors, validateForm } from "./form-validation";
 import {
-    mapFormValuesToResults,
-    type FormScreenField,
-    type FormScreenPropsFull,
-    type FormScreenValues,
+  mapFormValuesToResults,
+  type FormScreenField,
+  type FormScreenPropsFull,
+  type FormScreenValues,
 } from "./FormScreenProps";
 import {
-    isSameSelectionResult,
-    type SelectionResult,
-    type SelectionScreenProps,
+  isSameSelectionResult,
+  type SelectionResult,
+  type SelectionScreenProps,
 } from "./selection-strategies";
 import { useFormAsyncValidators } from "./useFormAsyncValidators";
 
@@ -154,6 +154,7 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
   fields,
   action,
   method,
+  readOnly = false,
 }: FormScreenPropsFull) => {
   const accessToken = useAppSelector(selectAccessToken);
   const draft = formScreenDraftCache.get(frameId);
@@ -382,6 +383,9 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
   }, [frameId, dispatch, selectionChangeReceiver]);
 
   const dispatchResults = async (_values: FormScreenValues) => {
+    if (readOnly || isSubmitting) {
+      return;
+    }
     const result = mapFormValuesToResults(
       _values,
       fields,
@@ -432,6 +436,7 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
                     <FormTextField
                       key={field.name}
                       {...field}
+                      readOnly={readOnly}
                       showErrors={showErrors}
                       errors={fieldErrors}
                       isChecking={pendingFields.has(field.name)}
@@ -568,10 +573,11 @@ export const FormScreen: FC<FormScreenPropsFull> = ({
               </Alert>
             )}
             <MainActions
+              allowConfirm={!readOnly}
               confirmEnabled={
                 errorCount === 0 && pendingFields.size === 0 && !isSubmitting
               }
-              errorCount={errorCount}
+              errorCount={readOnly ? 0 : errorCount}
               onShowErrors={() => {
                 revealErrors();
               }}

@@ -1,16 +1,17 @@
 import {
-    type HelperLogic,
-    HelperStepSchema,
-    PLAYERS_VARIABLE,
-    type SetDataDto,
-    TEAM_VARIABLE,
+  type HelperLogic,
+  HelperStepSchema,
+  PLAYERS_VARIABLE,
+  type RunnerSetDto,
+  TEAM_VARIABLE,
 } from "../../dto/helper-logic.dto";
 import type { Roster, VariableValue } from "./helper-engine";
 import { enumLabelKey, type Translate } from "./helper-i18n";
+import { setItemTranslationKey } from "../../utils/set-data";
 
 export type DisplayContext = {
   logic: HelperLogic;
-  sets: Record<string, SetDataDto>;
+  sets: Record<string, RunnerSetDto>;
   roster?: Roster;
   translate: Translate;
 };
@@ -45,9 +46,11 @@ const formatSingle = (
     return player?.name ?? String(value);
   }
   if (source) {
-    const set = sets[source] as SetDataDto | undefined;
-    const item = set?.items.find(entry => entry.value === value);
-    return item ? translate(item.label) : String(value);
+    const set = sets[source] as RunnerSetDto | undefined;
+    const item = typeof value === "number" ? set?.items[value] : undefined;
+    return item && set
+      ? translate(setItemTranslationKey(set.name, item.name))
+      : String(value);
   }
   const type = logic.variables[variable] as string | undefined;
   const enumName = type?.replace(/\[\]$/, "");

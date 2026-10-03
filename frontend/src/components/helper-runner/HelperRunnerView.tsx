@@ -1,20 +1,20 @@
 import ReplayIcon from "@mui/icons-material/Replay";
 import UndoIcon from "@mui/icons-material/Undo";
 import {
-    Alert,
-    Box,
-    Button,
-    CircularProgress,
-    Paper,
-    Stack,
-    Typography,
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Paper,
+  Stack,
+  Typography,
 } from "@mui/material";
 
 import type { RandomizerApi } from "../../api/randomizer";
 import {
-    type HelperLogic,
-    HelperStepSchema,
-    type SetDataDto,
+  type HelperLogic,
+  HelperStepSchema,
+  type RunnerSetDto,
 } from "../../dto/helper-logic.dto";
 import { selectAccessToken } from "../../store/features/currentUserSlice";
 import { selectLanguage } from "../../store/features/settingsSlice";
@@ -32,7 +32,7 @@ type Props = {
   name: string;
   logic: HelperLogic;
   /** Set data keyed by the helper's set alias. */
-  sets: Record<string, SetDataDto>;
+  sets: Record<string, RunnerSetDto>;
   api: RandomizerApi;
   onClose?: () => void;
 };

@@ -18,6 +18,27 @@ import { makeStore } from "../../store/store";
 import { CollectionPanel } from "./CollectionPanel";
 
 describe("CollectionPanel", () => {
+  it("uses dedicated helper data set create/edit frames", () => {
+    render(<CollectionPanel />);
+    const props = entityPanelSpy.mock.calls.at(-1)?.[0] as {
+      tabs: {
+        category: GameDataType;
+        label: string;
+        createAction?: () => { type: string };
+        editScreen?: (item: object) => { type: string };
+      }[];
+    };
+    const tab = props.tabs.find(tab => tab.category === GameDataType.SET);
+    expect(tab?.label).toBe("Helper data sets");
+    expect(tab?.createAction?.().type).toBe("frameStack/openSetEditorFrame");
+    expect(
+      tab?.editScreen?.({
+        id: "set-1",
+        name: "people",
+        data: { properties: [], items: [] },
+      }).type,
+    ).toBe("frameStack/openSetEditorFrame");
+  });
   it("provides view routes for games, tags and locations", () => {
     const store = makeStore({
       currentUser: { accessToken: "test-token" },

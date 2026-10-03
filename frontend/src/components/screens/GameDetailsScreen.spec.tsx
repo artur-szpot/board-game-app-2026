@@ -1,14 +1,16 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import axios from "axios";
-import { MemoryRouter, Route, Routes } from "react-router";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GameDetailsScreen } from "./GameDetailsScreen";
+import { buildTestHelperLogic } from "../helper-runner/test-helper-logic";
 
 vi.mock("axios");
 
 const mockDispatch = vi.fn();
+const RunnerPage = () => <p>Runner page {useLocation().search}</p>;
 
 type MockState = {
   currentUser: {
@@ -69,6 +71,7 @@ describe("GameDetailsScreen", () => {
     vi.restoreAllMocks();
     mockDispatch.mockReset();
     mockState = { currentUser: { accessToken: "test-token", id: "user-1" } };
+    vi.spyOn(axios, "get").mockResolvedValue({ data: { page: [] } });
   });
 
   it("links tag badges and location entries to their detail routes", async () => {
@@ -104,7 +107,9 @@ describe("GameDetailsScreen", () => {
       data: {
         ...game,
         helperIds: ["helper-1"],
-        helpers: [{ id: "helper-1", name: "Setup" }],
+        helpers: [
+          { id: "helper-1", name: "Setup", logic: buildTestHelperLogic() },
+        ],
       },
     } as never);
 
@@ -122,14 +127,100 @@ describe("GameDetailsScreen", () => {
               />
             }
           />
-          <Route path="/collection/helpers/:id" element={<p>Runner page</p>} />
+          <Route path="/collection/helpers/:id" element={<RunnerPage />} />
         </Routes>
       </MemoryRouter>,
     );
 
     await user.click(await screen.findByRole("button", { name: "Run helper" }));
 
-    expect(await screen.findByText("Runner page")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Runner page ?gameId=game-1"),
+    ).toBeInTheDocument();
+  });
+
+  it("shows assigned data without management links when permission is missing", async () => {
+    vi.spyOn(axios, "get").mockResolvedValueOnce({
+      data: {
+        ...game,
+        helpers: [
+          { id: "helper-1", name: "Setup", logic: buildTestHelperLogic() },
+        ],
+      },
+    });
+    render(
+      <MemoryRouter>
+        <GameDetailsScreen
+          gameId="game-1"
+          openedAsFrame={false}
+          frameId="frame-1"
+        />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByText("Setup")).toBeInTheDocument();
+    expect(screen.getByText("Data set: bonusCards")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "View helper definition" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "View data set bonusCards" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Run helper" })).toBeEnabled();
+  });
+
+  it("READ opens assigned helper and set definition forms read-only", async () => {
+    mockState.currentUser.permissions = [
+      { permissionType: "DATA_MANAGEMENT", permissionLevel: "READ" },
+    ];
+    vi.spyOn(axios, "get")
+      .mockResolvedValueOnce({
+        data: {
+          ...game,
+          helpers: [
+            { id: "helper-1", name: "Setup", logic: buildTestHelperLogic() },
+          ],
+        },
+      })
+      .mockResolvedValueOnce({ data: { page: [] } })
+      .mockResolvedValueOnce({
+        data: {
+          id: "set-1",
+          name: "people",
+          data: { properties: ["city"], items: [] },
+        },
+      });
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <GameDetailsScreen
+          gameId="game-1"
+          openedAsFrame={false}
+          frameId="frame-1"
+        />
+      </MemoryRouter>,
+    );
+    await user.click(
+      await screen.findByRole("button", { name: "View helper definition" }),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "frameStack/openFormFrame",
+        payload: expect.objectContaining({
+          params: expect.objectContaining({ readOnly: true }) as object,
+        }) as object,
+      }),
+    );
+    await user.click(
+      screen.getByRole("button", { name: "View data set bonusCards" }),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "frameStack/openSetEditorFrame",
+        payload: expect.objectContaining({
+          params: expect.objectContaining({ readOnly: true }) as object,
+        }) as object,
+      }),
+    );
   });
 
   it("disables running helpers when the game has none", async () => {

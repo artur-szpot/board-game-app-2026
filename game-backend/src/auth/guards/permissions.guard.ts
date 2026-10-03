@@ -6,7 +6,7 @@ import {
   PERMISSIONS_KEY,
 } from '../decorators/permissions.decorator';
 import { JwtDto } from '../dto/in/jwt.dto';
-import { PermissionPrecedence } from '../modules/permissions/enums/permission-level.enum';
+import { hasRequiredPermission } from '../helpers/has-required-permission';
 
 @Injectable()
 export class PermisionsGuard implements CanActivate {
@@ -25,21 +25,8 @@ export class PermisionsGuard implements CanActivate {
       user: { permissions },
     }: { user: JwtDto } = context.switchToHttp().getRequest();
 
-    const hasMissingPermission = requiredPermissions.some(
-      ([permissionType, requiredPermissionLevel]) => {
-        const userPermissionLevel = permissions.find(
-          (permission) => permission[0] === permissionType,
-        )?.[1];
-        if (
-          PermissionPrecedence.indexOf(userPermissionLevel) <
-          PermissionPrecedence.indexOf(requiredPermissionLevel)
-        ) {
-          return true;
-        }
-        return false;
-      },
+    return requiredPermissions.every(([type, level]) =>
+      hasRequiredPermission(permissions, type, level),
     );
-
-    return !hasMissingPermission;
   }
 }

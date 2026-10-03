@@ -52,10 +52,28 @@ VALUES
    ('tr-sample-northWind-pl', 'helper.game.sample.enum.sampleExpansion.northWind', 'pl', 'Północny Wiatr'),
    ('tr-sample-deepSea-en', 'helper.game.sample.enum.sampleExpansion.deepSea', 'en', 'Deep Sea'),
    ('tr-sample-deepSea-pl', 'helper.game.sample.enum.sampleExpansion.deepSea', 'pl', 'Głębiny'),
-   ('tr-sample-card-en', 'helper.game.sample.card', 'en', 'Card {{n}}'),
-   ('tr-sample-card-pl', 'helper.game.sample.card', 'pl', 'Karta {{n}}'),
-   ('tr-sample-event-en', 'helper.game.sample.event', 'en', 'Event {{n}}'),
-   ('tr-sample-event-pl', 'helper.game.sample.event', 'pl', 'Wydarzenie {{n}}'),
+   ('tr-sample-card1-en', 'helper.set.sampleMarketCards.card1', 'en', 'Card 1'),
+   ('tr-sample-card1-pl', 'helper.set.sampleMarketCards.card1', 'pl', 'Karta 1'),
+   ('tr-sample-card2-en', 'helper.set.sampleMarketCards.card2', 'en', 'Card 2'),
+   ('tr-sample-card2-pl', 'helper.set.sampleMarketCards.card2', 'pl', 'Karta 2'),
+   ('tr-sample-card3-en', 'helper.set.sampleMarketCards.card3', 'en', 'Card 3'),
+   ('tr-sample-card3-pl', 'helper.set.sampleMarketCards.card3', 'pl', 'Karta 3'),
+   ('tr-sample-card4-en', 'helper.set.sampleMarketCards.card4', 'en', 'Card 4'),
+   ('tr-sample-card4-pl', 'helper.set.sampleMarketCards.card4', 'pl', 'Karta 4'),
+   ('tr-sample-card5-en', 'helper.set.sampleMarketCards.card5', 'en', 'Card 5'),
+   ('tr-sample-card5-pl', 'helper.set.sampleMarketCards.card5', 'pl', 'Karta 5'),
+   ('tr-sample-card6-en', 'helper.set.sampleMarketCards.card6', 'en', 'Card 6'),
+   ('tr-sample-card6-pl', 'helper.set.sampleMarketCards.card6', 'pl', 'Karta 6'),
+   ('tr-sample-card7-en', 'helper.set.sampleMarketCards.card7', 'en', 'Card 7'),
+   ('tr-sample-card7-pl', 'helper.set.sampleMarketCards.card7', 'pl', 'Karta 7'),
+   ('tr-sample-card8-en', 'helper.set.sampleMarketCards.card8', 'en', 'Card 8'),
+   ('tr-sample-card8-pl', 'helper.set.sampleMarketCards.card8', 'pl', 'Karta 8'),
+   ('tr-sample-event1-en', 'helper.set.sampleWeatherEvents.event1', 'en', 'Event 1'),
+   ('tr-sample-event1-pl', 'helper.set.sampleWeatherEvents.event1', 'pl', 'Wydarzenie 1'),
+   ('tr-sample-event2-en', 'helper.set.sampleWeatherEvents.event2', 'en', 'Event 2'),
+   ('tr-sample-event2-pl', 'helper.set.sampleWeatherEvents.event2', 'pl', 'Wydarzenie 2'),
+   ('tr-sample-event3-en', 'helper.set.sampleWeatherEvents.event3', 'en', 'Event 3'),
+   ('tr-sample-event3-pl', 'helper.set.sampleWeatherEvents.event3', 'pl', 'Wydarzenie 3'),
    ('tr-sample-market-en', 'helper.game.sample.market', 'en', 'Starting market'),
    ('tr-sample-market-pl', 'helper.game.sample.market', 'pl', 'Początkowy rynek'),
    ('tr-sample-weather-en', 'helper.game.sample.weather', 'en', 'Weather event'),
@@ -69,20 +87,20 @@ SET
 
 INSERT INTO sets (id, owner_id, private, name, data)
 VALUES
-   ('set-sample-cards', 'SYSTEM', false, 'Sample market cards', '{"items": [
-      {"value": 1, "label": ["helper.game.sample.card", {"n": 1}]},
-      {"value": 2, "label": ["helper.game.sample.card", {"n": 2}]},
-      {"value": 3, "label": ["helper.game.sample.card", {"n": 3}]},
-      {"value": 4, "label": ["helper.game.sample.card", {"n": 4}]},
-      {"value": 5, "label": ["helper.game.sample.card", {"n": 5}]},
-      {"value": 6, "label": ["helper.game.sample.card", {"n": 6}]},
-      {"value": 7, "label": ["helper.game.sample.card", {"n": 7}]},
-      {"value": 8, "label": ["helper.game.sample.card", {"n": 8}]}
+   ('set-sample-cards', 'SYSTEM', false, 'sampleMarketCards', '{"properties": ["category"], "items": [
+      {"name": "card1", "properties": {"category": "market"}},
+      {"name": "card2", "properties": {"category": "market"}},
+      {"name": "card3", "properties": {"category": "market"}},
+      {"name": "card4", "properties": {"category": "market"}},
+      {"name": "card5", "properties": {"category": "market"}},
+      {"name": "card6", "properties": {"category": "market"}},
+      {"name": "card7", "properties": {"category": "market"}},
+      {"name": "card8", "properties": {"category": "market"}}
    ]}'),
-   ('set-sample-events', 'SYSTEM', false, 'Sample weather events', '{"items": [
-      {"value": 1, "label": ["helper.game.sample.event", {"n": 1}]},
-      {"value": 2, "label": ["helper.game.sample.event", {"n": 2}]},
-      {"value": 3, "label": ["helper.game.sample.event", {"n": 3}]}
+   ('set-sample-events', 'SYSTEM', false, 'sampleWeatherEvents', '{"properties": ["category"], "items": [
+      {"name": "event1", "properties": {"category": "weather"}},
+      {"name": "event2", "properties": {"category": "weather"}},
+      {"name": "event3", "properties": {"category": "weather"}}
    ]}')
 ON CONFLICT (id)
 DO UPDATE

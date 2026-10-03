@@ -1,7 +1,4 @@
-import type {
-    HelperResponseDto,
-    SetResponseDto,
-} from "../../../dto/collection-items.dto";
+import type { HelperResponseDto } from "../../../dto/collection-items.dto";
 import { formText } from "../../forms/FormTextField";
 import type { FormScreenProps } from "../FormScreenProps";
 
@@ -43,13 +40,6 @@ const HELPER_LOGIC_TEMPLATE = {
   ],
 };
 
-const SET_DATA_TEMPLATE = {
-  items: [
-    { value: 1, label: ["helper.game.example.item", { n: 1 }] },
-    { value: 2, label: ["helper.game.example.item", { n: 2 }] },
-  ],
-};
-
 const toJson = (value: object) => JSON.stringify(value, null, 2);
 
 const nameField = (label: string, initialValue?: string) =>
@@ -84,25 +74,5 @@ export const buildEditHelperScreen = (
   fields: [
     nameField("Helper name", helper.name),
     jsonField("logic", "Helper logic (JSON)", helper.logic),
-  ],
-});
-
-export const createSetScreen: FormScreenProps = {
-  method: "POST",
-  action: "game-api/sets",
-  title: "Add a new set",
-  fields: [
-    nameField("Set name"),
-    jsonField("data", "Set items (JSON)", SET_DATA_TEMPLATE),
-  ],
-};
-
-export const buildEditSetScreen = (set: SetResponseDto): FormScreenProps => ({
-  method: "PUT",
-  action: `game-api/sets/${set.id}`,
-  title: `Edit ${set.name}`,
-  fields: [
-    nameField("Set name", set.name),
-    jsonField("data", "Set items (JSON)", set.data),
   ],
 });

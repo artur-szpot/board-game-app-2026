@@ -5,6 +5,7 @@ import { JwtAuthGuard } from '@auth/guards/jwt.guard';
 import { PermisionsGuard } from '@auth/guards/permissions.guard';
 import { GameController } from './game.controller';
 import { GAME_GATEWAY } from './infrastructure/game.gateway';
+import { SET_GATEWAY } from '../sets/infrastructure/set.gateway';
 
 describe('GameController', () => {
   let app: INestApplication;
@@ -20,7 +21,10 @@ describe('GameController', () => {
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       controllers: [GameController],
-      providers: [{ provide: GAME_GATEWAY, useValue: gateway }],
+      providers: [
+        { provide: GAME_GATEWAY, useValue: gateway },
+        { provide: SET_GATEWAY, useValue: { getByIds: jest.fn() } },
+      ],
     })
       .overrideGuard(JwtAuthGuard)
       .useValue({

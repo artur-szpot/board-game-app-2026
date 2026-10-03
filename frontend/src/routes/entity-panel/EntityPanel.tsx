@@ -1,21 +1,22 @@
 import AddIcon from "@mui/icons-material/Add";
 import ClearIcon from "@mui/icons-material/Clear";
 import {
-    Box,
-    Button,
-    ButtonGroup,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    IconButton,
-    InputAdornment,
-    Paper,
-    Tab,
-    Tabs,
-    TextField,
-    Typography,
+  Box,
+  Alert,
+  Button,
+  ButtonGroup,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  IconButton,
+  InputAdornment,
+  Paper,
+  Tab,
+  Tabs,
+  TextField,
+  Typography,
 } from "@mui/material";
 import Pagination from "@mui/material/Pagination";
 import type { UnknownAction } from "@reduxjs/toolkit";
@@ -25,14 +26,14 @@ import { Link, useNavigate, useSearchParams } from "react-router";
 
 import { FrameStackScreenWrapper } from "../../components/frames/FrameStackScreenWrapper";
 import {
-    selectAccessToken,
-    selectPermissions,
+  selectAccessToken,
+  selectPermissions,
 } from "../../store/features/currentUserSlice";
 import {
-    FrameTypeEnum,
-    openFormFrame,
-    resetToBottomFrame,
-    selectTopFrame,
+  FrameTypeEnum,
+  openFormFrame,
+  resetToBottomFrame,
+  selectTopFrame,
 } from "../../store/features/frameStackSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { extractApiErrorMessages } from "../../utils/api-error";
@@ -41,24 +42,25 @@ import { buildListReturnState } from "../../utils/list-return-state";
 import { EntityPanelContent } from "./EntityPanelContent";
 import { EntityPanelFilters } from "./EntityPanelFilters";
 import type {
-    EntityPanelProps,
-    EntityPanelTab,
-    SearchResponse,
+  EntityPanelProps,
+  EntityPanelTab,
+  SearchResponse,
 } from "./entity-panel-types";
 import { DEFAULT_PAGE_SIZE } from "./entity-panel-types";
 import type { EntityPanelFilterValues } from "./filter-params";
 import {
-    buildFilterSearch,
-    clearFilterSearch,
-    parseFilterParams,
+  buildFilterSearch,
+  clearFilterSearch,
+  parseFilterParams,
 } from "./filter-params";
 import {
-    buildPaginationSearch,
-    PAGE_SIZE_OPTIONS,
-    parsePaginationParams,
+  buildPaginationSearch,
+  PAGE_SIZE_OPTIONS,
+  parsePaginationParams,
 } from "./pagination-params";
 
 import { PermissionLevel, PermissionType } from "../../dto/user-data.dto";
+import { hasRequiredPermissions } from "../../utils/useHasRequiredPermissions";
 import "./entity-panel.scss";
 
 const INPUT_STABILITY_IN_MS = 500;
@@ -133,8 +135,24 @@ export const EntityPanel = <
   const previousContentRef = useRef(content);
   const previousSearchTermRef = useRef(searchTerm);
 
-  const labeledTabs = useMemo(() => withDefaultLabels(tabs), [tabs]);
+  const labeledTabs = useMemo(
+    () =>
+      withDefaultLabels(tabs).filter(
+        tab =>
+          !tab.requiredPermission ||
+          hasRequiredPermissions(permissions, {
+            [tab.requiredPermission]: PermissionLevel.READ,
+          }),
+      ),
+    [tabs, permissions],
+  );
   const activeTab = labeledTabs.find(tab => tab.category === content);
+  const accessDenied = tabs.some(tab => tab.category === content) && !activeTab;
+  const canWriteTab =
+    !activeTab?.requiredPermission ||
+    hasRequiredPermissions(permissions, {
+      [activeTab.requiredPermission]: PermissionLevel.FULL,
+    });
   const filterDefinitions = useMemo(
     () => activeTab?.filters ?? [],
     [activeTab],
@@ -349,6 +367,9 @@ export const EntityPanel = <
     : false;
 
   const onAddClick = () => {
+    if (!canWriteTab) {
+      return;
+    }
     if (activeTab?.createAction) {
       dispatch(activeTab.createAction());
       return;
@@ -388,7 +409,7 @@ export const EntityPanel = <
       | ((value: Item) => UnknownAction)
       | undefined;
 
-    if (!editScreen || !isOwnedOrAllowed(item)) {
+    if (!editScreen || !canWriteTab || !isOwnedOrAllowed(item)) {
       return;
     }
     dispatch(editScreen(item));
@@ -400,14 +421,14 @@ export const EntityPanel = <
   };
 
   const canEditItem = (item: Item) => {
-    if (!activeTab?.editScreen) {
+    if (!activeTab?.editScreen || !canWriteTab) {
       return false;
     }
     return isOwnedOrAllowed(item);
   };
 
   const canDeleteItem = (item: Item) => {
-    if (!activeTab?.deleteEndpoint) {
+    if (!activeTab?.deleteEndpoint || !canWriteTab) {
       return false;
     }
     return isOwnedOrAllowed(item);
@@ -428,7 +449,11 @@ export const EntityPanel = <
   };
 
   const onConfirmDelete = async () => {
-    if (!activeTab?.deleteEndpoint || !itemPendingDelete) {
+    if (
+      !activeTab?.deleteEndpoint ||
+      !itemPendingDelete ||
+      !canDeleteItem(itemPendingDelete)
+    ) {
       return;
     }
 
@@ -517,7 +542,10 @@ export const EntityPanel = <
               variant="contained"
               startIcon={<AddIcon />}
               onClick={onAddClick}
-              disabled={!activeTab?.createScreen && !activeTab?.createAction}
+              disabled={
+                !canWriteTab ||
+                (!activeTab?.createScreen && !activeTab?.createAction)
+              }
             >
               Add
             </Button>
@@ -554,18 +582,25 @@ export const EntityPanel = <
               onClear={clearFilters}
             />
           )}
-          <EntityPanelContent
-            tab={activeTab}
-            items={items}
-            loading={loading}
-            error={error}
-            onViewItem={onViewItem}
-            canViewItem={canViewItem}
-            onEditItem={onEditItem}
-            canEditItem={canEditItem}
-            onDeleteItem={onDeleteItem}
-            canDeleteItem={canDeleteItem}
-          />
+          {accessDenied && (
+            <Alert severity="error">
+              You do not have permission to view this tab.
+            </Alert>
+          )}
+          {!accessDenied && (
+            <EntityPanelContent
+              tab={activeTab}
+              items={items}
+              loading={loading}
+              error={error}
+              onViewItem={onViewItem}
+              canViewItem={canViewItem}
+              onEditItem={onEditItem}
+              canEditItem={canEditItem}
+              onDeleteItem={onDeleteItem}
+              canDeleteItem={canDeleteItem}
+            />
+          )}
           {showPagination && (
             <Box className="entity-panel-pagination-row">
               <Typography
