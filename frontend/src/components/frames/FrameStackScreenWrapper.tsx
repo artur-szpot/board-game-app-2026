@@ -1,8 +1,10 @@
 import type { FC, ReactNode } from "react";
+import { SetEditorScreen } from "../screens/SetEditorScreen";
+import type { SetEditorScreenPropsFull } from "../screens/SetEditorScreenProps";
 
 import {
-    FrameTypeEnum,
-    selectTopFrame,
+  FrameTypeEnum,
+  selectTopFrame,
 } from "../../store/features/frameStackSlice";
 import { useAppSelector } from "../../store/hooks";
 import { FormScreen } from "../screens/FormScreen";
@@ -76,6 +78,11 @@ export const FrameStackScreenWrapper: FC<FrameStackScreenWrapperProps> = ({
     case FrameTypeEnum.SCORE_ENTRY: {
       const scoreEntryParams = topFrame.params as ScoreEntryScreenPropsFull;
       return <ScoreEntryScreen {...scoreEntryParams} />;
+    }
+    case FrameTypeEnum.SET_EDITOR: {
+      return (
+        <SetEditorScreen {...(topFrame.params as SetEditorScreenPropsFull)} />
+      );
     }
     default:
       return <h1>Not implemented yet</h1>;

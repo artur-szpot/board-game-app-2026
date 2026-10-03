@@ -1,26 +1,30 @@
 import type { PayloadAction } from "@reduxjs/toolkit";
+import type {
+  SetEditorScreenProps,
+  SetEditorScreenPropsFull,
+} from "../../components/screens/SetEditorScreenProps";
 
 import type {
-    FormScreenProps,
-    FormScreenPropsFull,
+  FormScreenProps,
+  FormScreenPropsFull,
 } from "../../components/screens/FormScreenProps";
 import type { GameDetailsScreenProps } from "../../components/screens/GameDetailsScreenProps";
 import type { LocationDetailsScreenProps } from "../../components/screens/LocationDetailsScreenProps";
 import type {
-    OptionsScreenProps,
-    OptionsScreenPropsFull,
+  OptionsScreenProps,
+  OptionsScreenPropsFull,
 } from "../../components/screens/OptionsScreenProps";
 import type {
-    ScoreEntryScreenProps,
-    ScoreEntryScreenPropsFull,
+  ScoreEntryScreenProps,
+  ScoreEntryScreenPropsFull,
 } from "../../components/screens/ScoreEntryScreenProps";
 import type {
-    ScoringSchemaEditorScreenProps,
-    ScoringSchemaEditorScreenPropsFull,
+  ScoringSchemaEditorScreenProps,
+  ScoringSchemaEditorScreenPropsFull,
 } from "../../components/screens/ScoringSchemaEditorScreenProps";
 import type {
-    SearchScreenProps,
-    SearchScreenPropsFull,
+  SearchScreenProps,
+  SearchScreenPropsFull,
 } from "../../components/screens/SearchScreenProps";
 import type { TagDetailsScreenProps } from "../../components/screens/TagDetailsScreenProps";
 import { createAppSlice } from "../createAppSlice";
@@ -28,8 +32,8 @@ import { registerFormScreenAsyncValidators } from "./formScreenAsyncValidatorReg
 import { registerFormScreenCustomMappings } from "./formScreenCustomMappingRegistry";
 import type { ActionEnum } from "./frame-actions";
 import {
-    registerFrameCallback,
-    type FrameCallbackToken,
+  registerFrameCallback,
+  type FrameCallbackToken,
 } from "./frameCallbackRegistry";
 
 export type FrameCallbackContent = {
@@ -47,6 +51,7 @@ export enum FrameTypeEnum {
   LOCATION_DETAILS = "LOCATION_DETAILS",
   SCORING_SCHEMA_EDITOR = "SCORING_SCHEMA_EDITOR",
   SCORE_ENTRY = "SCORE_ENTRY",
+  SET_EDITOR = "SET_EDITOR",
 }
 
 export type FrameCallbackReceiver = (result: FrameCallbackContent) => void;
@@ -67,6 +72,7 @@ export type FrameStackItem = {
     | LocationDetailsScreenProps
     | ScoringSchemaEditorScreenPropsFull
     | ScoreEntryScreenPropsFull
+    | SetEditorScreenPropsFull
     | undefined;
 };
 
@@ -374,6 +380,34 @@ export const frameStackSlice = createAppSlice({
         );
       },
     ),
+    openSetEditorFrame: create.preparedReducer(
+      (payload: FrameStackDto<SetEditorScreenProps>) => ({
+        payload: {
+          params: payload.params,
+          callbackReceiverId: payload.callbackReceiver
+            ? registerFrameCallback(payload.callbackReceiver)
+            : undefined,
+          callbackEmitterId: payload.callbackEmitter
+            ? registerFrameCallback(payload.callbackEmitter)
+            : undefined,
+        },
+      }),
+      (
+        state: FrameStackState,
+        action: PayloadAction<FrameStackReducerDto<SetEditorScreenProps>>,
+      ) => {
+        const id = crypto.randomUUID();
+        state.stack.push(
+          createFrame(
+            id,
+            FrameTypeEnum.SET_EDITOR,
+            { ...action.payload.params, frameId: id },
+            action.payload.callbackReceiverId,
+            action.payload.callbackEmitterId,
+          ),
+        );
+      },
+    ),
     openScoreEntryFrame: create.preparedReducer(
       (payload: FrameStackDto<ScoreEntryScreenProps>) => ({
         payload: {
@@ -487,6 +521,7 @@ export const {
   openLocationDetailsFrame,
   openScoringSchemaEditorFrame,
   openScoreEntryFrame,
+  openSetEditorFrame,
   closeFrame,
   sameFrameResult,
   resetToBottomFrame,

@@ -96,10 +96,13 @@ export type HelperLogic = {
 };
 
 export type SetItemDto = {
-  value: number;
-  label: LabelTuple;
+  name: string;
+  properties: Record<string, string>;
 };
 
 export type SetDataDto = {
+  properties: string[];
   items: SetItemDto[];
 };
+
+export type RunnerSetDto = SetDataDto & { name: string };

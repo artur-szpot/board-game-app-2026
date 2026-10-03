@@ -15,10 +15,9 @@ type SigninForm = {
   password: string
 }
 
-// TODO: remove these initial values (for now included for ease of early testing)
 const initialValues: SigninForm = {
-  email: "test@example.com",
-  password: "this-will-be-hashed",
+  email: "",
+  password: "",
 }
 
 export const Signin: React.FC = () => {

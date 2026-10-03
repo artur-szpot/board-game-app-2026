@@ -1,31 +1,62 @@
-import { isLabelTuple } from '../helpers/logic/helper-logic.validator';
+export const SET_IDENTIFIER = /^[a-z][a-zA-Z0-9]*$/;
+
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
 
 export const validateSetData = (data: unknown): string[] => {
-  if (typeof data !== 'object' || data === null || Array.isArray(data)) {
+  if (!isObject(data)) {
     return ['data must be an object'];
   }
-  const { items } = data as { items?: unknown };
-  if (!Array.isArray(items) || items.length === 0) {
-    return ['data.items must be a non-empty array'];
-  }
   const errors: string[] = [];
-  const values = new Set<number>();
+  const { properties, items } = data;
+  if (!Array.isArray(properties) || properties.length === 0) {
+    errors.push('data.properties must be a non-empty array');
+  } else {
+    properties.forEach((property, index) => {
+      if (typeof property !== 'string' || !SET_IDENTIFIER.test(property)) {
+        errors.push(`data.properties[${index}] must be camelCase`);
+      }
+    });
+    if (new Set(properties).size !== properties.length) {
+      errors.push('data.properties must be unique');
+    }
+  }
+  if (!Array.isArray(items) || items.length === 0) {
+    errors.push('data.items must be a non-empty array');
+    return errors;
+  }
+  const names = new Set<string>();
   items.forEach((item, index) => {
     const path = `data.items[${index}]`;
-    if (typeof item !== 'object' || item === null) {
+    if (!isObject(item)) {
       errors.push(`${path} must be an object`);
       return;
     }
-    const { value, label } = item as { value?: unknown; label?: unknown };
-    if (!Number.isInteger(value)) {
-      errors.push(`${path}.value must be an integer`);
-    } else if (values.has(value as number)) {
-      errors.push(`${path}.value ${value} is not unique`);
+    if (typeof item.name !== 'string' || !SET_IDENTIFIER.test(item.name)) {
+      errors.push(`${path}.name must be camelCase`);
+    } else if (names.has(item.name)) {
+      errors.push(`${path}.name "${item.name}" is not unique`);
     } else {
-      values.add(value as number);
+      names.add(item.name);
     }
-    if (!isLabelTuple(label)) {
-      errors.push(`${path}.label must be a label tuple`);
+    if (!isObject(item.properties)) {
+      errors.push(`${path}.properties must be an object`);
+      return;
+    }
+    const values = item.properties;
+    if (
+      Array.isArray(properties) &&
+      (Object.keys(values).length !== properties.length ||
+        !properties.every(
+          (property) =>
+            typeof property === 'string' &&
+            Object.prototype.hasOwnProperty.call(values, property),
+        ))
+    ) {
+      errors.push(`${path}.properties must have exactly the declared keys`);
+    }
+    if (!Object.values(values).every((value) => typeof value === 'string')) {
+      errors.push(`${path}.properties values must be strings`);
     }
   });
   return errors;

@@ -1,4 +1,5 @@
 import type { UnknownAction } from "@reduxjs/toolkit";
+import type { PermissionType } from "../../dto/user-data.dto";
 
 import type { FormScreenProps } from "../../components/screens/FormScreenProps";
 import type { GameDataType } from "../../components/screens/selection-strategies";
@@ -46,14 +47,19 @@ export type EntityPanelFilterDefinition =
 
 export type EntityPanelTab<Category extends string, Item> = {
   category: Category;
+  requiredPermission?: PermissionType;
   label?: string;
   routeSegment?: string;
   createScreen?: FormScreenProps;
+  createPath?: string;
   // For tabs whose create screen is not a generic form.
   createAction?: () => UnknownAction;
   viewPath?: (item: Item) => string;
   viewScreen?: (item: Item) => UnknownAction;
+  detailEndpoint?: (id: string) => string;
+  editPath?: (item: Item) => string;
   editScreen?: (item: Item) => UnknownAction;
+  combineViewAndEdit?: boolean;
   deleteEndpoint?: (item: Item) => string;
   filters?: EntityPanelFilterDefinition[];
 };

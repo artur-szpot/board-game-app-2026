@@ -13,7 +13,9 @@ describe("helper i18n", () => {
         "helper.general.firstPlayer",
         "helper.game.test.enum.testMode.coffee",
         "helper.game.test.enum.testExpansion.north",
-        "helper.game.test.card",
+        "helper.set.testCards.card1",
+        "helper.set.testCards.card2",
+        "helper.set.testCards.card3",
       ]),
     );
     expect(new Set(keys).size).toBe(keys.length);

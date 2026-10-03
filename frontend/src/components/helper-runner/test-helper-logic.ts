@@ -1,8 +1,8 @@
 import {
-    DisplayElementType,
-    type HelperLogic,
-    HelperStepSchema,
-    type SetDataDto,
+  DisplayElementType,
+  type HelperLogic,
+  HelperStepSchema,
+  type RunnerSetDto,
 } from "../../dto/helper-logic.dto";
 
 export const buildTestHelperLogic = (): HelperLogic => ({
@@ -100,12 +100,14 @@ export const buildTestHelperLogic = (): HelperLogic => ({
   ],
 });
 
-export const TEST_SETS: Record<string, SetDataDto> = {
+export const TEST_SETS: Record<string, RunnerSetDto> = {
   bonusCards: {
+    name: "testCards",
+    properties: ["category"],
     items: [
-      { value: 1, label: ["helper.game.test.card", { n: 1 }] },
-      { value: 2, label: ["helper.game.test.card", { n: 2 }] },
-      { value: 3, label: ["helper.game.test.card", { n: 3 }] },
+      { name: "card1", properties: { category: "" } },
+      { name: "card2", properties: { category: "" } },
+      { name: "card3", properties: { category: "" } },
     ],
   },
 };

@@ -3,30 +3,30 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import DeleteIcon from "@mui/icons-material/Delete";
 import {
-    Alert,
-    Box,
-    Divider,
-    IconButton,
-    MenuItem,
-    Paper,
-    Stack,
-    TextField,
-    Tooltip,
-    Typography,
+  Alert,
+  Box,
+  Divider,
+  IconButton,
+  MenuItem,
+  Paper,
+  Stack,
+  TextField,
+  Tooltip,
+  Typography,
 } from "@mui/material";
 import axios from "axios";
 import type { FC } from "react";
 import { useState } from "react";
 
 import type {
-    ScoringCategory,
-    ScoringGroup,
-    ScoringRow,
-    ScoringSchemaDefinition,
+  ScoringCategory,
+  ScoringGroup,
+  ScoringRow,
+  ScoringSchemaDefinition,
 } from "../../dto/scoring-schema.dto";
 import {
-    SCORING_GROUP_MECHANISM_LABELS,
-    ScoringGroupMechanism,
+  SCORING_GROUP_MECHANISM_LABELS,
+  ScoringGroupMechanism,
 } from "../../dto/scoring-schema.dto";
 import { selectAccessToken } from "../../store/features/currentUserSlice";
 import { closeFrame } from "../../store/features/frameStackSlice";
@@ -34,13 +34,13 @@ import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { SCORING_ICONS } from "../../utils/scoring-icons";
 import { MainActions } from "../MainActions";
 import {
-    emptyCategory,
-    emptyGroup,
-    emptyRow,
-    emptySchema,
-    moveItem,
-    normalizeSchema,
-    validateSchemaDraft,
+  emptyCategory,
+  emptyGroup,
+  emptyRow,
+  emptySchema,
+  moveItem,
+  normalizeSchema,
+  validateSchemaDraft,
 } from "./scoring-schema-draft";
 import type { ScoringSchemaEditorScreenPropsFull } from "./ScoringSchemaEditorScreenProps";
 
@@ -482,7 +482,7 @@ export const ScoringSchemaEditorScreen: FC<
 
             {showErrors &&
               errors.map(error => (
-                <Alert key={error} severity="error">
+                <Alert key={error} severity="error" data-form-error="true">
                   {error}
                 </Alert>
               ))}

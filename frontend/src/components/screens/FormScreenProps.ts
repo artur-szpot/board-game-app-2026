@@ -145,6 +145,7 @@ export type FormScreenField =
   | FormFieldCheckboxProps;
 
 export type FormScreenProps = {
+  readOnly?: boolean;
   title: string;
   fields: FormScreenField[];
   action: string;

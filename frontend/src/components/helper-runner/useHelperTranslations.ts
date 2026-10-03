@@ -1,13 +1,13 @@
 import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
 
-import type { HelperLogic, SetDataDto } from "../../dto/helper-logic.dto";
+import type { HelperLogic, RunnerSetDto } from "../../dto/helper-logic.dto";
 import type { Language } from "../../store/features/settingsSlice";
 import {
-    buildTranslate,
-    collectLabelKeys,
-    type Translate,
-    UI_DEFAULTS,
+  buildTranslate,
+  collectLabelKeys,
+  type Translate,
+  UI_DEFAULTS,
 } from "./helper-i18n";
 
 type LookupResponse = {
@@ -23,7 +23,7 @@ export type HelperTranslations = {
 
 export const useHelperTranslations = (
   logic: HelperLogic,
-  sets: Record<string, SetDataDto>,
+  sets: Record<string, RunnerSetDto>,
   language: Language,
   accessToken?: string,
 ): HelperTranslations => {

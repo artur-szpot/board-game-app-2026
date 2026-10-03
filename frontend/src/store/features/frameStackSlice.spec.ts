@@ -3,29 +3,30 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { formSearch } from "../../components/forms/FormSearchField";
 import type { OptionsScreenProps } from "../../components/screens/OptionsScreenProps";
 import {
-    GameDataType,
-    ResultMappingStrategy,
-    selectionStrategyChooseOne,
-    selectionStrategySelectNumber,
+  GameDataType,
+  ResultMappingStrategy,
+  selectionStrategyChooseOne,
+  selectionStrategySelectNumber,
 } from "../../components/screens/selection-strategies";
 import { makeStore } from "../store";
 import { ActionEnum } from "./frame-actions";
 import {
-    clearFrameCallbacks,
-    invokeFrameCallback,
+  clearFrameCallbacks,
+  invokeFrameCallback,
 } from "./frameCallbackRegistry";
 import {
-    closeFrame,
-    frameStackSlice,
-    FrameTypeEnum,
-    openFormFrame,
-    openGameDetailsFrame,
-    openLocationDetailsFrame,
-    openOptionsFrame,
-    openSearchFrame,
-    openTagDetailsFrame,
-    resetToBottomFrame,
-    sameFrameResult,
+  closeFrame,
+  frameStackSlice,
+  FrameTypeEnum,
+  openFormFrame,
+  openGameDetailsFrame,
+  openLocationDetailsFrame,
+  openOptionsFrame,
+  openSearchFrame,
+  openSetEditorFrame,
+  openTagDetailsFrame,
+  resetToBottomFrame,
+  sameFrameResult,
 } from "./frameStackSlice";
 
 const initialState = frameStackSlice.getInitialState();
@@ -76,6 +77,20 @@ describe("frameStackSlice", () => {
     expect(initialState.stack[0]).toMatchObject({
       frameType: FrameTypeEnum.SELF,
     });
+  });
+
+  it("opens a serializable set editor with its frame ID and closes it", () => {
+    const opened = frameStackSlice.reducer(
+      initialState,
+      openSetEditorFrame({ params: {} }),
+    );
+    const frame = opened.stack[1];
+    expect(frame.frameType).toBe(FrameTypeEnum.SET_EDITOR);
+    expect(frame.params).toEqual({ frameId: frame.id });
+    expect(JSON.parse(JSON.stringify(opened))).toEqual(opened);
+    expect(
+      frameStackSlice.reducer(opened, closeFrame({ id: frame.id })).stack,
+    ).toEqual(initialState.stack);
   });
 
   it("should open a new frame", () => {

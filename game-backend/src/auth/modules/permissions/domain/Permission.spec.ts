@@ -10,6 +10,19 @@ import { Permission } from './Permission';
 
 describe('Permission', () => {
   const logger = new Logger('PermissionTest');
+  it.each([PermissionLevel.READ, PermissionLevel.FULL])(
+    'accepts DATA_MANAGEMENT %s through the domain mapper',
+    (permissionLevel) => {
+      const dto: PermissionDto = {
+        permissionType: PermissionType.DATA_MANAGEMENT,
+        permissionLevel,
+        description: 'Helper and data set access',
+      };
+      expect(permissionMapper.fromDto.toDomain(dto).getProps()).toMatchObject(
+        dto,
+      );
+    },
+  );
 
   it('should create a Permission based on correct props without ID', async () => {
     const props = {
@@ -89,7 +102,9 @@ describe('Permission', () => {
       expect(true).toBe(false);
     } catch (error) {
       expect(error).toBeInstanceOf(IncorrectEntityProps);
-      expect((error as IncorrectEntityProps).message).toContain('id: NonEmptyString');
+      expect((error as IncorrectEntityProps).message).toContain(
+        'id: NonEmptyString',
+      );
     }
   });
 
@@ -104,7 +119,9 @@ describe('Permission', () => {
       expect(true).toBe(false);
     } catch (error) {
       expect(error).toBeInstanceOf(IncorrectEntityProps);
-      expect((error as IncorrectEntityProps).message).toContain('description: NonEmptyString');
+      expect((error as IncorrectEntityProps).message).toContain(
+        'description: NonEmptyString',
+      );
     }
   });
 });

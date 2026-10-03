@@ -2,14 +2,14 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { RandomizerApi } from "../../api/randomizer";
 import {
-    conditionPasses,
-    initialRunnerState,
-    parseDiceFormula,
-    planRandomization,
-    runAutomaticStep,
-    runnerReducer,
-    runRandomization,
-    type RunnerState,
+  conditionPasses,
+  initialRunnerState,
+  parseDiceFormula,
+  planRandomization,
+  runAutomaticStep,
+  runnerReducer,
+  runRandomization,
+  type RunnerState,
 } from "./helper-engine";
 import { buildTestHelperLogic, TEST_SETS } from "./test-helper-logic";
 
@@ -164,11 +164,12 @@ describe("automatic steps", () => {
     expect(values).toEqual({ governor: 3, smuggler: 7 });
   });
 
-  it("deals set item values and single player indices", async () => {
+  it("deals temporary set item indices and single player indices", async () => {
     const api = fakeApi();
     await expect(
       runAutomaticStep(logic.steps[4] as never, {}, context(api)),
-    ).resolves.toEqual({ bonus: [1, 2] });
+    ).resolves.toEqual({ bonus: [0, 1] });
+    expect(api.choose).toHaveBeenCalledWith([0, 1, 2], 2, undefined);
     await expect(
       runAutomaticStep(
         logic.steps[5] as never,
@@ -210,7 +211,7 @@ describe("automatic steps", () => {
     ).resolves.toEqual({
       governor: 3,
       smuggler: 7,
-      bonus: [1, 2],
+      bonus: [0, 1],
       firstPlayer: 0,
     });
   });

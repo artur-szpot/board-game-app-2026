@@ -6,9 +6,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { buildChoiceMadeFromItems } from "../../store/features/frame-actions";
 import { invokeFrameCallback } from "../../store/features/frameCallbackRegistry";
 import {
-    closeFrame,
-    openOptionsFrame,
-    openSearchFrame,
+  closeFrame,
+  openOptionsFrame,
+  openSearchFrame,
 } from "../../store/features/frameStackSlice";
 import { formCheckbox } from "../forms/FormCheckboxField";
 import { formNumber } from "../forms/FormFieldNumericInput";
@@ -19,9 +19,9 @@ import { isGreaterThanOrEqual } from "../forms/validators";
 import { FormScreen } from "./FormScreen";
 import type { FormScreenPropsFull } from "./FormScreenProps";
 import {
-    GameDataType,
-    ResultMappingStrategy,
-    selectionStrategyChooseOne,
+  GameDataType,
+  ResultMappingStrategy,
+  selectionStrategyChooseOne,
 } from "./selection-strategies";
 
 vi.mock("axios");
@@ -81,6 +81,46 @@ describe("FormScreen", () => {
     mockDispatch.mockReset();
     mockedAxios.mockReset();
     mockedAxios.mockResolvedValue({} as never);
+  });
+  it("shows helper definitions read-only without clear or submit controls", async () => {
+    const user = userEvent.setup();
+    render(
+      <FormScreen
+        frameId="view-helper"
+        title="View helper"
+        method="PUT"
+        action="game-api/helpers/helper-1"
+        readOnly
+        fields={[
+          formText({
+            name: "name",
+            label: "Helper name",
+            initialValue: "Setup",
+          }),
+          formText({
+            name: "logic",
+            label: "Helper logic (JSON)",
+            initialValue: '{"steps":[]}',
+            multiline: true,
+            json: true,
+          }),
+        ]}
+      />,
+    );
+    const name = screen.getByRole("textbox", { name: "Helper name" });
+    expect(name).toHaveAttribute("readonly");
+    await user.type(name, "changed");
+    expect(name).toHaveValue("Setup");
+    expect(
+      screen.getByRole("textbox", { name: "Helper logic (JSON)" }),
+    ).toHaveAttribute("readonly");
+    expect(
+      screen.queryByRole("button", { name: "Confirm" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Clear/ }),
+    ).not.toBeInTheDocument();
+    expect(mockedAxios).not.toHaveBeenCalled();
   });
 
   it("collects field values and closes with the filled form payload", async () => {
@@ -471,6 +511,8 @@ describe("FormScreen", () => {
 
     it("reveals per-field messages when the error count is clicked", async () => {
       const user = userEvent.setup();
+      const scroll = vi.spyOn(HTMLElement.prototype, "scrollIntoView");
+      scroll.mockClear();
       render(<FormScreen {...buildInvalidFormProps("revealing-form")} />);
 
       await user.click(
@@ -481,6 +523,13 @@ describe("FormScreen", () => {
       expect(
         screen.getByText("Helpers: choose exactly one option"),
       ).toBeInTheDocument();
+      expect(scroll.mock.contexts[0]).toBe(
+        screen.getByLabelText("Title").closest(".MuiFormControl-root"),
+      );
+      expect(scroll).toHaveBeenCalledWith({
+        behavior: "smooth",
+        block: "center",
+      });
     });
 
     it("revalidates live once errors are revealed", async () => {

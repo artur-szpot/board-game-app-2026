@@ -3416,6 +3416,90 @@
         ]
       }
     },
+    "/game-api/games/{id}/helpers/{helperId}": {
+      "get": {
+        "operationId": "GameController_getAssignedHelper",
+        "summary": "Load an assigned helper and its data sets for running from a visible game",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "helperId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameHelperResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Games"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
+        ]
+      }
+    },
     "/game-api/games/{id}": {
       "get": {
         "operationId": "GameController_getById",
@@ -3731,6 +3815,7 @@
       "post": {
         "operationId": "SearchController_search",
         "summary": "Search game domain entities for collection UI",
+        "description": "Helpers and sets require DATA_MANAGEMENT READ. Other types require GAME_COLLECTIONS FULL. Each requested type must be authorized.",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -4046,6 +4131,7 @@
           "PERMISSIONS",
           "ROLES",
           "GAME_COLLECTIONS",
+          "DATA_MANAGEMENT",
           "COLLECTION_SUPERUSER",
           "SYSTEM_COLLECTION",
           "ADMIN_PANEL"
@@ -4168,6 +4254,7 @@
               "PERMISSIONS",
               "ROLES",
               "GAME_COLLECTIONS",
+              "DATA_MANAGEMENT",
               "COLLECTION_SUPERUSER",
               "SYSTEM_COLLECTION",
               "ADMIN_PANEL"
@@ -4654,48 +4741,156 @@
           }
         }
       },
+      "SetItemDataDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z][a-zA-Z0-9]*$"
+          },
+          "properties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "properties"
+        ]
+      },
+      "SetDataDto": {
+        "type": "object",
+        "properties": {
+          "properties": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-zA-Z0-9]*$"
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "items": {
+            "minItems": 1,
+            "description": "Items have unique names within their set and exactly the declared property keys.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SetItemDataDto"
+            }
+          }
+        },
+        "required": [
+          "properties",
+          "items"
+        ]
+      },
       "SetResponse": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "ownerId": {
+            "type": "string"
+          },
+          "private": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z][a-zA-Z0-9]*$"
+          },
+          "data": {
+            "description": "Helper data set: ordered properties and named items with string-valued property maps. Item translations use helper.set.<setName>.<itemName>.",
+            "example": {
+              "properties": [
+                "category"
+              ],
+              "items": [
+                {
+                  "name": "firstCard",
+                  "properties": {
+                    "category": ""
+                  }
+                }
+              ]
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SetDataDto"
+              }
+            ]
+          },
+          "createdOn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedOn": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "ownerId",
+          "private",
+          "name",
+          "data",
+          "createdOn",
+          "updatedOn"
+        ]
       },
       "CreateSetDto": {
         "type": "object",
         "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z][a-zA-Z0-9]*$",
+            "example": "bonusCards"
+          },
           "data": {
-            "type": "object",
-            "description": "Set items: { items: [{ value: integer, label: [code, params?] }] }",
+            "description": "Ordered unique camelCase properties and items with unique camelCase names. Each item has exactly the declared property keys with string values.",
             "example": {
+              "properties": [
+                "category"
+              ],
               "items": [
                 {
-                  "value": 1,
-                  "label": [
-                    "helper.set.card",
-                    {
-                      "n": 1
-                    }
-                  ]
+                  "name": "firstCard",
+                  "properties": {
+                    "category": ""
+                  }
                 }
               ]
-            }
-          },
-          "name": {
-            "type": "string"
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SetDataDto"
+              }
+            ]
           }
         },
         "required": [
-          "data",
-          "name"
+          "name",
+          "data"
         ]
       },
       "UpdateSetDto": {
         "type": "object",
         "properties": {
-          "data": {
-            "type": "object",
-            "description": "Set items: { items: [{ value: integer, label: [code, params?] }] }"
-          },
           "name": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^[a-z][a-zA-Z0-9]*$"
+          },
+          "data": {
+            "description": "Ordered unique camelCase properties and items with unique camelCase names. Each item has exactly the declared property keys with string values.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SetDataDto"
+              }
+            ]
           },
           "private": {
             "type": "boolean"
@@ -4704,7 +4899,42 @@
       },
       "HelperResponse": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "ownerId": {
+            "type": "string"
+          },
+          "private": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "logic": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Versioned helper logic including data set aliases mapped to set IDs."
+          },
+          "createdOn": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedOn": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "ownerId",
+          "private",
+          "name",
+          "logic",
+          "createdOn",
+          "updatedOn"
+        ]
       },
       "CreateHelperDto": {
         "type": "object",
@@ -4734,6 +4964,24 @@
             "type": "boolean"
           }
         }
+      },
+      "GameHelperResponse": {
+        "type": "object",
+        "properties": {
+          "helper": {
+            "$ref": "#/components/schemas/HelperResponse"
+          },
+          "sets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SetResponse"
+            }
+          }
+        },
+        "required": [
+          "helper",
+          "sets"
+        ]
       },
       "GameLength": {
         "type": "string",

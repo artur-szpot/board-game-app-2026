@@ -41,6 +41,7 @@ const renderItem = <Item,>(
   canEditItem: (item: Item) => boolean,
   onDeleteItem: (item: Item) => void,
   canDeleteItem: (item: Item) => boolean,
+  combineViewAndEdit: boolean,
 ) => {
   const record = (item ?? {}) as Record<string, unknown>;
   let name =
@@ -174,30 +175,34 @@ const renderItem = <Item,>(
           direction="row"
           spacing={0.5}
         >
-          <Tooltip title="View">
-            <span>
-              <IconButton
-                aria-label="View item"
-                size="small"
-                onClick={() => onViewItem(item)}
-                disabled={!canView}
-              >
-                <VisibilityIcon fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
-          <Tooltip title="Edit">
-            <span>
-              <IconButton
-                aria-label="Edit item"
-                size="small"
-                onClick={() => onEditItem(item)}
-                disabled={!canEdit}
-              >
-                <EditIcon fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
+          {(!combineViewAndEdit || !canEdit) && (
+            <Tooltip title="View">
+              <span>
+                <IconButton
+                  aria-label="View item"
+                  size="small"
+                  onClick={() => onViewItem(item)}
+                  disabled={!canView}
+                >
+                  <VisibilityIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
+          {(!combineViewAndEdit || canEdit) && (
+            <Tooltip title="Edit">
+              <span>
+                <IconButton
+                  aria-label="Edit item"
+                  size="small"
+                  onClick={() => onEditItem(item)}
+                  disabled={!canEdit}
+                >
+                  <EditIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
           <Tooltip title="Delete">
             <span>
               <IconButton
@@ -259,6 +264,7 @@ export const EntityPanelContent = <Category extends string, Item>({
             canEditItem,
             onDeleteItem,
             canDeleteItem,
+            tab.combineViewAndEdit ?? false,
           )}
         </Box>
       ))}

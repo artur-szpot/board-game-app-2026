@@ -1,13 +1,13 @@
 import type { NamedItem, RandomizerApi } from "../../api/randomizer";
 import {
-    type AutomaticStep,
-    type HelperLogic,
-    type HelperStep,
-    HelperStepSchema,
-    type InteractiveStep,
-    PLAYERS_VARIABLE,
-    type SetDataDto,
-    TEAM_VARIABLE,
+  type AutomaticStep,
+  type HelperLogic,
+  type HelperStep,
+  HelperStepSchema,
+  type InteractiveStep,
+  PLAYERS_VARIABLE,
+  type RunnerSetDto,
+  TEAM_VARIABLE,
 } from "../../dto/helper-logic.dto";
 
 export type VariableValue = number | number[] | string | string[];
@@ -212,7 +212,7 @@ export const parseDiceFormula = (
 
 export type RandomizationContext = {
   logic: HelperLogic;
-  sets: Record<string, SetDataDto>;
+  sets: Record<string, RunnerSetDto>;
   api: RandomizerApi;
   accessToken?: string;
 };
@@ -239,11 +239,11 @@ export const runAutomaticStep = async (
     );
   }
 
-  const set = sets[step.source] as SetDataDto | undefined;
+  const set = sets[step.source] as RunnerSetDto | undefined;
   const items =
     step.source === PLAYERS_VARIABLE
       ? ((variables[PLAYERS_VARIABLE] as number[] | undefined) ?? [])
-      : (set?.items.map(item => item.value) ?? []);
+      : (set?.items.map((_, index) => index) ?? []);
   if (items.length === 0) {
     return {};
   }

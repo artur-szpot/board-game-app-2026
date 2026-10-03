@@ -88,9 +88,25 @@ export const App = () => {
                 path="helpers"
                 element={<CollectionPanel content={GameDataType.HELPER} />}
               />
+              <Route
+                path="helpers/new"
+                element={<CollectionPanel content={GameDataType.HELPER} />}
+              />
+              <Route
+                path="helpers/:id/definition"
+                element={<CollectionPanel content={GameDataType.HELPER} />}
+              />
               <Route path="helpers/:id" element={<HelperRunner />} />
               <Route
                 path="sets"
+                element={<CollectionPanel content={GameDataType.SET} />}
+              />
+              <Route
+                path="sets/new"
+                element={<CollectionPanel content={GameDataType.SET} />}
+              />
+              <Route
+                path="sets/:id/definition"
                 element={<CollectionPanel content={GameDataType.SET} />}
               />
               <Route

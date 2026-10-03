@@ -1,10 +1,11 @@
 import {
-    type HelperLogic,
-    HelperStepSchema,
-    type LabelParams,
-    type LabelTuple,
-    type SetDataDto,
+  type HelperLogic,
+  HelperStepSchema,
+  type LabelParams,
+  type LabelTuple,
+  type RunnerSetDto,
 } from "../../dto/helper-logic.dto";
+import { setItemTranslationKey } from "../../utils/set-data";
 
 export const UI_DEFAULTS = {
   "helper.ui.chooseTeam": "Choose a team",
@@ -31,7 +32,7 @@ export const enumLabelKey = (
 
 export const collectLabelKeys = (
   logic: HelperLogic,
-  sets: Record<string, SetDataDto>,
+  sets: Record<string, RunnerSetDto>,
 ): string[] => {
   const keys = new Set<string>(Object.keys(UI_DEFAULTS));
   logic.steps.forEach(step => {
@@ -46,7 +47,9 @@ export const collectLabelKeys = (
     values.forEach(value => keys.add(enumLabelKey(logic, enumName, value))),
   );
   Object.values(sets).forEach(set =>
-    set.items.forEach(item => keys.add(item.label[0])),
+    set.items.forEach(item =>
+      keys.add(setItemTranslationKey(set.name, item.name)),
+    ),
   );
   return [...keys];
 };

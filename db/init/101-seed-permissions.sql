@@ -15,6 +15,9 @@ VALUES (
    'Allows the user to manage their game collection',
    'GAME_COLLECTIONS'
 ), (
+   'Allows viewing helper definitions and data sets (READ) and managing them (FULL)',
+   'DATA_MANAGEMENT'
+), (
    'Allows the user to view all users'' collections',
    'COLLECTION_SUPERUSER'
 ), (

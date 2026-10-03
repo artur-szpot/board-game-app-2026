@@ -100,10 +100,11 @@ export type HelperLogic = {
 };
 
 export type SetItem = {
-  value: number;
-  label: LabelTuple;
+  name: string;
+  properties: Record<string, string>;
 };
 
 export type SetData = {
+  properties: string[];
   items: SetItem[];
 };

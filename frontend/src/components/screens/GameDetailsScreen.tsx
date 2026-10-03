@@ -5,47 +5,54 @@ import EditIcon from "@mui/icons-material/Edit";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import ScoreboardIcon from "@mui/icons-material/Scoreboard";
 import {
-    Alert,
-    Box,
-    Button,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    Paper,
-    Stack,
-    Typography,
+  Alert,
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Paper,
+  Stack,
+  Typography,
 } from "@mui/material";
 import axios from "axios";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router";
 
-import type { GameResponseDto } from "../../dto/collection-items.dto";
+import type {
+  GameResponseDto,
+  SetResponseDto,
+} from "../../dto/collection-items.dto";
 import type { GameScoreResponseDto } from "../../dto/scoring-schema.dto";
 import { PermissionLevel, PermissionType } from "../../dto/user-data.dto";
 import {
-    selectAccessToken,
-    selectPermissions,
-    selectUserId,
+  selectAccessToken,
+  selectPermissions,
+  selectUserId,
 } from "../../store/features/currentUserSlice";
 import { resultMapper } from "../../store/features/frame-actions";
 import {
-    closeFrame,
-    openFormFrame,
-    openOptionsFrame,
-    openScoreEntryFrame,
+  closeFrame,
+  openFormFrame,
+  openOptionsFrame,
+  openScoreEntryFrame,
+  openSetEditorFrame,
 } from "../../store/features/frameStackSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { useListSearch } from "../../utils/list-return-state";
 import { grandTotal } from "../../utils/score-calculation";
+import { hasRequiredPermissions } from "../../utils/useHasRequiredPermissions";
+import { buildEditHelperScreen } from "./definitions/helpers-and-sets";
+import { extractApiErrorMessages } from "../../utils/api-error";
 import { buildEditGameScreen } from "./definitions/edit-game";
 import type { GameBadgeProps } from "./GameBadge";
 import { BadgeTypeEnum, GameBadge } from "./GameBadge";
 import type { GameDetailsScreenPropsFull } from "./GameDetailsScreenProps";
 import {
-    GameDataType,
-    selectionStrategyChooseOne,
+  GameDataType,
+  selectionStrategyChooseOne,
 } from "./selection-strategies";
 
 export const GameDetailsScreen = ({
@@ -59,12 +66,40 @@ export const GameDetailsScreen = ({
   const accessToken = useAppSelector(selectAccessToken);
   const permissions = useAppSelector(selectPermissions);
   const userId = useAppSelector(selectUserId);
+  const canViewData = hasRequiredPermissions(permissions, {
+    [PermissionType.DATA_MANAGEMENT]: PermissionLevel.READ,
+  });
   const [game, setGame] = useState<GameResponseDto | undefined>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleteSubmitting, setIsDeleteSubmitting] = useState(false);
   const [pastScores, setPastScores] = useState<GameScoreResponseDto[]>([]);
+  const [dataViewError, setDataViewError] = useState<string[]>([]);
+  const [loadingSetId, setLoadingSetId] = useState<string>();
+
+  const viewSet = async (id: string) => {
+    if (!canViewData || loadingSetId) {
+      return;
+    }
+    setLoadingSetId(id);
+    setDataViewError([]);
+    try {
+      const { data } = await axios.get<SetResponseDto>(
+        `${import.meta.env.VITE_API_URL as string}/game-api/sets/${id}`,
+        {
+          headers: accessToken
+            ? { Authorization: `Bearer ${accessToken}` }
+            : undefined,
+        },
+      );
+      dispatch(openSetEditorFrame({ params: { set: data, readOnly: true } }));
+    } catch (error) {
+      setDataViewError(extractApiErrorMessages(error));
+    } finally {
+      setLoadingSetId(undefined);
+    }
+  };
 
   const hasSystemCollectionFullPermission = useMemo(
     () =>
@@ -185,7 +220,9 @@ export const GameDetailsScreen = ({
 
   const handleRunHelper = () => {
     const runHelper = (helperId: string) =>
-      void navigate(`/collection/helpers/${helperId}`);
+      void navigate(
+        `/collection/helpers/${helperId}?gameId=${encodeURIComponent(gameId)}`,
+      );
 
     if (helpers.length === 1) {
       runHelper(helpers[0].id);
@@ -398,6 +435,11 @@ export const GameDetailsScreen = ({
         </Stack>
       </Box>
       <Box className="entity-panel-content">
+        {dataViewError.map(message => (
+          <Alert key={message} severity="error">
+            {message}
+          </Alert>
+        ))}
         {loading && <Typography>Loading game details...</Typography>}
         {!loading && error && <Alert severity="error">{error}</Alert>}
         {ready && (
@@ -411,6 +453,43 @@ export const GameDetailsScreen = ({
               ))}
             </Box>
             <Stack spacing={1}>
+              {helpers.map(helper => (
+                <Paper key={helper.id} elevation={1} sx={{ p: 1.5 }}>
+                  <Typography>{helper.name}</Typography>
+                  {canViewData && (
+                    <Button
+                      onClick={() =>
+                        dispatch(
+                          openFormFrame({
+                            params: {
+                              ...buildEditHelperScreen(helper),
+                              title: `View ${helper.name}`,
+                              readOnly: true,
+                            },
+                          }),
+                        )
+                      }
+                    >
+                      View helper definition
+                    </Button>
+                  )}
+                  {Object.entries(helper.logic.sets).map(([alias, id]) =>
+                    canViewData ? (
+                      <Button
+                        key={alias}
+                        disabled={Boolean(loadingSetId)}
+                        onClick={() => void viewSet(id)}
+                      >
+                        View data set {alias}
+                      </Button>
+                    ) : (
+                      <Typography key={alias} variant="body2">
+                        Data set: {alias}
+                      </Typography>
+                    ),
+                  )}
+                </Paper>
+              ))}
               {game.locations.map(location => {
                 const locationName =
                   location.path[location.path.length - 1]?.name ??

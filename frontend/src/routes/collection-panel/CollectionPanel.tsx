@@ -7,33 +7,33 @@ import { buildEditGameScreen } from "../../components/screens/definitions/edit-g
 import { buildEditLocationScreen } from "../../components/screens/definitions/edit-location";
 import { buildEditTagScreen } from "../../components/screens/definitions/edit-tag";
 import {
-    buildEditHelperScreen,
-    buildEditSetScreen,
-    createHelperScreen,
-    createSetScreen,
+  buildEditHelperScreen,
+  createHelperScreen,
 } from "../../components/screens/definitions/helpers-and-sets";
 import { GameDataType } from "../../components/screens/selection-strategies";
 import type {
-    GameResponseDto,
-    HelperResponseDto,
-    LocationResponseDto,
-    ScoringSchemaResponseDto,
-    SetResponseDto,
-    TagResponseDto,
+  GameResponseDto,
+  HelperResponseDto,
+  LocationResponseDto,
+  ScoringSchemaResponseDto,
+  SetResponseDto,
+  TagResponseDto,
 } from "../../dto/collection-items.dto";
 import { GameLength } from "../../dto/game-length.enum";
+import { PermissionType } from "../../dto/user-data.dto";
 import {
-    openFormFrame,
-    openScoringSchemaEditorFrame,
+  openFormFrame,
+  openScoringSchemaEditorFrame,
+  openSetEditorFrame,
 } from "../../store/features/frameStackSlice";
 import type { EntityPanelTab } from "../entity-panel/entity-panel-types";
 import { EntityPanelFilterKind } from "../entity-panel/entity-panel-types";
 import { EntityPanel } from "../entity-panel/EntityPanel";
 import type {
-    CollectionPanelCategory,
-    CollectionPanelDetailsByType,
-    CollectionPanelItem,
-    CollectionPanelProps,
+  CollectionPanelCategory,
+  CollectionPanelDetailsByType,
+  CollectionPanelItem,
+  CollectionPanelProps,
 } from "./collection-types";
 
 const GAME_FILTERS = [
@@ -119,22 +119,44 @@ const COLLECTION_TABS: EntityPanelTab<
     category: GameDataType.HELPER,
     routeSegment: "helpers",
     label: "Helpers",
+    requiredPermission: PermissionType.DATA_MANAGEMENT,
+    combineViewAndEdit: true,
+    createPath: "/collection/helpers/new",
+    detailEndpoint: id => `game-api/helpers/${id}`,
     createScreen: createHelperScreen,
     editScreen: item =>
       openFormFrame({
         params: buildEditHelperScreen(item as HelperResponseDto),
       }),
-    viewPath: item => `/collection/helpers/${item.id}`,
+    viewPath: item => `/collection/helpers/${item.id}/definition`,
+    viewScreen: item =>
+      openFormFrame({
+        params: {
+          ...buildEditHelperScreen(item as HelperResponseDto),
+          title: `View ${item.name}`,
+          readOnly: true,
+        },
+      }),
+    editPath: item => `/collection/helpers/${item.id}/definition`,
     deleteEndpoint: (item: CollectionPanelItem) =>
       `game-api/helpers/${item.id}`,
   },
   {
     category: GameDataType.SET,
     routeSegment: "sets",
-    label: "Sets",
-    createScreen: createSetScreen,
+    label: "Helper data sets",
+    requiredPermission: PermissionType.DATA_MANAGEMENT,
+    createPath: "/collection/sets/new",
+    detailEndpoint: id => `game-api/sets/${id}`,
+    viewScreen: item =>
+      openSetEditorFrame({
+        params: { set: item as SetResponseDto, readOnly: true },
+      }),
+    createAction: () => openSetEditorFrame({ params: {} }),
     editScreen: item =>
-      openFormFrame({ params: buildEditSetScreen(item as SetResponseDto) }),
+      openSetEditorFrame({ params: { set: item as SetResponseDto } }),
+    viewPath: item => `/collection/sets/${item.id}/definition`,
+    editPath: item => `/collection/sets/${item.id}/definition`,
     deleteEndpoint: (item: CollectionPanelItem) => `game-api/sets/${item.id}`,
   },
   {

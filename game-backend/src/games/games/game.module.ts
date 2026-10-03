@@ -10,6 +10,7 @@ import { GameScoreModule } from '../game-scores/game-score.module';
 import { ScoringSchemaModule } from '../scoring-schemas/scoring-schema.module';
 import { LocationModule } from '../locations/location.module';
 import { HelperModule } from '../helpers/helper.module';
+import { SetModule } from '../sets/set.module';
 
 const gameGatewayProvider = {
   provide: GAME_GATEWAY,
@@ -24,6 +25,7 @@ const gameGatewayProvider = {
     ScoringSchemaModule,
     LocationModule,
     HelperModule,
+    SetModule,
   ],
   providers: [gameGatewayProvider],
   controllers: [GameController],
