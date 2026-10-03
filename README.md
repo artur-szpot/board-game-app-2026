@@ -7,6 +7,9 @@ Multi-service board-game application with a React frontend, a NestJS game backen
 - Production-like compose run: ./go
 - Watch/dev compose run: ./dev
 
+PostgreSQL is pinned to `postgres:17.11`. Both commands reuse its cached Docker
+image without checking for updates on startup; it is downloaded only if missing.
+
 ## Services
 
 - frontend: http://localhost:3002

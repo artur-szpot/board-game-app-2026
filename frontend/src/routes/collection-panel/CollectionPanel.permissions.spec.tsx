@@ -10,6 +10,7 @@ import { CollectionPanel } from "./CollectionPanel";
 
 vi.mock("axios");
 const post = vi.spyOn(axios, "post");
+const get = vi.spyOn(axios, "get");
 const items = {
   [GameDataType.SET]: {
     id: "set-1",
@@ -38,6 +39,22 @@ const renderPanel = (
       results: [{ detail: { ...items[content], ownerId: owner } }],
     },
   });
+  get.mockImplementation(url => {
+    if (typeof url !== "string") {
+      throw new Error("Invalid request URL");
+    }
+    if (url.includes("/game-api/helpers/")) {
+      return Promise.resolve({
+        data: { ...items[GameDataType.HELPER], ownerId: owner },
+      });
+    }
+    if (url.includes("/game-api/sets/")) {
+      return Promise.resolve({
+        data: { ...items[GameDataType.SET], ownerId: owner },
+      });
+    }
+    throw new Error(`Unexpected GET URL: ${url}`);
+  });
   return renderWithProviders(
     <MemoryRouter>
       <CollectionPanel content={content} />
@@ -62,7 +79,10 @@ const renderPanel = (
 };
 
 describe("collection data permissions", () => {
-  beforeEach(() => post.mockReset());
+  beforeEach(() => {
+    post.mockReset();
+    get.mockReset();
+  });
   it.each([GameDataType.HELPER, GameDataType.SET] as const)(
     "hides %s tabs and rejects direct access without permission",
     async content => {
@@ -79,13 +99,24 @@ describe("collection data permissions", () => {
       expect(post).not.toHaveBeenCalled();
     },
   );
-  it.each([GameDataType.HELPER, GameDataType.SET] as const)(
+  it.each([
+    [GameDataType.HELPER, 0],
+    [GameDataType.SET, 1],
+  ] as const)(
     "READ allows viewing %s but no writes, even for owned items",
-    async content => {
+    async (content, editCount) => {
       const { user } = renderPanel(content, PermissionLevel.READ);
       expect(await screen.findByText(items[content].name)).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Add" })).toBeDisabled();
-      expect(screen.getByRole("button", { name: "Edit item" })).toBeDisabled();
+      const editButtons = screen.queryAllByRole("button", {
+        name: "Edit item",
+      });
+      expect(editButtons).toHaveLength(editCount);
+      expect(editButtons.every(button => button.hasAttribute("disabled"))).toBe(
+        true,
+      );
+      expect(screen.getByTestId("VisibilityIcon")).toBeInTheDocument();
+      expect(screen.queryAllByTestId("EditIcon")).toHaveLength(editCount);
       expect(
         screen.getByRole("button", { name: "Delete item" }),
       ).toBeDisabled();
@@ -105,27 +136,54 @@ describe("collection data permissions", () => {
       ).toBe(true);
     },
   );
-  it.each([GameDataType.HELPER, GameDataType.SET] as const)(
-    "FULL allows editing owned %s",
-    async content => {
-      const { user } = renderPanel(content, PermissionLevel.FULL);
+  it.each([
+    [GameDataType.HELPER, 0],
+    [GameDataType.SET, 1],
+  ] as const)("FULL allows editing owned %s", async (content, viewCount) => {
+    const { user } = renderPanel(content, PermissionLevel.FULL);
+    expect(await screen.findByText(items[content].name)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Add" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Delete item" })).toBeEnabled();
+    expect(screen.queryAllByRole("button", { name: "View item" })).toHaveLength(
+      viewCount,
+    );
+    expect(screen.getByTestId("EditIcon")).toBeInTheDocument();
+    expect(screen.queryAllByTestId("VisibilityIcon")).toHaveLength(viewCount);
+    await user.click(screen.getByRole("button", { name: "Edit item" }));
+    expect(
+      await screen.findByRole("heading", {
+        name: `Edit ${items[content].name}`,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Confirm" })).toBeEnabled();
+  });
+  it.each([
+    [GameDataType.HELPER, 0],
+    [GameDataType.SET, 1],
+  ] as const)(
+    "FULL does not bypass %s ownership",
+    async (content, editCount) => {
+      const { user } = renderPanel(
+        content,
+        PermissionLevel.FULL,
+        "another-user",
+      );
       expect(await screen.findByText(items[content].name)).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Add" })).toBeEnabled();
-      expect(screen.getByRole("button", { name: "Delete item" })).toBeEnabled();
-      await user.click(screen.getByRole("button", { name: "Edit item" }));
+      const editButtons = screen.queryAllByRole("button", {
+        name: "Edit item",
+      });
+      expect(editButtons).toHaveLength(editCount);
+      expect(editButtons.every(button => button.hasAttribute("disabled"))).toBe(
+        true,
+      );
       expect(
-        await screen.findByRole("heading", {
-          name: `Edit ${items[content].name}`,
-        }),
-      ).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Confirm" })).toBeEnabled();
+        screen.getByRole("button", { name: "Delete item" }),
+      ).toBeDisabled();
+      expect(screen.getByRole("button", { name: "View item" })).toBeEnabled();
+      await user.click(screen.getByRole("button", { name: "View item" }));
+      expect(
+        screen.queryByRole("button", { name: "Confirm" }),
+      ).not.toBeInTheDocument();
     },
   );
-  it("FULL does not bypass item ownership", async () => {
-    renderPanel(GameDataType.SET, PermissionLevel.FULL, "another-user");
-    expect(await screen.findByText("people")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Edit item" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Delete item" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "View item" })).toBeEnabled();
-  });
 });

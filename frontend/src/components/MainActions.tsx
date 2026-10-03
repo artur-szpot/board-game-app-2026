@@ -1,6 +1,6 @@
 import WarningIcon from "@mui/icons-material/Warning";
 import { Button, Stack } from "@mui/material";
-import { type FC } from "react";
+import { useLayoutEffect, useRef, useState, type FC } from "react";
 
 import type { FrameProps } from "../store/features/frame-actions";
 import { closeFrame } from "../store/features/frameStackSlice";
@@ -25,9 +25,34 @@ export const MainActions: FC<MainActionsProps> = ({
   onShowErrors,
 }: MainActionsProps) => {
   const dispatch = useAppDispatch();
+  const actionsRef = useRef<HTMLDivElement>(null);
+  const [scrollRequest, setScrollRequest] = useState(0);
+
+  useLayoutEffect(() => {
+    if (scrollRequest === 0) {
+      return;
+    }
+    const form = actionsRef.current?.closest(".form-screen");
+    const firstError = Array.from(
+      form?.querySelectorAll<HTMLElement>(
+        '[aria-invalid="true"], .form-field-errors, [data-form-error="true"]',
+      ) ?? [],
+    ).find(element => !element.closest('[hidden], [aria-hidden="true"]'));
+    const target =
+      firstError?.closest<HTMLElement>(".MuiFormControl-root") ??
+      (firstError?.classList.contains("form-field-errors")
+        ? firstError.parentElement
+        : firstError);
+    target?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [scrollRequest]);
 
   return (
-    <Stack className="main-actions" direction="row" spacing={1.25}>
+    <Stack
+      ref={actionsRef}
+      className="main-actions"
+      direction="row"
+      spacing={1.25}
+    >
       <Button
         variant="outlined"
         color="inherit"
@@ -65,7 +90,10 @@ export const MainActions: FC<MainActionsProps> = ({
           type="button"
           startIcon={<WarningIcon />}
           aria-label={`Show ${errorCount.toString()} form errors`}
-          onClick={onShowErrors}
+          onClick={() => {
+            onShowErrors?.();
+            setScrollRequest(current => current + 1);
+          }}
         >
           {errorCount}
         </Button>

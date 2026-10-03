@@ -23,6 +23,12 @@
 - ./go: wrapper script for compose.yaml
 - ./dev: wrapper script for compose.watch.yaml
 
+Both Compose configurations pin PostgreSQL to `postgres:17.11` and use
+`pull_policy: missing`. Docker reuses the local image without checking the registry
+on each startup; a download is needed only on first use or after removing the
+cached image. No custom database image or database-volume changes are needed.
+PostgreSQL updates require deliberately changing the pinned version in both files.
+
 ## Backend architecture
 
 - Framework: NestJS with global validation pipe and CORS enabled.
@@ -114,6 +120,8 @@
 - `DATA_MANAGEMENT READ` grants helper/data set tab access, search, and read-only definition forms;
   `FULL` additionally grants create/update/delete, subject to existing ownership restrictions.
   SYSTEM writes also require `SYSTEM_COLLECTION FULL`.
+- Helper list rows use one definition action: an eye icon opens the read-only form,
+  or a pencil icon opens the editable form when permissions and ownership allow editing.
 - Default roles grant `DATA_MANAGEMENT FULL` to admin and `READ` to user. Existing installations
   must apply `db/migrations/20261003-data-management.sql` using psql autocommit (not `--single-transaction`);
   the enum addition must commit before it is used. Users must sign in again to refresh JWT permissions.
@@ -135,6 +143,11 @@
   - admin routes under /admin
   - collection routes under /collection
   - game details route under /collection/games/:id
+  - helper/set definition forms (history-aware routes):
+    - /collection/helpers/new
+    - /collection/helpers/:id/definition
+    - /collection/sets/new
+    - /collection/sets/:id/definition
 
 ### Frontend frame stack subsystem
 
@@ -158,10 +171,15 @@
   - closeFrame result: invoke closing frame callbackEmitter if present, otherwise new top frame callbackReceiver.
   - sameFrameResult: invoke top frame callbackEmitter if present, otherwise top frame callbackReceiver.
 - Lifecycle management:
+  - Helper/set form routes reset frames before opening their route-specific form. Cancel/save
+    returns to the previous list history entry; direct links fall back to their list route.
+    Pending definition responses are ignored after navigating away.
   - frameStackListeners middleware performs callback invocation and unregisters callback tokens for removed frames.
   - The same middleware clears form custom mapping registry entries for removed frame IDs.
   - Reducers remain pure and do not invoke callbacks directly.
 - Behavioral invariants:
+  - Form error-count actions reveal validation messages and smoothly scroll to the first
+    visible invalid field in the current form, including on repeated clicks.
   - Bottom SELF frame always exists.
   - Non-top frames cannot be closed.
   - Bottom frame cannot be closed.

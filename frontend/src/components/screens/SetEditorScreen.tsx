@@ -142,6 +142,8 @@ export const SetEditorScreen = ({
                     const placeholder =
                       index === draft.properties.length - 1 &&
                       property.name === "";
+                    const showPropertyError =
+                      !placeholder || (showErrors && properties.length === 0);
                     return (
                       <Stack
                         key={property.id}
@@ -154,9 +156,9 @@ export const SetEditorScreen = ({
                           value={property.name}
                           slotProps={{ input: { readOnly } }}
                           sx={{ flex: 1 }}
-                          error={!placeholder && Boolean(error)}
+                          error={showPropertyError && Boolean(error)}
                           helperText={
-                            !placeholder && error ? error : SET_NAMING_HELP
+                            showPropertyError && error ? error : SET_NAMING_HELP
                           }
                           onChange={event =>
                             setDraft(current =>

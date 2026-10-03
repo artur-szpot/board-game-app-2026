@@ -59,6 +59,8 @@ describe("ScoringSchemaEditorScreen", () => {
   });
 
   it("refuses to save while a row has neither a name nor an icon", async () => {
+    const scroll = vi.spyOn(HTMLElement.prototype, "scrollIntoView");
+    scroll.mockClear();
     render(<ScoringSchemaEditorScreen frameId="frame-1" />);
 
     fireEvent.change(screen.getByRole("textbox", { name: /Schema name/ }), {
@@ -71,6 +73,12 @@ describe("ScoringSchemaEditorScreen", () => {
       screen.getByText("Every row needs a name or an icon"),
     ).toBeInTheDocument();
     expect(request).not.toHaveBeenCalled();
+    fireEvent.click(
+      screen.getByRole("button", { name: /Show \d+ form errors/ }),
+    );
+    expect(scroll.mock.contexts[0]).toBe(
+      rowNameFields()[0].closest(".MuiFormControl-root"),
+    );
   });
 
   it("PATCHes an existing schema with blank optional names stripped", async () => {

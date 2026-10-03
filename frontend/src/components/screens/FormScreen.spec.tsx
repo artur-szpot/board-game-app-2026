@@ -511,6 +511,8 @@ describe("FormScreen", () => {
 
     it("reveals per-field messages when the error count is clicked", async () => {
       const user = userEvent.setup();
+      const scroll = vi.spyOn(HTMLElement.prototype, "scrollIntoView");
+      scroll.mockClear();
       render(<FormScreen {...buildInvalidFormProps("revealing-form")} />);
 
       await user.click(
@@ -521,6 +523,13 @@ describe("FormScreen", () => {
       expect(
         screen.getByText("Helpers: choose exactly one option"),
       ).toBeInTheDocument();
+      expect(scroll.mock.contexts[0]).toBe(
+        screen.getByLabelText("Title").closest(".MuiFormControl-root"),
+      );
+      expect(scroll).toHaveBeenCalledWith({
+        behavior: "smooth",
+        block: "center",
+      });
     });
 
     it("revalidates live once errors are revealed", async () => {

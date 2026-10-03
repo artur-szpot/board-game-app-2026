@@ -67,7 +67,8 @@ services:
       - frontend-node-modules:/app/node_modules
 
   db:
-    image: postgres:17
+    image: postgres:17.11
+    pull_policy: missing
     environment:
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password
       POSTGRES_USER_FILE: /run/secrets/postgres-superuser

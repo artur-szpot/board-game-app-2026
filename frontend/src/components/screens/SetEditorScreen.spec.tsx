@@ -38,6 +38,32 @@ describe("SetEditorScreen", () => {
     dispatch.mockReset();
     request.mockResolvedValue({});
   });
+  it("scrolls to the first error and then to an empty required property", () => {
+    const scroll = vi.spyOn(HTMLElement.prototype, "scrollIntoView");
+    scroll.mockClear();
+    render(<SetEditorScreen frameId="error-navigation" />);
+    fireEvent.click(
+      screen.getByRole("button", { name: /Show \d+ form errors/ }),
+    );
+    expect(scroll.mock.contexts[0]).toBe(
+      screen
+        .getByRole("textbox", { name: /Data set name/ })
+        .closest(".MuiFormControl-root"),
+    );
+    change(/Data set name/, "people");
+    fireEvent.click(
+      screen.getByRole("button", { name: /Show \d+ form errors/ }),
+    );
+    expect(screen.getByRole("textbox", { name: "Property 1" })).toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
+    expect(scroll.mock.contexts[1]).toBe(
+      screen
+        .getByRole("textbox", { name: "Property 1" })
+        .closest(".MuiFormControl-root"),
+    );
+  });
   it("shows a read-only form with no mutation or save controls", () => {
     render(<SetEditorScreen frameId="frame-1" set={existing} readOnly />);
     expect(

@@ -120,11 +120,15 @@ const COLLECTION_TABS: EntityPanelTab<
     routeSegment: "helpers",
     label: "Helpers",
     requiredPermission: PermissionType.DATA_MANAGEMENT,
+    combineViewAndEdit: true,
+    createPath: "/collection/helpers/new",
+    detailEndpoint: id => `game-api/helpers/${id}`,
     createScreen: createHelperScreen,
     editScreen: item =>
       openFormFrame({
         params: buildEditHelperScreen(item as HelperResponseDto),
       }),
+    viewPath: item => `/collection/helpers/${item.id}/definition`,
     viewScreen: item =>
       openFormFrame({
         params: {
@@ -133,6 +137,7 @@ const COLLECTION_TABS: EntityPanelTab<
           readOnly: true,
         },
       }),
+    editPath: item => `/collection/helpers/${item.id}/definition`,
     deleteEndpoint: (item: CollectionPanelItem) =>
       `game-api/helpers/${item.id}`,
   },
@@ -141,6 +146,8 @@ const COLLECTION_TABS: EntityPanelTab<
     routeSegment: "sets",
     label: "Helper data sets",
     requiredPermission: PermissionType.DATA_MANAGEMENT,
+    createPath: "/collection/sets/new",
+    detailEndpoint: id => `game-api/sets/${id}`,
     viewScreen: item =>
       openSetEditorFrame({
         params: { set: item as SetResponseDto, readOnly: true },
@@ -148,6 +155,8 @@ const COLLECTION_TABS: EntityPanelTab<
     createAction: () => openSetEditorFrame({ params: {} }),
     editScreen: item =>
       openSetEditorFrame({ params: { set: item as SetResponseDto } }),
+    viewPath: item => `/collection/sets/${item.id}/definition`,
+    editPath: item => `/collection/sets/${item.id}/definition`,
     deleteEndpoint: (item: CollectionPanelItem) => `game-api/sets/${item.id}`,
   },
   {

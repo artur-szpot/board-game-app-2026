@@ -21,8 +21,15 @@ import {
 import Pagination from "@mui/material/Pagination";
 import type { UnknownAction } from "@reduxjs/toolkit";
 import axios from "axios";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router";
 
 import { FrameStackScreenWrapper } from "../../components/frames/FrameStackScreenWrapper";
 import {
@@ -37,7 +44,10 @@ import {
 } from "../../store/features/frameStackSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { extractApiErrorMessages } from "../../utils/api-error";
-import { buildListReturnState } from "../../utils/list-return-state";
+import {
+  buildListReturnState,
+  type ListReturnState,
+} from "../../utils/list-return-state";
 
 import { EntityPanelContent } from "./EntityPanelContent";
 import { EntityPanelFilters } from "./EntityPanelFilters";
@@ -64,6 +74,46 @@ import { hasRequiredPermissions } from "../../utils/useHasRequiredPermissions";
 import "./entity-panel.scss";
 
 const INPUT_STABILITY_IN_MS = 500;
+
+type RouteFrameIntent = {
+  routeSegment: string;
+  mode: "new" | "definition";
+  id?: string;
+};
+
+const resolveRouteFrameIntent = <Category extends string, Item>(
+  basePath: string,
+  tabs: EntityPanelTab<Category, Item>[],
+  pathname: string,
+): RouteFrameIntent | undefined => {
+  const normalizedBasePath = basePath.replace(/\/+$/, "");
+
+  for (const tab of tabs) {
+    const routeSegment = tab.routeSegment ?? tab.category;
+    const tabPrefix = `${normalizedBasePath}/${routeSegment}`;
+
+    if (pathname === `${tabPrefix}/new`) {
+      return {
+        routeSegment,
+        mode: "new",
+      };
+    }
+
+    const definitionPathRegex = new RegExp(
+      `^${tabPrefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}/([^/]+)/definition$`,
+    );
+    const match = definitionPathRegex.exec(pathname);
+    if (match) {
+      return {
+        routeSegment,
+        mode: "definition",
+        id: decodeURIComponent(match[1]),
+      };
+    }
+  }
+
+  return undefined;
+};
 
 const getLastPageIndex = (itemsTotal: number, pageSize: number): number => {
   return Math.max(0, Math.ceil(itemsTotal / pageSize) - 1);
@@ -108,6 +158,7 @@ export const EntityPanel = <
   );
   const topFrame = useAppSelector(selectTopFrame);
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const { page, pageSize: currentPageSize } = useMemo(
     () => parsePaginationParams(searchParams, pageSize),
@@ -134,6 +185,9 @@ export const EntityPanel = <
   const [isDeleteSubmitting, setIsDeleteSubmitting] = useState(false);
   const previousContentRef = useRef(content);
   const previousSearchTermRef = useRef(searchTerm);
+  const [openedRouteLocationKey, setOpenedRouteLocationKey] = useState<
+    string | undefined
+  >();
 
   const labeledTabs = useMemo(
     () =>
@@ -147,6 +201,10 @@ export const EntityPanel = <
     [tabs, permissions],
   );
   const activeTab = labeledTabs.find(tab => tab.category === content);
+  const routeFrameIntent = useMemo(
+    () => resolveRouteFrameIntent(basePath, labeledTabs, location.pathname),
+    [basePath, labeledTabs, location.pathname],
+  );
   const accessDenied = tabs.some(tab => tab.category === content) && !activeTab;
   const canWriteTab =
     !activeTab?.requiredPermission ||
@@ -249,6 +307,138 @@ export const EntityPanel = <
     [hasSystemCollectionFullPermission, toRecord, userId],
   );
 
+  useLayoutEffect(() => {
+    dispatch(resetToBottomFrame());
+  }, [dispatch, location.key]);
+
+  useEffect(() => {
+    setOpenedRouteLocationKey(undefined);
+    if (!routeFrameIntent) {
+      return;
+    }
+    const tabForRoute = labeledTabs.find(
+      tab =>
+        (tab.routeSegment ?? tab.category) === routeFrameIntent.routeSegment,
+    );
+    if (!tabForRoute) {
+      return;
+    }
+
+    let cancelled = false;
+    const openFrame = (action: UnknownAction) => {
+      dispatch(action);
+      setOpenedRouteLocationKey(location.key);
+    };
+
+    const openRouteFrame = async () => {
+      if (routeFrameIntent.mode === "new") {
+        if (!canWriteTab) {
+          setError("You do not have permission to edit this tab.");
+          return;
+        }
+        if (tabForRoute.createAction) {
+          openFrame(tabForRoute.createAction());
+          return;
+        }
+        if (tabForRoute.createScreen) {
+          openFrame(openFormFrame({ params: tabForRoute.createScreen }));
+        }
+        return;
+      }
+
+      if (!routeFrameIntent.id || !tabForRoute.detailEndpoint) {
+        return;
+      }
+
+      setLoading(true);
+      setError(undefined);
+      try {
+        const response = await axios.get<Item>(
+          `${import.meta.env.VITE_API_URL as string}/${tabForRoute.detailEndpoint(routeFrameIntent.id)}`,
+          {
+            headers: accessToken
+              ? {
+                  Authorization: `Bearer ${accessToken}`,
+                }
+              : undefined,
+          },
+        );
+        if (cancelled) {
+          return;
+        }
+        const item = response.data;
+        const canEdit = canWriteTab && isOwnedOrAllowed(item);
+        if (canEdit && tabForRoute.editScreen) {
+          openFrame(tabForRoute.editScreen(item));
+          return;
+        }
+        if (tabForRoute.viewScreen) {
+          openFrame(tabForRoute.viewScreen(item));
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setError(extractApiErrorMessages(error).join(" "));
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void openRouteFrame();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    accessToken,
+    canWriteTab,
+    dispatch,
+    isOwnedOrAllowed,
+    labeledTabs,
+    location.key,
+    routeFrameIntent,
+  ]);
+
+  useEffect(() => {
+    if (!routeFrameIntent) {
+      return;
+    }
+    if (openedRouteLocationKey !== location.key) {
+      return;
+    }
+    if (topFrame?.frameType !== FrameTypeEnum.SELF) {
+      return;
+    }
+
+    const locationState = location.state as
+      | (Partial<ListReturnState> & { routeFrameFromList?: boolean })
+      | null;
+    if (locationState?.routeFrameFromList === true) {
+      void navigate(-1);
+      return;
+    }
+    const listSearch =
+      typeof locationState?.listSearch === "string"
+        ? locationState.listSearch
+        : "";
+    void navigate(
+      {
+        pathname: `${basePath}/${routeFrameIntent.routeSegment}`,
+        search: listSearch,
+      },
+      { replace: true },
+    );
+  }, [
+    basePath,
+    location.key,
+    location.state,
+    navigate,
+    openedRouteLocationKey,
+    routeFrameIntent,
+    topFrame?.frameType,
+  ]);
+
   const fetchItems = useCallback(async () => {
     if (!activeTab) {
       setItems([]);
@@ -257,7 +447,7 @@ export const EntityPanel = <
       return;
     }
 
-    if (!isTopFrameSelf) {
+    if (!isTopFrameSelf || routeFrameIntent) {
       return;
     }
 
@@ -325,14 +515,11 @@ export const EntityPanel = <
     includeDetail,
     isTopFrameSelf,
     page,
+    routeFrameIntent,
     searchEndpoint,
     searchTerm,
     setPagination,
   ]);
-
-  useEffect(() => {
-    dispatch(resetToBottomFrame());
-  }, [dispatch]);
 
   // Pagination now lives in the URL, so it must only be reset on an actual change, never on mount.
   useEffect(() => {
@@ -370,6 +557,15 @@ export const EntityPanel = <
     if (!canWriteTab) {
       return;
     }
+    if (activeTab?.createPath) {
+      void navigate(activeTab.createPath, {
+        state: {
+          ...buildListReturnState(searchParams.toString()),
+          routeFrameFromList: true,
+        },
+      });
+      return;
+    }
     if (activeTab?.createAction) {
       dispatch(activeTab.createAction());
       return;
@@ -393,7 +589,10 @@ export const EntityPanel = <
 
     if (viewPath) {
       void navigate(viewPath(item), {
-        state: buildListReturnState(searchParams.toString()),
+        state: {
+          ...buildListReturnState(searchParams.toString()),
+          routeFrameFromList: Boolean(activeTab?.detailEndpoint),
+        },
       });
       return;
     }
@@ -405,6 +604,19 @@ export const EntityPanel = <
   };
 
   const onEditItem = (item: Item) => {
+    const editPath = activeTab?.editPath as
+      | ((value: Item) => string)
+      | undefined;
+    if (editPath && canWriteTab && isOwnedOrAllowed(item)) {
+      void navigate(editPath(item), {
+        state: {
+          ...buildListReturnState(searchParams.toString()),
+          routeFrameFromList: true,
+        },
+      });
+      return;
+    }
+
     const editScreen = activeTab?.editScreen as
       | ((value: Item) => UnknownAction)
       | undefined;
@@ -421,7 +633,7 @@ export const EntityPanel = <
   };
 
   const canEditItem = (item: Item) => {
-    if (!activeTab?.editScreen || !canWriteTab) {
+    if ((!activeTab?.editScreen && !activeTab?.editPath) || !canWriteTab) {
       return false;
     }
     return isOwnedOrAllowed(item);
